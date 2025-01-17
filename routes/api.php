@@ -58,3 +58,5 @@ Route::post('note',[NoteController::class,'store'])->name('note.store');
 Route::get('note/{id}',[NoteController::class,'show'])->name('note.show');
 Route::put('note/{id}',[NoteController::class,'update'])->name('note.update');
 Route::delete('note/{id}',[NoteController::class,'destroy'])->name('note.destroy');
+Route::get('author',[AuthorController::class,'index']);
+Route::post('author',[AuthorController::class,'store']);
