@@ -273,6 +273,19 @@ export default [
                 component: () => import('../views/admin/roles/Edit.vue'),
                 meta: { breadCrumb: 'Role Edit' }
             },
+            {
+                name: 'authors',
+                path: 'authors',
+                meta: { breadCrumb: 'Autores'},
+                children: [
+                    {
+                        name: 'authors.index',
+                        path: '',
+                        component: () => import('../views/admin/authors/Index.vue'),
+                        meta: { breadCrumb: 'Listado' }
+                    }
+                ]
+            },
 
         ]
     },

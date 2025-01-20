@@ -22,8 +22,8 @@ class AuthorController extends Controller
             ]
         );
         $data= $validator->validated();
-        $author=Author::create($data);
-        return response()->json(['status'=>405,'succes'=>true,'data'=>$author]);
+        $authors=Author::create($data);
+        return response()->json(['status'=>405,'succes'=>true,'data'=>$authors]);
 
         /*
         $author = new Author();
@@ -33,5 +33,41 @@ class AuthorController extends Controller
         $author->save();
         return $request->all();
         return response()->json(['status'=>405,'succes'=>true,'data'=>$author]); */
+    }
+    public function destroy($author){
+        $author->delete();
+        return response()->json(['status'=>405,'succes'=>true,'data'=>'']);
+
+
+    }
+    public function show($id){
+        $author = Author::find($id);
+        if (!$author) {
+            return response()->json(['status' => 404, 'success' => false, 'message' => 'Author not found']);
+        }
+        return response()->json(['status' => 200, 'success' => true, 'data' => $author]);
+    }
+
+    public function update(Request $request, $id){
+        $author = Author::find($id);
+        if (!$author) {
+            return response()->json(['status' => 404, 'success' => false, 'message' => 'Author not found']);
+        }
+
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'name' => 'sometimes|required|max:255',
+                'surname' => 'sometimes|max:255',
+                'email' => 'sometimes|required|email|unique:Authors,email,' . $id
+            ]
+        );
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 400, 'success' => false, 'errors' => $validator->errors()]);
+        }
+
+        $author->update($validator->validated());
+        return response()->json(['status' => 200, 'success' => true, 'data' => $author]);
     }
 }

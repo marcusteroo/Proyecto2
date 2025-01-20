@@ -60,3 +60,6 @@ Route::put('note/{id}',[NoteController::class,'update'])->name('note.update');
 Route::delete('note/{id}',[NoteController::class,'destroy'])->name('note.destroy');
 Route::get('author',[AuthorController::class,'index']);
 Route::post('author',[AuthorController::class,'store']);
+Route::delete('author/{author}',[AuthorController::class,'destroy'])->name('author.destroy');
+Route::get('author/{id}',[AuthorController::class,'show']);
+Route::put('author/{id}',[AuthorController::class,'update']);
