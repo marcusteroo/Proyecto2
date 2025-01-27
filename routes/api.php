@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\NoteController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Api\WhatsAppController;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -63,3 +65,4 @@ Route::post('author',[AuthorController::class,'store']);
 Route::delete('author/{author}',[AuthorController::class,'destroy'])->name('author.destroy');
 Route::get('author/{id}',[AuthorController::class,'show']);
 Route::put('author/{id}',[AuthorController::class,'update']);
+Route::post('send-message', [WhatsAppController::class, 'sendMessage']);

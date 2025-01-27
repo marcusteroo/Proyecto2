@@ -18,3 +18,6 @@ package-lock.json
 composer.lock
 yarn.lock
 /storage/media-library/temp
+.wwebjs_auth/
+.wwebjs_cache/
+
