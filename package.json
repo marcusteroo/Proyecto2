@@ -47,6 +47,7 @@
     "vue-multiselect-listbox": "^0.4.5",
     "vue-router": "^4.5.0",
     "vue-sweetalert2": "^5.0.11",
+    "vuedraggable": "^4.1.0",
     "vuex": "^4.1.0",
     "vuex-persistedstate": "^4.1.0",
     "whatsapp-web.js": "^1.26.0",

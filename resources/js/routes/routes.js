@@ -106,6 +106,11 @@ export default [
                 component: () => import('../views/auth/passwords/Reset.vue'),
                 beforeEnter: guest,
             },
+            {
+                path: '/user/flows',
+                name: 'user.flows',
+                component: () => import('../views/user/flows/index.vue'),
+            },
         ]
     },
 
