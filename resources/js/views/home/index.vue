@@ -26,6 +26,7 @@
         <p>Automatiza procesos, organiza tareas y maximiza tu productividad</p>
         <button class="start-btn">Comenzar</button>
         <router-link to="/user/flows" class="btn btn-primary">Ir a Flows</router-link>
+        <router-link to="/user/kanban" class="btn btn-primary">Ir a Kanflow</router-link>
       </div>
     </section>
   </template>
