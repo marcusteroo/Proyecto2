@@ -14,7 +14,7 @@
           :key="index"
           class="block-item"
           draggable="true"
-          @dragstart="startDrag(block)"
+          @dragstart="(event) => startDrag(event, block)"
           @click="addBlock(block)"
         >
           {{ block.name }}
@@ -51,7 +51,6 @@
               @mouseup="endDragBlock"
             >
               <h3 class="block-name">{{ element.name }}</h3>
-              <p class="block-description">{{ element.description }}</p>
               <button class="remove-button" @click="showPopup(element.id)">❌</button>
             </div>
           </template>
@@ -71,7 +70,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, nextTick } from "vue";
+import { ref, reactive, nextTick, watch } from "vue";
 import draggable from "vuedraggable";
 // Bloques disponibles para arrastrar
 const availableBlocks = ref([
@@ -94,26 +93,53 @@ let draggedBlock = null;
 const showConfirmPopup = ref(false);
 let blockToRemove = null;
 
+
 // Iniciar arrastre
-const startDrag = (block) => {
+const startDrag = (event, block) => {
   draggedBlock = block;
+
+  // Usar el tamaño original
+  const rect = event.target.getBoundingClientRect();
+  const dragImage = event.target.cloneNode(true);
+  dragImage.style.position = "absolute";
+  dragImage.style.width = rect.width + "px";
+  dragImage.style.height = rect.height + "px";
+  dragImage.style.top = "-9999px";
+  dragImage.style.left = "-9999px";
+  dragImage.style.opacity = "1";
+  dragImage.setAttribute("tabindex", "-1");
+
+  document.body.appendChild(dragImage);
+  event.dataTransfer.setDragImage(dragImage, rect.width / 2, rect.height / 2);
+  event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData("text/plain", JSON.stringify(block));
 };
 
-// Soltar bloque en el área de trabajo
-const onDrop = async () => {
-  if (draggedBlock) {
-    blocks.value.push({ ...draggedBlock, id: Date.now() });
-    await nextTick();
-    updateConnections();
-    draggedBlock = null;
-  }
-};
+// Crear/soltar bloque en el centro
+const placeBlockCentered = async (block) => {
+  const canvas = document.querySelector(".workflow-canvas");
+  if (!canvas) return;
 
-// Agregar bloque al hacer clic
-const addBlock = async (block) => {
-  blocks.value.push({ ...block, id: Date.now() });
+  const rect = canvas.getBoundingClientRect();
+  const x = rect.width / 2; // Centro horizontal
+  const y = blocks.value.length * 100 + 20; // Posición vertical secuencial con margen
+
+  blocks.value.push({ ...block, id: Date.now(), x, y });
   await nextTick();
   updateConnections();
+};
+
+// Añadir bloque al hacer clic
+const addBlock = (block) => {
+  placeBlockCentered(block);
+};
+
+// Manejar soltado del drag
+const onDrop = async (event) => {
+  if (draggedBlock) {
+    await placeBlockCentered(draggedBlock);
+    draggedBlock = null;
+  }
 };
 
 // Mostrar popup de confirmación
@@ -147,6 +173,7 @@ const runFlow = () => {
   console.log(blocks.value);
 };
 
+
 const updateConnections = () => {
   connections.value = []; // Reinicia las conexiones
 
@@ -179,36 +206,45 @@ const updateConnections = () => {
   });
 };
 
-// Obtener estilo dinámico de los bloques
+// Ajustar estilos para posicionar en x, y
 const getBlockStyle = (block, index) => {
   return {
-    position: "relative",
+    position: "absolute",
     zIndex: index,
-    left: '50%',
-    transform: 'translateX(-50%)'
+    left: `calc(50% - 175px)`, // Centra asumiendo ancho ~350px
+    top: `${block.y}px`,
+    transform: 'none'
   };
 };
+watch(showConfirmPopup, (val) => {
+  if (val) {
+    document.body.classList.add('no-scroll');
+  } else {
+    document.body.classList.remove('no-scroll');
+  }
+});
+
 </script>
 
 <style scoped>
 .workflow-builder {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* El contenedor ocupa toda la altura de la pantalla */
+  height: 100vh;
   background-color: #f4f4f4;
   border-radius: 12px;
   padding: 20px;
   gap: 20px;
 }
 .workflow-canvas {
-  flex-grow: 1; /* Ajusta el tamaño automáticamente */
-  height: 100%; /* Ocupa el alto completo del contenedor */
+  position: relative;
+  flex-grow: 1;
+  height: 100%;
   background: #ffffff;
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  position: relative;
-  overflow: auto; /* Agrega scroll si los bloques superan el tamaño */
+  overflow: auto;
   background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><circle cx="1" cy="1" r="1" fill="%23ccc" /></svg>');
 }
 
@@ -271,11 +307,16 @@ const getBlockStyle = (block, index) => {
   border-radius: 8px;
   cursor: grab;
   margin-bottom: 10px;
-  transition: background 0.3s;
+  transition: background 0.3s, transform 0.2s ease-in-out;
 }
 
 .block-item:hover {
   background: #005a9e;
+}
+
+.block-item:active {
+  transform: none; /* Desactivar el efecto de zoom cuando se arrastra */
+  opacity: 0.7;
 }
 
 .workflow-canvas {
@@ -299,43 +340,48 @@ const getBlockStyle = (block, index) => {
 }
 
 .workflow-block {
+  display: flex;
+  justify-content: center; /* Centrar el contenido horizontalmente */
+  align-items: center; /* Centrar el contenido verticalmente */
   padding: 15px;
-  background: #e1e1e1;
-  border: 1px solid #ccc;
+  background: #f0f4f8;
+  border: 2px solid #0078d4; /* Borde azul más profesional */
   border-radius: 8px;
   position: absolute; /* Asegura que los bloques se posicionen correctamente */
   transition: background 0.3s, transform 0.2s;
   cursor: grab;
   margin-bottom: 40px; /* Aumenta el espacio entre bloques */
-  width: 200px; /* Hacer los bloques más estrechos */
+  width: 350px; /* Hacer los bloques más anchos */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .workflow-block:hover {
-  background: #d1d1d1;
+  background: #e1e1e1;
 }
 
 .block-name {
   font-size: 1rem;
   font-weight: bold;
   margin: 0;
-}
-
-.block-description {
-  font-size: 0.875rem;
-  color: #666;
+  text-align: center; /* Centrar el texto */
 }
 
 .remove-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
   background: transparent;
   border: none;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 1.25rem;
+  font-size: 1rem;
   color: #ff4d4f;
-  transition: color 0.3s;
+  transition: background 0.3s, color 0.3s;
+  padding: 5px 10px;
 }
 
 .remove-button:hover {
-  color: #ff1a1a;
+  color: #fff;
 }
 
 /* Estilos para el popup de confirmación */
@@ -385,4 +431,15 @@ const getBlockStyle = (block, index) => {
 .popup button:last-of-type:hover {
   background: #999;
 }
+[draggable]:focus {
+    outline: none !important;
+}
+.no-scroll {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+
+
 </style>
