@@ -116,6 +116,11 @@ export default [
                 name: 'user.kanban',
                 component: () => import('../views/user/kanban/index.vue'),
             },
+            {
+                path: '/user/flows/flows',
+                name: 'user.flows.flows',
+                component: () => import('../views/user/flows/flows.vue'),
+            },
         ]
     },
 

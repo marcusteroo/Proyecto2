@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\NoteController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Api\WhatsAppController;
+use App\Http\Controllers\Api\WorkflowController;
+use App\Http\Controllers\Api\WorkflowActionController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -66,3 +68,7 @@ Route::delete('author/{author}',[AuthorController::class,'destroy'])->name('auth
 Route::get('author/{id}',[AuthorController::class,'show']);
 Route::put('author/{id}',[AuthorController::class,'update']);
 Route::post('send-message', [WhatsAppController::class, 'sendMessage']);
+Route::post('/workflows', [WorkflowController::class, 'store']);
+Route::post('/workflows/{id}/actions', [WorkflowActionController::class, 'store']);
+Route::get('/workflows', [WorkflowController::class, 'index']);
+Route::delete('/workflows/{id}', [WorkflowController::class, 'destroy']);

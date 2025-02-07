@@ -2,7 +2,7 @@
   <div class="workflow-builder">
     <header class="header">
       <h1 class="title">Flow Builder</h1>
-      <button class="run-button" @click="runFlow">Run Flow</button>
+      <button class="run-button" @click="saveFlow">Guardar</button>
     </header>
 
     <div class="main-content">
@@ -61,11 +61,15 @@
     <!-- Popup de confirmación -->
     <div v-if="showConfirmPopup" class="popup-overlay">
       <div class="popup">
-        <p>¿Seguro que quieres eliminar la acción?</p>
+        <p>¿Seguro que quieres eliminar la acciónk?</p>
         <button @click="confirmRemoveBlock">Sí</button>
         <button @click="hidePopup">No</button>
       </div>
     </div>
+  </div>
+  <div class="flow-info">
+    <input v-model="flowName" type="text" placeholder="Nombre del flujo" />
+    <input v-model="flowDescription" type="text" placeholder="Descripción del flujo" />
   </div>
 </template>
 
@@ -223,6 +227,39 @@ watch(showConfirmPopup, (val) => {
     document.body.classList.remove('no-scroll');
   }
 });
+import axios from "axios"; // Asegúrate de haber instalado axios
+
+// Nuevas refs para capturar nombre y descripción del flujo
+const flowName = ref('');
+const flowDescription = ref('');
+
+// Reemplaza la función runFlow por saveFlow
+const saveFlow = async () => {
+  try {
+    // 1. Crea el workflow y obtén su ID
+    const workflowResponse = await axios.post('/api/workflows', {
+      nombre: flowName.value,
+      descripcion: flowDescription.value,
+    });
+
+    const idWorkflow = workflowResponse.data.id_workflow;
+
+    // 2. Por cada bloque en blocks, crea un registro en la tabla workflow_actions
+    for (const block of blocks.value) {
+      await axios.post(`/api/workflows/${idWorkflow}/actions`, {
+        name: block.name,
+        description: block.description || '',
+        x_position: block.x,
+        y_position: block.y,
+      });
+    }
+
+    alert('Workflow guardado exitosamente');
+  } catch (error) {
+    console.error(error);
+    alert('Error al guardar el workflow');
+  }
+};
 
 </script>
 

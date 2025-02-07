@@ -27,6 +27,8 @@
         <button class="start-btn">Comenzar</button>
         <router-link to="/user/flows" class="btn btn-primary">Ir a Flows</router-link>
         <router-link to="/user/kanban" class="btn btn-primary">Ir a Kanflow</router-link>
+        <router-link to="/user/flows/flows" class="btn btn-primary">Automatizaciones</router-link>
+
       </div>
     </section>
   </template>
