@@ -5,7 +5,7 @@
       <draggable v-model="listas[index]" :animation="300" group="tareas" class="listaTareas">
         <template #item="{ element: tarea }">
           <div class="tarea">
-            <div>
+            <div @click="editarTarea(tarea)">
               <strong>{{ tarea.nombre }}</strong><br />
               <small>{{ tarea.descripcion }}</small>
             </div>
@@ -27,6 +27,19 @@
         <h2>Editar Tarea</h2>
         <input v-model="tareaEditada.nombre" type="text" placeholder="Nombre de la tarea" />
         <textarea v-model="tareaEditada.descripcion" placeholder="Descripción"></textarea>
+
+        <h3>Subtareas</h3>
+        <ul>
+          <li v-for="(sub, i) in tareaEditada.puntos" :key="i">
+            <input type="checkbox" v-model="sub.completado" />
+            <span :class="{ completado: sub.completado }">{{ sub.texto }}</span>
+            <span @click="eliminarSubtarea(i)">❌</span>
+          </li>
+        </ul>
+
+        <input v-model="nuevaSubtarea" type="text" placeholder="Añadir subtarea" />
+        <button @click="agregarSubtarea">Añadir</button>
+
         <button @click="popupAbierto = false">Cerrar</button>
       </div>
     </div>
@@ -38,22 +51,26 @@ import { ref } from 'vue';
 import draggable from 'vuedraggable';
 
 const sinEmpezar = ref([
-  { nombre: 'Tarea 1', descripcion: 'Descripción 1' },
-  { nombre: 'Tarea 2', descripcion: 'Descripción 2' }
+  { nombre: 'Tarea 1', descripcion: 'Descripción 1', puntos: [{ texto: 'Subtarea 1', completado: false }] },
+  { nombre: 'Tarea 2', descripcion: 'Descripción 2', puntos: [] }
 ]);
-const enCurso = ref([{ nombre: 'Tarea 3', descripcion: 'Descripción 3' }]);
+const enCurso = ref([{ nombre: 'Tarea 3', descripcion: 'Descripción 3', puntos: [] }]);
 const finalizadas = ref([]);
 const stopper = ref([]);
 
 const listas = ref([sinEmpezar.value, enCurso.value, finalizadas.value, stopper.value]);
+
 const titulos = ['Sin Empezar', 'En Curso', 'Finalizadas', 'Stopper'];
+
 const nuevasTareas = ref(['', '', '', '']);
+
 const popupAbierto = ref(false);
 const tareaEditada = ref(null);
+const nuevaSubtarea = ref('');
 
 const agregarTarea = (index, nuevaTarea) => {
   if (nuevaTarea.trim()) {
-    listas.value[index].push({ nombre: nuevaTarea.trim(), descripcion: '' });
+    listas.value[index].push({ nombre: nuevaTarea.trim(), descripcion: '', puntos: [] });
     nuevasTareas.value[index] = '';
   }
 };
@@ -69,6 +86,17 @@ const eliminarTarea = (index, tarea) => {
 const editarTarea = (tarea) => {
   tareaEditada.value = tarea;
   popupAbierto.value = true;
+};
+
+const agregarSubtarea = () => {
+  if (nuevaSubtarea.value.trim()) {
+    tareaEditada.value.puntos.push({ texto: nuevaSubtarea.value.trim(), completado: false });
+    nuevaSubtarea.value = '';
+  }
+};
+
+const eliminarSubtarea = (index) => {
+  tareaEditada.value.puntos.splice(index, 1);
 };
 </script>
 
@@ -98,12 +126,12 @@ const editarTarea = (tarea) => {
 .tarea {
   padding: 12px;
   border-radius: 8px;
-  text-align: left;
   background-color: #f7f7f7;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  cursor: pointer;
 }
 .editar-tarea, .borrar-tarea {
   cursor: pointer;
@@ -129,10 +157,31 @@ const editarTarea = (tarea) => {
   padding: 20px;
   border-radius: 10px;
   text-align: center;
+  width: 300px;
+}
+.popup ul {
+  list-style: none;
+  padding: 0;
+}
+.popup li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 5px 0;
+  padding: 5px;
+  background: #f0f0f0;
+  border-radius: 5px;
+}
+.popup input[type="checkbox"] {
+  margin-right: 10px;
 }
 textarea {
   width: 100%;
   height: 80px;
   margin: 10px 0;
+}
+.completado {
+  text-decoration: line-through;
+  color: gray;
 }
 </style>
