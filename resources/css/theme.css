@@ -572,3 +572,43 @@ div.corner:after , div.corner:after {
 .mh-empty{
     min-height:150px !important;
 }
+h2 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    text-align: center;
+    font-weight: bold;
+  }
+  .columna {
+    min-height: 90vh;
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+  }
+  .seccion {
+    flex: 1;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ccc;
+    min-width: 300px;
+    max-width: 350px;
+    display: flex;
+    flex-direction: column;
+  }
+  .tarea {
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+    background-color: #f7f7f7;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .listaTareas {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }

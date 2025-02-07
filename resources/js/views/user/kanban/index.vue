@@ -1,70 +1,33 @@
 <template>
   <div class="columna">
-    <div class="seccion">
-      <h2>Sin Empezar</h2>
-      <draggable v-model="sinEmpezar" :animation="300" group="tareas" class="listaTareas">
+    <div v-for="(lista, index) in listas" :key="index" class="seccion">
+      <h2>{{ titulos[index] }}</h2>
+      <draggable v-model="listas[index]" :animation="300" group="tareas" class="listaTareas">
         <template #item="{ element: tarea }">
           <div class="tarea">
-            {{ tarea.nombre }}
-            {{ tarea.descripcion }}
-            <span @click="eliminarTarea(sinEmpezar, tarea)" class="borrar-tarea">🗑️</span>
+            <div>
+              <strong>{{ tarea.nombre }}</strong><br />
+              <small>{{ tarea.descripcion }}</small>
+            </div>
+            <div>
+              <span @click="editarTarea(tarea)" class="editar-tarea">✏️</span>
+              <span @click="eliminarTarea(index, tarea)" class="borrar-tarea">🗑️</span>
+            </div>
           </div>
         </template>
       </draggable>
       <div>
-        <input v-model="nuevaTareaSinEmpezar" type="text" class="anadir-tarea" placeholder="Agregar nueva tarea"/>
-        <button @click="agregarTarea(sinEmpezar, nuevaTareaSinEmpezar)" class="anadir-tarea">Añadir</button>
+        <input v-model="nuevasTareas[index]" type="text" class="anadir-tarea" placeholder="Agregar nueva tarea"/>
+        <button @click="agregarTarea(index, nuevasTareas[index])" class="anadir-tarea">Añadir</button>
       </div>
     </div>
 
-    <div class="seccion">
-      <h2>En Curso</h2>
-      <draggable v-model="enCurso" :animation="300" group="tareas" class="listaTareas">
-        <template #item="{ element: tarea }">
-          <div class="tarea">
-            {{ tarea.nombre }}
-            {{ tarea.descripcion }}
-            <span @click="eliminarTarea(enCurso, tarea)" class="borrar-tarea">🗑️</span>
-          </div>
-        </template>
-      </draggable>
-      <div>
-        <input v-model="nuevaTareaEnCurso" type="text" class="anadir-tarea" placeholder="Agregar nueva tarea"/>
-        <button @click="agregarTarea(enCurso, nuevaTareaEnCurso)" class="anadir-tarea">Añadir</button>
-      </div>
-    </div>
-
-    <div class="seccion">
-      <h2>Finalizadas</h2>
-      <draggable v-model="finalizadas" :animation="300" group="tareas" class="listaTareas">
-        <template #item="{ element: tarea }">
-          <div class="tarea">
-            {{ tarea.nombre }}
-            {{ tarea.descripcion }}
-            <span @click="eliminarTarea(finalizadas, tarea)" class="borrar-tarea">🗑️</span>
-          </div>
-        </template>
-      </draggable>
-      <div>
-        <input v-model="nuevaTareaFinalizadas" type="text" class="anadir-tarea" placeholder="Agregar nueva tarea"/>
-        <button @click="agregarTarea(finalizadas, nuevaTareaFinalizadas)" class="anadir-tarea">Añadir</button>
-      </div>
-    </div>
-
-    <div class="seccion">
-      <h2>Stopper</h2>
-      <draggable v-model="stopper" :animation="300" group="tareas" class="listaTareas">
-        <template #item="{ element: tarea }">
-          <div class="tarea">
-            {{ tarea.nombre }}
-            {{ tarea.descripcion }}
-            <span @click="eliminarTarea(stopper, tarea)" class="borrar-tarea">🗑️</span>
-          </div>
-        </template>
-      </draggable>
-      <div>
-        <input v-model="nuevaTareaStopper" type="text" class="anadir-tarea" placeholder="Agregar nueva tarea"/>
-        <button @click="agregarTarea(stopper, nuevaTareaStopper)" class="anadir-tarea">Añadir</button>
+    <div v-if="popupAbierto" class="popup-overlay">
+      <div class="popup">
+        <h2>Editar Tarea</h2>
+        <input v-model="tareaEditada.nombre" type="text" placeholder="Nombre de la tarea" />
+        <textarea v-model="tareaEditada.descripcion" placeholder="Descripción"></textarea>
+        <button @click="popupAbierto = false">Cerrar</button>
       </div>
     </div>
   </div>
@@ -75,79 +38,42 @@ import { ref } from 'vue';
 import draggable from 'vuedraggable';
 
 const sinEmpezar = ref([
-  { nombre: 'Tarea 1', descripcion: 'Descripción 1', img:'', puntos: ['punto 1', 'punto 2']},
-  { nombre: 'Tarea 2', descripcion: 'Descripción 2', img:'', puntos: ['punto 1', 'punto 2']},
-  { nombre: 'Tarea 3', descripcion: 'Descripción 3', img:'', puntos: ['punto 1', 'punto 2']}
+  { nombre: 'Tarea 1', descripcion: 'Descripción 1' },
+  { nombre: 'Tarea 2', descripcion: 'Descripción 2' }
 ]);
-
-const enCurso = ref([
-  { nombre: 'Tarea 4', descripcion: 'Descripción 4', img:'', puntos: ['punto 1', 'punto 2']},
-  { nombre: 'Tarea 5', descripcion: 'Descripción 5', img:'', puntos: ['punto 1', 'punto 2']}
-]);
-
+const enCurso = ref([{ nombre: 'Tarea 3', descripcion: 'Descripción 3' }]);
 const finalizadas = ref([]);
 const stopper = ref([]);
 
-const nuevaTarea = ref('');
-const nuevaTareaSinEmpezar = ref('');
-const nuevaTareaEnCurso = ref('');
-const nuevaTareaFinalizadas = ref('');
-const nuevaTareaStopper = ref('');
+const listas = ref([sinEmpezar.value, enCurso.value, finalizadas.value, stopper.value]);
+const titulos = ['Sin Empezar', 'En Curso', 'Finalizadas', 'Stopper'];
+const nuevasTareas = ref(['', '', '', '']);
+const popupAbierto = ref(false);
+const tareaEditada = ref(null);
 
-// Estado para el pop-up
-const showModal = ref(false);
-const tareaSeleccionada = ref(null);
-
-// Función para mostrar el pop-up
-const mostrarModal = (tarea) => {
-  tareaSeleccionada.value = { ...tarea }; // Crear una copia de la tarea
-  showModal.value = true;
-};
-
-// Función para cerrar el pop-up
-const cerrarModal = () => {
-  showModal.value = false;
-  tareaSeleccionada.value = null;
-};
-
-// Función para actualizar la descripción de la tarea
-const actualizarDescripcion = () => {
-  if (tareaSeleccionada.value) {
-    // Buscar la tarea en la lista y actualizar la descripción
-    const lista = [...sinEmpezar.value, ...enCurso.value, ...finalizadas.value, ...stopper.value];
-    const tareaIndex = lista.findIndex(t => t.nombre === tareaSeleccionada.value.nombre);
-    if (tareaIndex !== -1) {
-      lista[tareaIndex].descripcion = tareaSeleccionada.value.descripcion;
-    }
-  }
-};
-
-// Función para agregar tarea
-const agregarTarea = (lista, nuevaTarea) => {
+const agregarTarea = (index, nuevaTarea) => {
   if (nuevaTarea.trim()) {
-    lista.push({ nombre: nuevaTarea.trim(), descripcion: '' });
-    nuevaTarea.value = '';
+    listas.value[index].push({ nombre: nuevaTarea.trim(), descripcion: '' });
+    nuevasTareas.value[index] = '';
   }
 };
 
-// Función para eliminar tarea
-const eliminarTarea = (lista, tarea) => {
-  const index = lista.indexOf(tarea);
-  if (index !== -1) {
-    lista.splice(index, 1);
+const eliminarTarea = (index, tarea) => {
+  const lista = listas.value[index];
+  const i = lista.indexOf(tarea);
+  if (i !== -1) {
+    lista.splice(i, 1);
   }
+};
+
+const editarTarea = (tarea) => {
+  tareaEditada.value = tarea;
+  popupAbierto.value = true;
 };
 </script>
 
 <style>
-h2 {
-  font-size: 1.2rem;
-  margin-bottom: 10px;
-  text-align: center;
-  font-weight: bold;
-}
 .columna {
-  min-height: 90vh;
   display: flex;
   gap: 20px;
   padding: 20px;
@@ -163,21 +89,50 @@ h2 {
   display: flex;
   flex-direction: column;
 }
+.listaTareas {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
 .tarea {
   padding: 12px;
   border-radius: 8px;
-  text-align: center;
-  font-weight: bold;
+  text-align: left;
   background-color: #f7f7f7;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.listaTareas {
-  flex: 1;
+.editar-tarea, .borrar-tarea {
+  cursor: pointer;
+  margin-left: 8px;
+}
+.anadir-tarea {
+  margin-top: 10px;
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
-  flex-direction: column;
-  gap: 20px;
+  align-items: center;
+  justify-content: center;
+}
+.popup {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+textarea {
+  width: 100%;
+  height: 80px;
+  margin: 10px 0;
 }
 </style>
