@@ -121,6 +121,11 @@ export default [
                 name: 'user.flows.flows',
                 component: () => import('../views/user/flows/flows.vue'),
             },
+            {
+                path: 'user/flows/edit/:id',
+                name: 'flows.edit',
+                component: () => import('../views/user/flows/EditFlow.vue') // ← Creas este componente
+            },
         ]
     },
 

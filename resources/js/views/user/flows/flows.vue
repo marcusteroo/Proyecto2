@@ -45,8 +45,16 @@ export default {
             }
         },
         editFlow(id) {
-            // Redirigir a la página de edición de la automatización
-            this.$router.push(`/flows/edit/${id}`);
+            this.$router.push({ name: 'flows.edit', params: { id } });
+            },
+        async updateFlow(id, nombre, descripcion) {
+            try {
+                await axios.put(`/api/workflows/${id}`, { nombre, descripcion });
+                this.fetchFlows(); // Vuelve a obtener los workflows después de actualizar uno
+                alert(`Automatización con ID: ${id} actualizada`);
+            } catch (error) {
+                console.error('Error al actualizar el workflow:', error);
+            }
         },
         async deleteFlow(id) {
             try {

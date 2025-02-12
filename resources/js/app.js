@@ -58,12 +58,12 @@ import InputIcon from 'primevue/inputicon';
 import MeterGroup from 'primevue/metergroup';
 import Tooltip from 'primevue/tooltip';
 import FloatLabel from 'primevue/floatlabel';
-
 /*STYLES */
 import "primeflex/primeflex.css";
 import "primeicons/primeicons.css";
 import 'sweetalert2/dist/sweetalert2.min.css';
 import '../css/theme.css';
+import '@fortawesome/fontawesome-free/css/all.css';
 
 const app = createApp({
     created() {

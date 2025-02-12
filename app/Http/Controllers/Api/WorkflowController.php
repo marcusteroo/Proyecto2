@@ -24,8 +24,24 @@ class WorkflowController extends Controller
     public function destroy($id)
     {
         $workflow = Workflow::findOrFail($id);
-        $workflow->delete();
+        $workflow->delete();    
 
         return response()->json(['message' => 'Workflow eliminado'], 200);
     }
+    public function update(Request $request, $id)
+    {
+        $workflow = Workflow::findOrFail($id);
+        $workflow->update([
+            'nombre' => $request->nombre,
+            'descripcion' => $request->descripcion,
+        ]);
+
+        return response()->json(['message' => 'Workflow actualizado'], 200);
+    }
+    public function show($id)
+    {
+        $workflow = Workflow::findOrFail($id);
+        return response()->json($workflow);
+    }
+
 }

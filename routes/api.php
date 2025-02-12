@@ -13,6 +13,7 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Api\WhatsAppController;
 use App\Http\Controllers\Api\WorkflowController;
 use App\Http\Controllers\Api\WorkflowActionController;
+use App\Http\Controllers\Auth\RegisterController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -72,3 +73,9 @@ Route::post('/workflows', [WorkflowController::class, 'store']);
 Route::post('/workflows/{id}/actions', [WorkflowActionController::class, 'store']);
 Route::get('/workflows', [WorkflowController::class, 'index']);
 Route::delete('/workflows/{id}', [WorkflowController::class, 'destroy']);
+Route::put('/workflows/{id}', [WorkflowController::class, 'update']);
+Route::put('/workflow-actions/{id}', [WorkflowActionController::class, 'update']);
+Route::get('/workflows/{id}', [WorkflowController::class, 'show']);
+Route::get('/workflows-action/{id}', [WorkflowController::class, 'getActions']);
+Route::post('/check-email', [RegisterController::class, 'checkEmail']);
+
