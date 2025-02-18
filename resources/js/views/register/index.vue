@@ -85,7 +85,7 @@
                                     </div>
                                     <div class="flex items-center justify-end mt-4">
                                         <button class="btn btn-primary" :class="{ 'opacity-25': processing }" :disabled="processing">
-                                            {{ $t('register') }}
+                                            {{ $t('Pagar') }}
                                         </button>
                                     </div>
                                 </div>
@@ -99,94 +99,115 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import axios from 'axios';
-import useAuth from '@/composables/auth';
+    import { ref } from 'vue';
+    import axios from 'axios';
+    import useAuth from '@/composables/auth';
 
-const { registerForm, validationErrors, processing, submitRegister } = useAuth();
-const currentStep = ref(1);
-const paymentForm = ref({
-    card_number: '',
-    expiry_date: '',
-    cvv: ''
-});
+    const { registerForm, validationErrors, processing, submitRegister } = useAuth();
+    const currentStep = ref(1);
+    const paymentForm = ref({
+        card_number: '',
+        expiry_date: '',
+        cvv: ''
+    });
 
-const handleSubmit = async () => {
-    if (currentStep.value === 1) {
-        // Validar el formulario de registro
-        if (await validateRegisterForm()) {
-            currentStep.value = 2;
+    const handleSubmit = async () => {
+        if (currentStep.value === 1) {
+            // Validar el formulario de registro
+            if (await validateRegisterForm()) {
+                currentStep.value = 2;
+            }
+        } else if (currentStep.value === 2) {
+            // Validar el formulario de método de pago y registrar el usuario
+            if (await validatePaymentForm()) {
+                await submitRegister();
+            }
         }
-    } else if (currentStep.value === 2) {
-        // Validar el formulario de método de pago y registrar el usuario
-        if (await validatePaymentForm()) {
-            await submitRegister();
-        }
-    }
-};
+    };
 
-const validateRegisterForm = async () => {
-    validationErrors.value = {};
+    const validateRegisterForm = async () => {
+        validationErrors.value = {};
 
-    // Verificar que todos los campos estén rellenos
-    if (!registerForm.name || !registerForm.email || !registerForm.password || !registerForm.password_confirmation) {
-        if (!registerForm.name) validationErrors.value.name = ['El nombre es obligatorio.'];
-        if (!registerForm.email) validationErrors.value.email = ['El email es obligatorio.'];
-        if (!registerForm.password) validationErrors.value.password = ['La contraseña es obligatoria.'];
-        if (!registerForm.password_confirmation) validationErrors.value.password_confirmation = ['La confirmación de la contraseña es obligatoria.'];
-        return false;
-    }
-
-    // Verificar que el email no exista ya
-    try {
-        const response = await axios.post('/api/check-email', { email: registerForm.email });
-        if (response.data.exists) {
-            validationErrors.value.email = ['El email ya está registrado.'];
+        // Verificar que todos los campos estén rellenos
+        if (!registerForm.name || !registerForm.email || !registerForm.password || !registerForm.password_confirmation) {
+            if (!registerForm.name) validationErrors.value.name = ['El nombre es obligatorio.'];
+            if (!registerForm.email) validationErrors.value.email = ['El email es obligatorio.'];
+            if (!registerForm.password) validationErrors.value.password = ['La contraseña es obligatoria.'];
+            if (!registerForm.password_confirmation) validationErrors.value.password_confirmation = ['La confirmación de la contraseña es obligatoria.'];
             return false;
         }
-    } catch (error) {
-        validationErrors.value.email = ['Error al verificar el email.'];
-        return false;
-    }
 
-    return true;
-};
+        // Validar formato del email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(registerForm.email)) {
+            validationErrors.value.email = ['El formato del email no es válido.'];
+            return false;
+        }
 
-const validatePaymentForm = async () => {
-    validationErrors.value = {};
+        // Verificar que el email no exista ya
+        try {
+            const response = await axios.post('/api/check-email', { email: registerForm.email });
+            if (response.data.exists) {
+                validationErrors.value.email = ['El email ya está registrado.'];
+                return false;
+            }
+        } catch (error) {
+            validationErrors.value.email = ['Error al verificar el email.'];
+            return false;
+        }
 
-    // Verificar que todos los campos estén rellenos
-    if (!paymentForm.value.card_number || !paymentForm.value.expiry_date || !paymentForm.value.cvv) {
-        if (!paymentForm.value.card_number) validationErrors.value.card_number = ['El número de tarjeta es obligatorio.'];
-        if (!paymentForm.value.expiry_date) validationErrors.value.expiry_date = ['La fecha de expiración es obligatoria.'];
-        if (!paymentForm.value.cvv) validationErrors.value.cvv = ['El CVV es obligatorio.'];
-        return false;
-    }
+        // Validar la seguridad de la contraseña
+        const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+        if (!passwordRegex.test(registerForm.password)) {
+            validationErrors.value.password = ['La contraseña debe tener al menos 8 caracteres, una mayúscula y un número.'];
+            return false;
+        }
 
-    // Validar el formato del número de tarjeta de crédito
-    const cardNumberRegex = /^[0-9]{16}$/;
-    if (!cardNumberRegex.test(paymentForm.value.card_number)) {
-        validationErrors.value.card_number = ['El número de tarjeta no es válido.'];
-        return false;
-    }
+        // Validar que la confirmación de contraseña coincida
+        if (registerForm.password !== registerForm.password_confirmation) {
+            validationErrors.value.password_confirmation = ['Las contraseñas no coinciden.'];
+            return false;
+        }
 
-    // Validar el formato de la fecha de expiración (MM/YY)
-    const expiryDateRegex = /^(0[1-9]|1[0-2])\/?([0-9]{2})$/;
-    if (!expiryDateRegex.test(paymentForm.value.expiry_date)) {
-        validationErrors.value.expiry_date = ['La fecha de expiración no es válida.'];
-        return false;
-    }
+        return true;
+    };
 
-    // Validar el formato del CVV (3 o 4 dígitos)
-    const cvvRegex = /^[0-9]{3,4}$/;
-    if (!cvvRegex.test(paymentForm.value.cvv)) {
-        validationErrors.value.cvv = ['El CVV no es válido.'];
-        return false;
-    }
+    const validatePaymentForm = async () => {
+        validationErrors.value = {};
 
-    return true;
-};
+        // Verificar que todos los campos estén rellenos
+        if (!paymentForm.value.card_number || !paymentForm.value.expiry_date || !paymentForm.value.cvv) {
+            if (!paymentForm.value.card_number) validationErrors.value.card_number = ['El número de tarjeta es obligatorio.'];
+            if (!paymentForm.value.expiry_date) validationErrors.value.expiry_date = ['La fecha de expiración es obligatoria.'];
+            if (!paymentForm.value.cvv) validationErrors.value.cvv = ['El CVV es obligatorio.'];
+            return false;
+        }
+
+        // Validar el formato del número de tarjeta de crédito
+        const cardNumberRegex = /^[0-9]{16}$/;
+        if (!cardNumberRegex.test(paymentForm.value.card_number)) {
+            validationErrors.value.card_number = ['El número de tarjeta no es válido.'];
+            return false;
+        }
+
+        // Validar el formato de la fecha de expiración (MM/YY)
+        const expiryDateRegex = /^(0[1-9]|1[0-2])\/?([0-9]{2})$/;
+        if (!expiryDateRegex.test(paymentForm.value.expiry_date)) {
+            validationErrors.value.expiry_date = ['La fecha de expiración no es válida.'];
+            return false;
+        }
+
+        // Validar el formato del CVV (3 o 4 dígitos)
+        const cvvRegex = /^[0-9]{3,4}$/;
+        if (!cvvRegex.test(paymentForm.value.cvv)) {
+            validationErrors.value.cvv = ['El CVV no es válido.'];
+            return false;
+        }
+
+        return true;
+    };
 </script>
+
 
 <style scoped>
 .register-bg {
