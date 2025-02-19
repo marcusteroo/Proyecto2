@@ -89,7 +89,7 @@ export default function useAuth() {
                     showConfirmButton: false,
                     timer: 1500
                 })
-                await router.push({ name: 'auth.login' })
+                await router.push({ name: 'admin.index' })
             })
             .catch(error => {
                 if (error.response?.data) {

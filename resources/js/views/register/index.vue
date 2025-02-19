@@ -57,8 +57,24 @@
                                 <div v-if="currentStep === 2">
                                     <!-- Formulario de Método de Pago -->
                                     <div class="mb-3">
-                                        <label for="card_number" class="form-label">{{ $t('card_number') }}</label>
-                                        <input v-model="paymentForm.card_number" id="card_number" type="text" class="form-control">
+                                        <label for="card_number" class="form-label">{{ $t('Numero de tarjeta') }}</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text card-type">
+                                                <img v-if="cardType" :src="`/images/cards/${cardType}.svg`" :alt="cardType" class="card-icon">
+                                            </span>
+                                            <input
+                                                v-model="paymentForm.card_number"
+                                                @input="formatCardNumber"
+                                                @keypress="onlyNumbers"
+                                                id="card_number"
+                                                type="text"
+                                                class="form-control"
+                                                maxlength="19"
+                                            >
+                                            <span class="input-group-text card-type">
+                                                <img v-if="cardType" :src="`/images/cards/${cardType}.svg`" :alt="cardType" class="card-icon">
+                                            </span>
+                                        </div>
                                         <div class="text-danger mt-1">
                                             <div v-for="message in validationErrors?.card_number">
                                                 {{ message }}
@@ -66,8 +82,19 @@
                                         </div>
                                     </div>
                                     <div class="mb-3">
-                                        <label for="expiry_date" class="form-label">{{ $t('expiry_date') }}</label>
-                                        <input v-model="paymentForm.expiry_date" id="expiry_date" type="text" class="form-control">
+                                        <label for="expiry_date" class="form-label">{{ $t('Fecha de vencimiento') }}</label>
+                                        <div class="input-group">
+                                            <input
+                                                v-model="paymentForm.expiry_date"
+                                                @input="formatExpiryDate"
+                                                @keypress="onlyNumbers"
+                                                id="expiry_date"
+                                                type="text"
+                                                class="form-control"
+                                                placeholder="MM/YY"
+                                                maxlength="5"
+                                            >
+                                        </div>
                                         <div class="text-danger mt-1">
                                             <div v-for="message in validationErrors?.expiry_date">
                                                 {{ message }}
@@ -75,8 +102,8 @@
                                         </div>
                                     </div>
                                     <div class="mb-3">
-                                        <label for="cvv" class="form-label">{{ $t('cvv') }}</label>
-                                        <input v-model="paymentForm.cvv" id="cvv" type="text" class="form-control">
+                                        <label for="cvv" class="form-label">{{ $t('CVV (Código Seguridad)') }}</label>
+                                        <input v-model="paymentForm.cvv" id="cvv" type="text" class="form-control" maxlength="3" @keypress="onlyNumbers">
                                         <div class="text-danger mt-1">
                                             <div v-for="message in validationErrors?.cvv">
                                                 {{ message }}
@@ -110,6 +137,7 @@
         expiry_date: '',
         cvv: ''
     });
+    const cardType = ref('');
 
     const handleSubmit = async () => {
         if (currentStep.value === 1) {
@@ -184,8 +212,8 @@
         }
 
         // Validar el formato del número de tarjeta de crédito
-        const cardNumberRegex = /^[0-9]{16}$/;
-        if (!cardNumberRegex.test(paymentForm.value.card_number)) {
+        const cardNumberRegex = /^[0-9]{13,19}$/;
+        if (!cardNumberRegex.test(paymentForm.value.card_number.replace(/\s/g, ''))) {
             validationErrors.value.card_number = ['El número de tarjeta no es válido.'];
             return false;
         }
@@ -205,6 +233,51 @@
         }
 
         return true;
+    };
+
+    const formatCardNumber = () => {
+        let value = paymentForm.value.card_number.replace(/\D/g, '');
+        value = value.substring(0, 16);
+        
+        // Format with spaces every 4 digits
+        value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+        paymentForm.value.card_number = value;
+
+        // Detect card type
+        const cardNumber = value.replace(/\s/g, '');
+        if (/^4/.test(cardNumber)) {
+            cardType.value = 'visa';
+        } else if (/^5[1-5]/.test(cardNumber)) {
+            cardType.value = 'mastercard';
+        } else if (/^3[47]/.test(cardNumber)) {
+            cardType.value = 'amex';
+        } else {
+            cardType.value = '';
+        }
+    };
+
+    const formatExpiryDate = () => {
+        let value = paymentForm.value.expiry_date.replace(/\D/g, '');
+
+        if (value.length >= 2) {
+            let month = parseInt(value.substring(0, 2));
+            // Si el mes excede 12, forzarlo a 12
+            if (month > 12) {
+                month = 12;
+            }
+            // Tomar hasta 4 dígitos (mes + año)
+            value = month.toString().padStart(2, '0') + value.substring(2, 4);
+            // Insertar la barra tras los 2 primeros dígitos
+            value = value.substring(0, 2) + '/' + value.substring(2);
+        }
+
+        paymentForm.value.expiry_date = value;
+    };
+
+    const onlyNumbers = (e) => {
+        if (!/^\d*$/.test(e.key)) {
+            e.preventDefault();
+        }
     };
 </script>
 
@@ -263,5 +336,37 @@
   font-size: 1rem;
   padding: 12px 24px;
   border-radius: 0px;
+}
+
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-group .form-control {
+    padding-right: 40px; 
+}
+
+.card-type {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border-left: none;
+    pointer-events: none;
+    z-index: 9999;
+    border: none;
+}
+
+.card-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.form-control:focus {
+  box-shadow: none;
+  border-color: #4a6cf7;
 }
 </style>
