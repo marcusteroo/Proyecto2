@@ -87,9 +87,17 @@ class AuthenticatedSessionController extends Controller
             'email' => $request['email'],
             'password' => Hash::make($request['password']),
             'name' => $request['name'],
-            
         ]);
 
-        return $this->successResponse($user, 'Registration Successfully');
+        // Autenticar inmediatamente
+        Auth::login($user);
+
+        // Crear token que se usa en login()
+        $token = $user->createToken($request->userAgent())->plainTextToken;
+
+        return response()->json([
+            'user' => $user,
+            'token' => $token
+        ]);
     }
 }

@@ -137,8 +137,11 @@ export default [
         // },
         name: 'app',
         beforeEnter: requireLogin,
-        meta: { breadCrumb: 'Dashboard' }
+        meta: { breadCrumb: 'Dashboard' },
+        //children: [
+            //{
     },
+
 
 
     {

@@ -82,14 +82,15 @@ export default function useAuth() {
         await axios.post('/register', registerForm)
             .then(async response => {
                 // await store.dispatch('auth/getUser')
-                // await loginUser()
+                await auth.getUser()
+                await loginUser()
                 swal({
                     icon: 'success',
                     title: 'Registration successfully',
                     showConfirmButton: false,
                     timer: 1500
                 })
-                await router.push({ name: 'admin.index' })
+                await router.push({ path: '/app' })
             })
             .catch(error => {
                 if (error.response?.data) {
