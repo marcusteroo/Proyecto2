@@ -5,10 +5,10 @@
         <div class="layout-sidebar">
             <Menu :model="items" class="w-full md:w-13rem menu border-0" appendTo="self">
                 <template #start>
-                    <button class="relative overflow-hidden w-full p-link flex align-items-center p-2 pl-0 text-color hover:surface-200 border-noround">
+                    <button class="relative overflow-hidden w-full p-link flex align-items-center p-2 pl-0 text-color hover:surface-200 border-noround container-nombre-usuario">
                         <Avatar :image="authStore().user?.avatar" class="mr-3" shape="circle" />
                         <span class="inline-flex flex-column">
-                            <span class="font-bold">{{ user.name }}</span>
+                            <span class="font-bold nombre-usuario">Bienvenido, {{ user.name }}</span>
                             <span>
                                 <span v-for="rol in user.roles" class="text-sm mr-2">{{ rol.name }}</span>
                             </span>
@@ -108,14 +108,21 @@ const items = ref([
         separator: true
     },
     {
-        label: 'Documents',
         items: [
             {
-                label: 'Tareas',
-                icon: 'pi pi-plus',
+                label: 'Kanban',
+                icon: 'pi pi-th-large',
                 // shortcut: '⌘+N',
                 command: () => {
-                    router.push({ name: 'app.tasks' })
+                    router.push({ path: '/app/kanban' })
+                }
+            },
+            {
+                label: 'Automatizaciones',
+                icon: 'pi pi-cog',
+                // shortcut: '⌘+N',
+                command: () => {
+                    router.push({ path: '/app/flows' })
                 }
             },
             {
@@ -222,6 +229,34 @@ const isOutsideClicked = (event) => {
 }
 
 .layout-sidebar {
-    padding: 0.5rem 0.5rem
+    padding: 0.5rem 0.5rem;
+    background-color: #1A00FF; 
+    color: #fff;
+}
+.p-menu-item-link {
+    all:unset;
+    color: white !important;
+    font-weight: bold;
+    background-color: transparent!important;
+}
+.p-menu-item-link:hover,
+.p-menu-item-link:active,
+.p-menu-item-link:focus {
+    background-color: #4D33FF !important;
+    color: white !important;
+    box-shadow: none !important; // Evita cualquier sombra
+    outline: none !important; // Elimina cualquier contorno
+    border: none !important;
+}
+.nombre-usuario {
+    font-weight: bold;
+    color: white;
+    
+}
+.container-nombre-usuario {
+    background-color: #1A00FF;
+}
+.p-menu-list{
+    background-color: #1A00FF;
 }
 </style>
