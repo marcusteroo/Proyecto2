@@ -1,5 +1,6 @@
 <template>
   <div class="columna">
+    <!-- Sección de listas de tareas -->
     <div v-for="(lista, index) in listas" :key="index" class="seccion">
       <h2>{{ titulos[index] }}</h2>
       <draggable v-model="listas[index]" :animation="300" group="tareas" class="listaTareas">
@@ -17,11 +18,19 @@
         </template>
       </draggable>
       <div>
-        <input v-model="nuevasTareas[index]" type="text" class="anadir-tarea" placeholder="Agregar nueva tarea"/>
+        <input v-model="nuevasTareas[index]" type="text" class="anadir-tarea" placeholder="Agregar nueva tarea" />
         <button @click="agregarTarea(index, nuevasTareas[index])" class="anadir-tarea">Añadir</button>
       </div>
     </div>
 
+    <!-- Formulario para añadir nueva tarea -->
+    <div class="formulario">
+      <input v-model="nuevaTarea" type="text" placeholder="Nombre de la tarea" />
+      <textarea v-model="descripcionTarea" placeholder="Descripción de la tarea"></textarea>
+      <button @click="agregarTareaBackend">Añadir Tarea</button>
+    </div>
+
+    <!-- Popup para editar tarea -->
     <div v-if="popupAbierto" class="popup-overlay">
       <div class="popup">
         <h2>Editar Tarea</h2>
@@ -47,27 +56,51 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
 import draggable from 'vuedraggable';
 
-const sinEmpezar = ref([
-  { nombre: 'Tarea 1', descripcion: 'Descripción 1', subtareas: [{ texto: 'Subtarea 1', completado: false }] },
-  { nombre: 'Tarea 2', descripcion: 'Descripción 2', subtareas: [] }
-]);
-const enCurso = ref([{ nombre: 'Tarea 3', descripcion: 'Descripción 3', subtareas: [] }]);
+const sinEmpezar = ref([]);
+const enCurso = ref([]);
 const finalizadas = ref([]);
 const stopper = ref([]);
 
 const listas = ref([sinEmpezar.value, enCurso.value, finalizadas.value, stopper.value]);
-
 const titulos = ['Sin Empezar', 'En Curso', 'Finalizadas', 'Stopper'];
 
 const nuevasTareas = ref(['', '', '', '']);
+const nuevaTarea = ref('');
+const descripcionTarea = ref('');
+const idCreador = ref(1); // Suponiendo que el ID del creador es 1, cámbialo según lo necesites
 
 const popupAbierto = ref(false);
 const tareaEditada = ref(null);
 const nuevaSubtarea = ref('');
 
+// Cargar las tareas del backend cuando el componente se monta
+onMounted(async () => {
+  try {
+    const response = await axios.get('/api/kanbans');
+    const kanbans = response.data;
+
+    // Distribuir las tareas en sus respectivas listas
+    kanbans.forEach(kanban => {
+      if (kanban.estado === 'Sin Empezar') {
+        sinEmpezar.value.push({ ...kanban, subtareas: [] });
+      } else if (kanban.estado === 'En Curso') {
+        enCurso.value.push({ ...kanban, subtareas: [] });
+      } else if (kanban.estado === 'Finalizadas') {
+        finalizadas.value.push({ ...kanban, subtareas: [] });
+      } else {
+        stopper.value.push({ ...kanban, subtareas: [] });
+      }
+    });
+  } catch (error) {
+    console.error('Error al cargar las tareas:', error);
+  }
+});
+
+// Función para agregar tarea a la vista
 const agregarTarea = (index, nuevaTarea) => {
   if (nuevaTarea.trim()) {
     listas.value[index].push({ nombre: nuevaTarea.trim(), descripcion: '', subtareas: [] });
@@ -75,6 +108,7 @@ const agregarTarea = (index, nuevaTarea) => {
   }
 };
 
+// Función para eliminar tarea
 const eliminarTarea = (index, tarea) => {
   const lista = listas.value[index];
   const i = lista.indexOf(tarea);
@@ -83,11 +117,13 @@ const eliminarTarea = (index, tarea) => {
   }
 };
 
+// Función para editar tarea
 const editarTarea = (tarea) => {
   tareaEditada.value = tarea;
   popupAbierto.value = true;
 };
 
+// Función para agregar subtarea
 const agregarSubtarea = () => {
   if (nuevaSubtarea.value.trim()) {
     tareaEditada.value.subtareas.push({ texto: nuevaSubtarea.value.trim(), completado: false });
@@ -95,12 +131,34 @@ const agregarSubtarea = () => {
   }
 };
 
+// Función para eliminar subtarea
 const eliminarSubtarea = (index) => {
   tareaEditada.value.subtareas.splice(index, 1);
+};
+
+// Función para agregar tarea al backend
+const agregarTareaBackend = async () => {
+  if (nuevaTarea.value.trim() && descripcionTarea.value.trim()) {
+    try {
+      const response = await axios.post('/api/kanbans', {
+        nombre: nuevaTarea.value,
+        descripcion: descripcionTarea.value,
+        id_creador: idCreador.value,
+      });
+
+      // Limpiar campos del formulario después de enviar
+      nuevaTarea.value = '';
+      descripcionTarea.value = '';
+      console.log('Tarea creada:', response.data);
+    } catch (error) {
+      console.error('Error al crear la tarea:', error);
+    }
+  }
 };
 </script>
 
 <style>
+/* Estilos para la columna de tareas */
 .columna {
   display: flex;
   gap: 20px;
@@ -141,6 +199,19 @@ const eliminarSubtarea = (index) => {
   margin-top: 10px;
 }
 
+/* Estilos para el formulario */
+.formulario {
+  margin-top: 30px;
+}
+.formulario input, .formulario textarea {
+  width: 100%;
+  padding: 8px;
+  margin: 5px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* Estilos para el popup de edición de tarea */
 .popup-overlay {
   position: fixed;
   top: 0;

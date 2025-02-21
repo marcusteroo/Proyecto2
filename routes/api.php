@@ -14,6 +14,8 @@ use App\Http\Controllers\Api\WhatsAppController;
 use App\Http\Controllers\Api\WorkflowController;
 use App\Http\Controllers\Api\WorkflowActionController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Api\KanbanController;
+
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -78,4 +80,8 @@ Route::put('/workflow-actions/{id}', [WorkflowActionController::class, 'update']
 Route::get('/workflows/{id}', [WorkflowController::class, 'show']);
 Route::get('/workflows-action/{id}', [WorkflowController::class, 'getActions']);
 Route::post('/check-email', [RegisterController::class, 'checkEmail']);
-//Editado por Aniol
+Route::apiResource('kanbans', KanbanController::class);
+Route::get('kanban/{id}', [KanbanController::class, 'show']);
+Route::post('kanban', [KanbanController::class, 'store']);
+Route::put('kanban/{id}', [KanbanController::class, 'update']);
+Route::delete('kanban/{id}', [KanbanController::class, 'destroy']);
