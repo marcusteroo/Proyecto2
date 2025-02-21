@@ -78,4 +78,4 @@ Route::put('/workflow-actions/{id}', [WorkflowActionController::class, 'update']
 Route::get('/workflows/{id}', [WorkflowController::class, 'show']);
 Route::get('/workflows-action/{id}', [WorkflowController::class, 'getActions']);
 Route::post('/check-email', [RegisterController::class, 'checkEmail']);
-
+//Editado por Marc
