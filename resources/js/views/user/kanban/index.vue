@@ -30,7 +30,7 @@
 
         <h3>Subtareas</h3>
         <ul>
-          <li v-for="(sub, i) in tareaEditada.puntos" :key="i">
+          <li v-for="(sub, i) in tareaEditada.subtareas" :key="i">
             <input type="checkbox" v-model="sub.completado" />
             <span :class="{ completado: sub.completado }">{{ sub.texto }}</span>
             <span @click="eliminarSubtarea(i)">❌</span>
@@ -51,10 +51,10 @@ import { ref } from 'vue';
 import draggable from 'vuedraggable';
 
 const sinEmpezar = ref([
-  { nombre: 'Tarea 1', descripcion: 'Descripción 1', puntos: [{ texto: 'Subtarea 1', completado: false }] },
-  { nombre: 'Tarea 2', descripcion: 'Descripción 2', puntos: [] }
+  { nombre: 'Tarea 1', descripcion: 'Descripción 1', subtareas: [{ texto: 'Subtarea 1', completado: false }] },
+  { nombre: 'Tarea 2', descripcion: 'Descripción 2', subtareas: [] }
 ]);
-const enCurso = ref([{ nombre: 'Tarea 3', descripcion: 'Descripción 3', puntos: [] }]);
+const enCurso = ref([{ nombre: 'Tarea 3', descripcion: 'Descripción 3', subtareas: [] }]);
 const finalizadas = ref([]);
 const stopper = ref([]);
 
@@ -70,7 +70,7 @@ const nuevaSubtarea = ref('');
 
 const agregarTarea = (index, nuevaTarea) => {
   if (nuevaTarea.trim()) {
-    listas.value[index].push({ nombre: nuevaTarea.trim(), descripcion: '', puntos: [] });
+    listas.value[index].push({ nombre: nuevaTarea.trim(), descripcion: '', subtareas: [] });
     nuevasTareas.value[index] = '';
   }
 };
@@ -90,13 +90,13 @@ const editarTarea = (tarea) => {
 
 const agregarSubtarea = () => {
   if (nuevaSubtarea.value.trim()) {
-    tareaEditada.value.puntos.push({ texto: nuevaSubtarea.value.trim(), completado: false });
+    tareaEditada.value.subtareas.push({ texto: nuevaSubtarea.value.trim(), completado: false });
     nuevaSubtarea.value = '';
   }
 };
 
 const eliminarSubtarea = (index) => {
-  tareaEditada.value.puntos.splice(index, 1);
+  tareaEditada.value.subtareas.splice(index, 1);
 };
 </script>
 
