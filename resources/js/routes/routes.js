@@ -112,30 +112,27 @@ export default [
     {
         path: '/app',
         component: AuthenticatedUserLayout,
-        // redirect: {
-        //     name: 'admin.index'
-        // },
-        name: 'app',
         beforeEnter: requireLogin,
-        meta: { breadCrumb: 'Dashboard' },
+        redirect: { name: 'user.kanban' },
         children: [
             {
-                path: '/app/flows/flow',
+                path: 'flows/flow',
                 name: 'user.flows',
                 component: () => import('../views/user/flows/index.vue'),
             },
             {
-                path: '/app/kanban',
+                path: 'kanban',
                 name: 'user.kanban',
                 component: () => import('../views/user/kanban/index.vue'),
+                meta: { breadCrumb: 'Kanban' }
             },
             {
-                path: '/app/flows',
+                path: 'flows',
                 name: 'user.flows.flows',
                 component: () => import('../views/user/flows/flows.vue'),
             },
             {
-                path: '/app/flows/:id',
+                path: 'flows/:id',
                 name: 'flows.edit',
                 component: () => import('../views/user/flows/EditFlow.vue'),
             },

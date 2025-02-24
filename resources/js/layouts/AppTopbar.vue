@@ -1,7 +1,7 @@
 <template>
     <div class="layout-topbar">
         <router-link to="/" class="layout-topbar-logo">
-            <img src="/images/logo.svg" alt="logo" />
+            <img src="/images/LogoKanFlow.svg" alt="logo" />
             <span></span>
         </router-link>
 
@@ -18,27 +18,7 @@
             <button class="p-link layout-topbar-button layout-topbar-button-c nav-item dropdown " role="button"
                 data-bs-toggle="dropdown">
 
-                <i class="pi pi-user"></i>
-                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm">
-                    <li>
-                        <router-link :to="{ name: 'profile.index' }" class="dropdown-item">Perfil</router-link>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="#">Preferencias</a>
-                    </li>
-                    <li v-if="true">
-                        <a class="dropdown-item" href="#" @click="router.push({ name: 'admin.index' })">Panel Admin</a>
-                    </li>
-                    <li v-if="true">
-                        <a class="dropdown-item" href="#" @click="router.push({ name: 'app' })">Panel Usuario</a>
-                    </li>
-                    <li>
-                        <hr class="dropdown-divider">
-                    </li>
-                    <li>
-                        <a class="dropdown-item" :class="{ 'opacity-25': processing }" :disabled="processing" href="javascript:void(0)" @click="logout">Cerrar sessión</a>
-                    </li>
-                </ul>
+                <a class="dropdown-item logout-button" :class="{ 'opacity-25': processing }" :disabled="processing" href="javascript:void(0)" @click="logout">Cerrar sessión</a>
 
                 <span class="nav-link dropdown-toggle ms-3 me-2" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     Hola, {{ authStore().user.name }}
@@ -80,5 +60,42 @@ const topbarMenuClasses = computed(() => {
     border: 0;
     border-radius: 0%;
     padding: 1em;
+}
+.layout-topbar{
+    background-color: #1A00FF;
+    height: 4rem;
+    overflow: hidden;
+
+}
+.layout-topbar-logo {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    max-width: 200px;
+    img {
+        height: 12rem; /* Ajusta para que quepa en el topbar */
+        width: auto;  /* Mantiene proporción */
+        display: block;
+    }
+}
+button{
+    color: white!important;
+}
+.logout-button {
+    background-color: #e74c3c; /* Rojo vibrante */
+    color: #fff;
+    padding: 0.5em 1em;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: inline-block;
+}
+
+.logout-button:hover {
+    background-color: #c0392b;
 }
 </style>

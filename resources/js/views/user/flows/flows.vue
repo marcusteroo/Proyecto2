@@ -70,6 +70,9 @@ export default {
 </script>
 
 <style scoped>
+div {
+    margin: 20px;
+}
 table {
     width: 100%;
     border-collapse: collapse;
