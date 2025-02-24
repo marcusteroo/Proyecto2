@@ -13,7 +13,7 @@ class Kanban extends Model
     protected $primaryKey = 'id_tablero'; // Clave primaria personalizada
     public $timestamps = true; // Habilita created_at y updated_at
 
-    protected $fillable = ['nombre', 'descripcion', 'id_creador'];
+    protected $fillable = ['nombre', 'descripcion', 'estado', 'id_creador'];
 
     // Relación con el usuario (suponiendo que id_creador referencia a la tabla users)
     public function creador()
