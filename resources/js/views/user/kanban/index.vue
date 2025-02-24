@@ -19,15 +19,8 @@
       </draggable>
       <div>
         <input v-model="nuevasTareas[index]" type="text" class="anadir-tarea" placeholder="Agregar nueva tarea" />
-        <button @click="agregarTarea(index, nuevasTareas[index])" class="anadir-tarea">Añadir</button>
+        <button @click="agregarTarea(index, nuevasTareas[index], titulos[index])" class="anadir-tarea">Añadir</button>
       </div>
-    </div>
-
-    <!-- Formulario para añadir nueva tarea -->
-    <div class="formulario">
-      <input v-model="nuevaTarea" type="text" placeholder="Nombre de la tarea" />
-      <textarea v-model="descripcionTarea" placeholder="Descripción de la tarea"></textarea>
-      <button @click="agregarTareaBackend">Añadir Tarea</button>
     </div>
 
     <!-- Popup para editar tarea -->
@@ -100,27 +93,59 @@ onMounted(async () => {
   }
 });
 
-// Función para agregar tarea a la vista
-const agregarTarea = (index, nuevaTarea) => {
+// Función para agregar tarea a la vista y al backend
+const agregarTarea = (index, nuevaTarea, estado) => {
   if (nuevaTarea.trim()) {
-    listas.value[index].push({ nombre: nuevaTarea.trim(), descripcion: '', subtareas: [] });
+    const tarea = { nombre: nuevaTarea.trim(), descripcion: '', subtareas: [], estado };
+    listas.value[index].push(tarea);
     nuevasTareas.value[index] = '';
+
+    // Agregar tarea al backend
+    agregarTareaBackend(tarea);
   }
 };
 
 // Función para eliminar tarea
-const eliminarTarea = (index, tarea) => {
-  const lista = listas.value[index];
-  const i = lista.indexOf(tarea);
-  if (i !== -1) {
-    lista.splice(i, 1);
-  }
+const eliminarTarea = async (index, tarea) => {
+  try {
+    const response = await axios.delete(`/api/kanban/${tarea.id}`);
+    // Eliminar la tarea de la lista local
+    const lista = listas.value[index];
+    const i = lista.indexOf(tarea);
+    if (i !== -1) {
+      lista.splice(i, 1); // Eliminar tarea de la lista
+    }
+    console.log('Tarea eliminada:', response.data);
+  } catch (error) {
+    console.error('Error al eliminar la tarea:', error);
+    }
+};
+const editarTarea = async (tarea) => {
+  tareaEditada.value = { ...tarea }; // Copiar tarea para edición
+  popupAbierto.value = true;
 };
 
-// Función para editar tarea
-const editarTarea = (tarea) => {
-  tareaEditada.value = tarea;
-  popupAbierto.value = true;
+// Función para actualizar tarea en el backend
+const actualizarTareaBackend = async () => {
+  if (tareaEditada.value) {
+    try {
+      const response = await axios.put(`/api/kanbans/${tareaEditada.value.id}`, {
+        nombre: tareaEditada.value.nombre,
+        descripcion: tareaEditada.value.descripcion,
+        estado: tareaEditada.value.estado, // Se mantendrá el estado actual
+        subtareas: tareaEditada.value.subtareas
+      });
+      // Actualizar la lista local con los datos modificados
+      const lista = listas.value.find(list => list.some(t => t.id === tareaEditada.value.id));
+      const index = lista.findIndex(t => t.id === tareaEditada.value.id);
+      if (index !== -1) {
+        lista[index] = response.data; // Actualizar la tarea editada en la lista
+      }
+      popupAbierto.value = false; // Cerrar el popup
+    } catch (error) {
+      console.error('Error al actualizar la tarea:', error);
+    }
+  }
 };
 
 // Función para agregar subtarea
@@ -137,22 +162,18 @@ const eliminarSubtarea = (index) => {
 };
 
 // Función para agregar tarea al backend
-const agregarTareaBackend = async () => {
-  if (nuevaTarea.value.trim() && descripcionTarea.value.trim()) {
-    try {
-      const response = await axios.post('/api/kanbans', {
-        nombre: nuevaTarea.value,
-        descripcion: descripcionTarea.value,
-        id_creador: idCreador.value,
-      });
+const agregarTareaBackend = async (tarea) => {
+  try {
+    const response = await axios.post('/api/kanbans', {
+      nombre: tarea.nombre,
+      descripcion: tarea.descripcion,
+      estado: tarea.estado,
+      id_creador: idCreador.value,
+    });
 
-      // Limpiar campos del formulario después de enviar
-      nuevaTarea.value = '';
-      descripcionTarea.value = '';
-      console.log('Tarea creada:', response.data);
-    } catch (error) {
-      console.error('Error al crear la tarea:', error);
-    }
+    console.log('Tarea creada:', response.data);
+  } catch (error) {
+    console.error('Error al crear la tarea:', error);
   }
 };
 </script>

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id('id_tablero'); // Auto-incremental, equivale a INT AUTO_INCREMENT
             $table->string('nombre', 100); // VARCHAR(100) NOT NULL
             $table->text('descripcion')->nullable(); // TEXT, puede ser NULL
+            $table->string('estado', 100); // VARCHAR(100) NOT NULL
             $table->foreignId('id_creador') // BIGINT NOT NULL
                   ->constrained('users') // Relación con la tabla 'users'
                   ->onDelete('cascade'); // ON DELETE CASCADE

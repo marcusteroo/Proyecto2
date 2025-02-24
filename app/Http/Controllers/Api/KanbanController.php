@@ -18,6 +18,7 @@ class KanbanController extends Controller
         $kanban = Kanban::create([
             'nombre' => $request->nombre,
             'descripcion' => $request->descripcion,
+            'estado' => $request->estado,
             'id_creador' => $request->id_creador
         ]);
 
@@ -37,6 +38,7 @@ class KanbanController extends Controller
         $kanban->update([
             'nombre' => $request->nombre,
             'descripcion' => $request->descripcion,
+            'estado' => $request->estado,
             'id_creador' => $request->id_creador
         ]);
 
