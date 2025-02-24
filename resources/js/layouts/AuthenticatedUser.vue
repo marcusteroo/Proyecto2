@@ -1,45 +1,48 @@
 <template>
     <div class="layout-wrapper" :class="containerClass">
+        <!-- Topbar -->
         <app-topbar></app-topbar>
 
+        <!-- Sidebar con estructura sencilla -->
         <div class="layout-sidebar">
-            <Menu :model="items" class="w-full md:w-13rem menu border-0" appendTo="self">
-                <template #start>
-                    <button class="relative overflow-hidden w-full p-link flex align-items-center p-2 pl-0 text-color hover:surface-200 border-noround">
-                        <Avatar :image="authStore().user?.avatar" class="mr-3" shape="circle" />
-                        <span class="inline-flex flex-column">
-                            <span class="font-bold">{{ user.name }}</span>
-                            <span>
-                                <span v-for="rol in user.roles" class="text-sm mr-2">{{ rol.name }}</span>
-                            </span>
-                        </span>
-                    </button>
-                </template>
-                <template #submenuheader="{ item }">
-                    <span class="text-primary font-bold">{{ item.label }}</span>
-                </template>
+            <!-- Cabecera del sidebar (usuario y roles) -->
+            <div class="sidebar-header container-nombre-usuario">
+                <Avatar :image="authStore().user?.avatar" shape="circle" class="mr-2" />
+                <div class="sidebar-userinfo">
+                    <span class="nombre-usuario">Bienvenido, {{ user.name }}</span>
+                    <span class="user-roles">
+                        <span v-for="rol in user.roles" :key="rol.id" class="rol"> {{ rol.name }} </span>
+                    </span>
+                </div>
+            </div>
 
-                <template #item="{ item, props }">
-                    <a class="flex align-items-center" v-bind="props.action">
-                        <span :class="item.icon" />
-                        <span class="ml-2">{{ item.label }}</span>
-                        <Badge v-if="item.badge" class="ml-auto" :value="item.badge" />
-                        <span v-if="item.shortcut" class="ml-auto border-1 surface-border border-round surface-100 text-xs p-1">
-                            {{item.shortcut}}
-                        </span>
-                    </a>
-                </template>
-
-            </Menu>
-            <!--            <app-sidebar></app-sidebar>-->
+            <!-- Lista de enlaces (remplazando PrimeVue Menu) -->
+            <ul class="menu">
+                <li v-for="menuItem in items" :key="menuItem.label" class="menu-item">
+                    <router-link
+                        :to="menuItem.to"
+                        class="menu-link"
+                        :class="{ selected: isSelected(menuItem) }"
+                    >
+                        <i :class="menuItem.icon" class="menu-icon"></i>
+                        <span class="menu-label">{{ menuItem.label }}</span>
+                    </router-link>
+                </li>
+            </ul>
         </div>
 
-        <div class="layout-main-container ">
+        <!-- Contenido principal -->
+        <div class="layout-main-container">
             <div class="card mb-2 bread">
-                <Breadcrumb :home="home" :model="crumbs" >
+                <Breadcrumb :home="home" :model="crumbs">
                     <template #item="{ item, props }">
-                        <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
-                            <a :href="href" v-bind="props.action" class="btn btn-link"   @click="navigate">
+                        <router-link
+                            v-if="item.route"
+                            :to="item.route"
+                            custom
+                            v-slot="{ href, navigate }"
+                        >
+                            <a :href="href" v-bind="props.action" class="btn btn-link" @click="navigate">
                                 <span :class="[item.icon, 'text-color']" />
                                 <span class="text-primary font-semibold">{{ item.label }}</span>
                             </a>
@@ -50,11 +53,11 @@
                     </template>
                 </Breadcrumb>
             </div>
+
             <div class="layout-main">
-<!--                <Suspense>-->
-                    <router-view></router-view>
-<!--                </Suspense>-->
+                <router-view></router-view>
             </div>
+
             <app-footer></app-footer>
         </div>
 
@@ -63,32 +66,35 @@
 </template>
 
 <script setup>
-import { computed, watch, ref } from 'vue';
-import { authStore } from "../store/auth";
+import { ref, computed, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
-import { useRoute, useRouter } from "vue-router";
-import Breadcrumb from 'primevue/breadcrumb';
-
+import { authStore } from '../store/auth';
 import AppTopbar from './AppTopbar.vue';
 import AppFooter from './AppFooter.vue';
 import { useLayout } from '../composables/layout';
+import Breadcrumb from 'primevue/breadcrumb';
 
+// Acceso al store de autenticación
 const auth = authStore();
-const user = computed(() => auth.user)
+const user = computed(() => auth.user);
+
+// Rutas y router
 const route = useRoute();
 const router = useRouter();
 
+// Elemento "home" para el Breadcrumb
 const home = ref({
     icon: 'pi pi-home',
-    route: '/app'
+    route: '/app',
 });
 
+// Generación dinámica de migas de pan
 const crumbs = computed(() => {
-    let pathArray = route.path.split("/")
-    pathArray.shift()
+    let pathArray = route.path.split("/");
+    pathArray.shift();
 
     let breadcrumbs = pathArray.reduce((breadcrumbArray, path, idx) => {
-
         breadcrumbArray.push({
             route: breadcrumbArray[idx - 1]
                 ? "" + breadcrumbArray[idx - 1].route + "/" + path
@@ -96,66 +102,41 @@ const crumbs = computed(() => {
             label: route.matched[idx]?.meta.breadCrumb || path,
             disabled: idx + 1 === pathArray.length || route.matched[idx]?.meta.linked === false,
         });
-
         return breadcrumbArray;
-    }, [])
+    }, []);
+
     return breadcrumbs;
 });
 
-
+// Items del menú
 const items = ref([
     {
-        separator: true
+        label: 'Kanban',
+        icon: 'pi pi-th-large',
+        to: '/app/kanban',
     },
     {
-        label: 'Documents',
-        items: [
-            {
-                label: 'Tareas',
-                icon: 'pi pi-plus',
-                // shortcut: '⌘+N',
-                command: () => {
-                    router.push({ name: 'app.tasks' })
-                }
-            },
-            {
-                label: 'Search',
-                icon: 'pi pi-search',
-                // shortcut: '⌘+S'
-            }
-        ]
+        label: 'Automatizaciones',
+        icon: 'pi pi-cog',
+        to: '/app/flows',
     },
-    // {
-    //     label: 'Profile',
-    //     items: [
-    //         {
-    //             label: 'Settings',
-    //             icon: 'pi pi-cog',
-    //             shortcut: '⌘+O'
-    //         },
-    //         {
-    //             label: 'Messages',
-    //             icon: 'pi pi-inbox',
-    //             badge: 2
-    //         },
-    //         {
-    //             label: 'Logout',
-    //             icon: 'pi pi-sign-out',
-    //             shortcut: '⌘+Q'
-    //         }
-    //     ]
-    // },
-    // {
-    //     separator: true
-    // }
+    {
+        label: 'Search',
+        icon: 'pi pi-search',
+        to: '/app/search',
+    }
 ]);
 
-function selected(crumb) {
-    //Console.log(crumb);
+// Función para marcar el ítem seleccionado
+const isSelected = (item) => {
+  // Si quieres que un ítem esté seleccionado con rutas hijas:
+  return route.path.startsWith(item.to)
+  // Si solo quieres exactitud:
+  // return route.path === item.to
 }
 
+// Manejo de layout y eventos de clic fuera del menú
 const { layoutConfig, layoutState, isSidebarActive } = useLayout();
-
 const outsideClickListener = ref(null);
 
 watch(isSidebarActive, (newVal) => {
@@ -172,13 +153,15 @@ const containerClass = computed(() => {
         'layout-theme-dark': layoutConfig.darkTheme.value === 'dark',
         'layout-overlay': layoutConfig.menuMode.value === 'overlay',
         'layout-static': layoutConfig.menuMode.value === 'static',
-        'layout-static-inactive': layoutState.staticMenuDesktopInactive.value && layoutConfig.menuMode.value === 'static',
+        'layout-static-inactive':
+            layoutState.staticMenuDesktopInactive.value && layoutConfig.menuMode.value === 'static',
         'layout-overlay-active': layoutState.overlayMenuActive.value,
         'layout-mobile-active': layoutState.staticMenuMobileActive.value,
         'p-input-filled': layoutConfig.inputStyle.value === 'filled',
-        'p-ripple-disabled': !layoutConfig.ripple.value
+        'p-ripple-disabled': !layoutConfig.ripple.value,
     };
 });
+
 const bindOutsideClickListener = () => {
     if (!outsideClickListener.value) {
         outsideClickListener.value = (event) => {
@@ -191,37 +174,106 @@ const bindOutsideClickListener = () => {
         document.addEventListener('click', outsideClickListener.value);
     }
 };
+
 const unbindOutsideClickListener = () => {
     if (outsideClickListener.value) {
-        document.removeEventListener('click', outsideClickListener);
+        document.removeEventListener('click', outsideClickListener.value);
         outsideClickListener.value = null;
     }
 };
+
 const isOutsideClicked = (event) => {
     const sidebarEl = document.querySelector('.layout-sidebar');
     const topbarEl = document.querySelector('.layout-menu-button');
 
-    return !(sidebarEl.isSameNode(event.target) || sidebarEl.contains(event.target) || topbarEl.isSameNode(event.target) || topbarEl.contains(event.target));
+    return !(
+        sidebarEl?.contains(event.target) ||
+        topbarEl?.contains(event.target)
+    );
 };
 
 </script>
 
 <style lang="scss">
-.bread{
-    padding:.1rem;
+/* Layout general */
+.layout-wrapper {
+    display: flex;
+    min-height: 100vh;
 }
 
-.menu {
-    padding: 0;
-    border: 0;
+.layout-main-container {
+    flex: 1;
 }
 
-.menu ul {
-    padding: 0;
-    border: 0;
-}
-
+/* Sidebar */
 .layout-sidebar {
-    padding: 0.5rem 0.5rem
+    width: 16rem;
+    background-color: #1A00FF;
+    color: #fff;
+    padding: 1rem;
+}
+.layout-main-container {
+    flex: 1;
+    /* Si haces position: fixed en .layout-sidebar,
+       agrégale margin-left: 16rem para que no quede superpuesto */
+}
+/* Cabecera del Sidebar (usuario y roles) */
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.sidebar-userinfo {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Lista de menú */
+.menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.menu-item {
+    margin: 0.5rem 0;
+}
+
+.menu-link {
+    display: flex;
+    align-items: center;
+    color: #fff;
+    text-decoration: none;
+    padding: 0.5rem;
+    transition: background-color 0.3s;
+    border-radius: 4px;
+    font-weight: bold;
+    background-color: transparent;
+}
+
+/* Hover */
+.menu-link:hover {
+    background-color: #4D33FF;
+}
+
+/* Estado seleccionado */
+.selected {
+    background-color: #4D33FF;
+}
+
+/* Ícono en el menú */
+.menu-icon {
+    margin-right: 0.5rem;
+}
+
+/* Estilos de Breadcrumb */
+.bread {
+    padding: .1rem;
+}
+
+/* Ajusta color de texto en la ruta */
+.text-color {
+    color: #495057 !important;
 }
 </style>

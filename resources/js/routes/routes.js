@@ -106,26 +106,6 @@ export default [
                 component: () => import('../views/auth/passwords/Reset.vue'),
                 beforeEnter: guest,
             },
-            {
-                path: '/user/flows',
-                name: 'user.flows',
-                component: () => import('../views/user/flows/index.vue'),
-            },
-            {
-                path: '/user/kanban',
-                name: 'user.kanban',
-                component: () => import('../views/user/kanban/index.vue'),
-            },
-            {
-                path: '/user/flows/flows',
-                name: 'user.flows.flows',
-                component: () => import('../views/user/flows/flows.vue'),
-            },
-            {
-                path: 'user/flows/edit/:id',
-                name: 'flows.edit',
-                component: () => import('../views/user/flows/EditFlow.vue') // ← Creas este componente
-            },
         ]
     },
 
@@ -138,8 +118,28 @@ export default [
         name: 'app',
         beforeEnter: requireLogin,
         meta: { breadCrumb: 'Dashboard' },
-        //children: [
-            //{
+        children: [
+            {
+                path: '/app/flows/flow',
+                name: 'user.flows',
+                component: () => import('../views/user/flows/index.vue'),
+            },
+            {
+                path: '/app/kanban',
+                name: 'user.kanban',
+                component: () => import('../views/user/kanban/index.vue'),
+            },
+            {
+                path: '/app/flows',
+                name: 'user.flows.flows',
+                component: () => import('../views/user/flows/flows.vue'),
+            },
+            {
+                path: '/app/flows/:id',
+                name: 'flows.edit',
+                component: () => import('../views/user/flows/EditFlow.vue'),
+            },
+        ]
     },
 
 
