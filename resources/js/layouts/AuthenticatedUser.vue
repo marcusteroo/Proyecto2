@@ -216,21 +216,28 @@ const isOutsideClicked = (event) => {
     width: 16rem; /* Ancho fijo */
     flex-shrink: 0; /* Evita que se reduzca */
     height: calc(100vh - 4rem); /* Ajusta la altura para no tapar el navbar */
-    position: absolute; /* Cambia a posición absoluta */
+    position: fixed; /* Mantiene la barra lateral fija */
     top: 4rem; /* Añade un margen superior para no tapar el navbar */
     left: 0;
     background-color: #1A00FF;
     color: white;
     padding: 1rem;
-    z-index: 1; /* Asegura que la barra lateral esté detrás del navbar */
+    z-index: 10; /* Asegura que la barra lateral esté encima del contenido */
     border-radius: 0 !important;
+    transition: transform 0.3s ease-in-out;
 }
 
 @media (max-width: 767px) {
     .layout-sidebar {
         width: 100%;
-        height: auto;
-        position: relative; /* Cambia a posición relativa en pantallas pequeñas */
+        height: 100vh;
+        position: fixed;
+        left: -100%; /* Ocultar sidebar en móviles */
+        top: 0;
+        transform: translateX(0);
+    }
+    .layout-sidebar.active {
+        transform: translateX(100%); /* Mostrar cuando está activo */
     }
 }
 
@@ -239,12 +246,19 @@ const isOutsideClicked = (event) => {
     flex-grow: 1;
     padding: 1rem;
     height: calc(100vh - 4rem); /* Ajusta la altura para no tapar el navbar */
-    overflow: hidden; /* Evita el scroll */
+    overflow: auto; /* Permite desplazamiento si es necesario */
     margin-top: 4rem;
+    width: 100%; /* Asegurar que ocupa todo el espacio disponible */
+    overflow-x: hidden!important;
 }
+
 @media (max-width: 767px) {
     .layout-main-container {
         margin-left: 0; /* Elimina el margen izquierdo en pantallas pequeñas */
+        height: auto;
+    }
+    .disable-scroll, .desactivar-scrol {
+        overflow: auto !important;
     }
 }
 
@@ -267,16 +281,15 @@ const isOutsideClicked = (event) => {
     padding: 0;
     margin: 0;
 }
-.nombre-usuario{
+
+.nombre-usuario {
     font-weight: bold;
 }
+
 .menu-item {
     margin: 0.5rem 0;
 }
-.desactivar-scrol {
-    overflow-y: hidden!important;
-    max-height: 100vh;
-}
+
 .menu-link {
     display: flex;
     align-items: center;
@@ -306,7 +319,7 @@ const isOutsideClicked = (event) => {
 
 /* Estilos de Breadcrumb */
 .bread {
-    padding: .1rem;
+    padding: 0.1rem;
     margin-left: 20px;
 }
 
@@ -314,7 +327,17 @@ const isOutsideClicked = (event) => {
 .text-color {
     color: #495057 !important;
 }
+
 .disable-scroll {
     overflow: hidden !important;
+}
+
+.layout-main-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+.disable-scroll{
+    overflow-x: hidden!important;
 }
 </style>
