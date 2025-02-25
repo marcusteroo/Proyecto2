@@ -16,14 +16,16 @@ class KanbanController extends Controller
     public function store(Request $request)
     {
         $kanban = Kanban::create([
-            'nombre' => $request->nombre,
+            'titulo' => $request->titulo,
             'descripcion' => $request->descripcion,
             'estado' => $request->estado,
-            'id_creador' => $request->id_creador
+            'id_tablero' => $request->id_tablero
         ]);
-
-        return response()->json(['id_tablero' => $kanban->id_tablero], 201);
+    
+        return response()->json(['id_tarea' => $kanban->id_tarea], 201);
     }
+    
+
 
     public function show($id)
     {
@@ -36,10 +38,11 @@ class KanbanController extends Controller
         $kanban = Kanban::findOrFail($id);
 
         $kanban->update([
-            'nombre' => $request->nombre,
+            'id_tarea' => $request->id_tarea,
+            'titulo' => $request->titulo,
             'descripcion' => $request->descripcion,
             'estado' => $request->estado,
-            'id_creador' => $request->id_creador
+            'id_tablero' => $request->id_tablero
         ]);
 
         return response()->json(['message' => 'Kanban actualizado'], 200);
