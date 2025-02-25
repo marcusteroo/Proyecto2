@@ -1,7 +1,13 @@
 <template>
   <div class="workflow-builder">
+    <!-- Cabecera -->
     <header class="header">
-      <h1 class="title">Flow Builder</h1>
+      <!-- En lugar de Flow Builder, un input editable para el usuario -->
+      <input
+        class="title"
+        v-model="flowName"
+        placeholder="(Sin nombre)"
+      />
       <button class="run-button" @click="saveFlow">Guardar</button>
     </header>
 
@@ -31,13 +37,13 @@
             :y1="connection.y1"
             :x2="connection.x2"
             :y2="connection.y2"
-            stroke="#000000"
+            stroke="#000"
             stroke-width="2"
             marker-end="url(#arrowhead)"
           />
           <defs>
             <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
-              <polygon points="0 0, 10 3.5, 0 7" fill="#000000" />
+              <polygon points="0 0, 10 3.5, 0 7" fill="#000" />
             </marker>
           </defs>
         </svg>
@@ -61,22 +67,21 @@
     <!-- Popup de confirmación -->
     <div v-if="showConfirmPopup" class="popup-overlay">
       <div class="popup">
-        <p>¿Seguro que quieres eliminar la acciónk?</p>
+        <p>¿Seguro que quieres eliminar la acción y las siguientes?</p>
         <button @click="confirmRemoveBlock">Sí</button>
         <button @click="hidePopup">No</button>
       </div>
     </div>
   </div>
-  <div class="flow-info">
-    <input v-model="flowName" type="text" placeholder="Nombre del flujo" />
-    <input v-model="flowDescription" type="text" placeholder="Descripción del flujo" />
-  </div>
 </template>
 
 <script setup>
 import { ref, reactive, nextTick, watch } from "vue";
+import { useRoute } from "vue-router";
 import draggable from "vuedraggable";
-// Bloques disponibles para arrastrar
+import axios from "axios";
+
+// Bloques base
 const availableBlocks = ref([
   { id: 1, name: "Iniciar", description: "Inicio del flujo" },
   { id: 2, name: "Enviar Email", description: "Envía un correo electrónico" },
@@ -90,19 +95,26 @@ const blocks = ref([]);
 // Conexiones entre bloques
 const connections = ref([]);
 
-// Variable temporal para el bloque arrastrado
+// Para manejar arrastre
 let draggedBlock = null;
 
-// Estado del popup de confirmación
+// Popup de confirmación
 const showConfirmPopup = ref(false);
 let blockToRemove = null;
 
+// Nombre y descripción del flujo, vacíos por defecto
+const flowName = ref('');
+const flowDescription = ref('');
+
+// Cada vez que cambie el flowName, se actualiza automáticamente la descripción
+watch(flowName, (newVal) => {
+  const today = new Date().toISOString().split('T')[0];
+  flowDescription.value = `${newVal} automatizacion ${today}`;
+});
 
 // Iniciar arrastre
 const startDrag = (event, block) => {
   draggedBlock = block;
-
-  // Usar el tamaño original
   const rect = event.target.getBoundingClientRect();
   const dragImage = event.target.cloneNode(true);
   dragImage.style.position = "absolute";
@@ -112,22 +124,19 @@ const startDrag = (event, block) => {
   dragImage.style.left = "-9999px";
   dragImage.style.opacity = "1";
   dragImage.setAttribute("tabindex", "-1");
-
   document.body.appendChild(dragImage);
   event.dataTransfer.setDragImage(dragImage, rect.width / 2, rect.height / 2);
   event.dataTransfer.effectAllowed = "move";
   event.dataTransfer.setData("text/plain", JSON.stringify(block));
 };
 
-// Crear/soltar bloque en el centro
+// Crear/soltar bloque al centro
 const placeBlockCentered = async (block) => {
   const canvas = document.querySelector(".workflow-canvas");
   if (!canvas) return;
-
   const rect = canvas.getBoundingClientRect();
-  const x = rect.width / 2; // Centro horizontal
-  const y = blocks.value.length * 100 + 20; // Posición vertical secuencial con margen
-
+  const x = rect.width / 2;
+  const y = blocks.value.length * 100 + 20;
   blocks.value.push({ ...block, id: Date.now(), x, y });
   await nextTick();
   updateConnections();
@@ -138,7 +147,7 @@ const addBlock = (block) => {
   placeBlockCentered(block);
 };
 
-// Manejar soltado del drag
+// Manejar el drop
 const onDrop = async (event) => {
   if (draggedBlock) {
     await placeBlockCentered(draggedBlock);
@@ -146,105 +155,81 @@ const onDrop = async (event) => {
   }
 };
 
-// Mostrar popup de confirmación
+// Mostrar popup
 const showPopup = (id) => {
   blockToRemove = id;
   showConfirmPopup.value = true;
 };
 
-// Ocultar popup de confirmación
+// Ocultar popup
 const hidePopup = () => {
   blockToRemove = null;
   showConfirmPopup.value = false;
 };
 
-// Confirmar eliminación de bloque
+// Confirmación de borrar bloque
 const confirmRemoveBlock = () => {
-  removeBlock(blockToRemove);
+  removeBlockAndSubsequent(blockToRemove);
   hidePopup();
 };
 
-// Eliminar bloque del flujo
-const removeBlock = async (id) => {
-  blocks.value = blocks.value.filter((block) => block.id !== id);
+// Eliminar bloque y los siguientes
+const removeBlockAndSubsequent = async (id) => {
+  const index = blocks.value.findIndex((b) => b.id === id);
+  if (index !== -1) {
+    // Eliminar desde ese índice hasta el final
+    blocks.value.splice(index, blocks.value.length - index);
+  }
   await nextTick();
   updateConnections();
 };
 
-// Simular la ejecución del flujo
-const runFlow = () => {
-  console.log("Ejecutando flujo con los siguientes bloques:");
-  console.log(blocks.value);
-};
-
-
+// Actualizar conexiones
 const updateConnections = () => {
-  connections.value = []; // Reinicia las conexiones
-
-  // Encuentra el contenedor del área de trabajo
+  connections.value = [];
   const canvas = document.querySelector(".workflow-canvas");
-
   if (!canvas) return;
 
   blocks.value.forEach((block, index) => {
     if (index < blocks.value.length - 1) {
       const currentBlock = document.querySelectorAll(".workflow-block")[index];
       const nextBlock = document.querySelectorAll(".workflow-block")[index + 1];
-
       if (currentBlock && nextBlock) {
-        // Obtén las coordenadas relativas al contenedor
         const currentRect = currentBlock.getBoundingClientRect();
         const nextRect = nextBlock.getBoundingClientRect();
         const canvasRect = canvas.getBoundingClientRect();
-
-        // Calcula posiciones relativas al contenedor del área de trabajo
         const x1 = currentRect.left + currentRect.width / 2 - canvasRect.left;
         const y1 = currentRect.bottom - canvasRect.top;
         const x2 = nextRect.left + nextRect.width / 2 - canvasRect.left;
         const y2 = nextRect.top - canvasRect.top;
-
-        // Agrega la conexión
         connections.value.push({ x1, y1, x2, y2 });
       }
     }
   });
 };
 
-// Ajustar estilos para posicionar en x, y
+// Posición de cada bloque
 const getBlockStyle = (block, index) => {
   return {
     position: "absolute",
     zIndex: index,
-    left: `calc(50% - 175px)`, // Centra asumiendo ancho ~350px
+    left: `calc(50% - 175px)`, // Ancho ~350px para centrar
     top: `${block.y}px`,
     transform: 'none'
   };
 };
-watch(showConfirmPopup, (val) => {
-  if (val) {
-    document.body.classList.add('no-scroll');
-  } else {
-    document.body.classList.remove('no-scroll');
-  }
-});
-import axios from "axios"; // Asegúrate de haber instalado axios
 
-// Nuevas refs para capturar nombre y descripción del flujo
-const flowName = ref('');
-const flowDescription = ref('');
-
-// Reemplaza la función runFlow por saveFlow
+// Guardar flujo
 const saveFlow = async () => {
   try {
-    // 1. Crea el workflow y obtén su ID
+    // Crea el workflow en backend
     const workflowResponse = await axios.post('/api/workflows', {
       nombre: flowName.value,
       descripcion: flowDescription.value,
     });
-
     const idWorkflow = workflowResponse.data.id_workflow;
 
-    // 2. Por cada bloque en blocks, crea un registro en la tabla workflow_actions
+    // Crea cada acción dentro del workflow
     for (const block of blocks.value) {
       await axios.post(`/api/workflows/${idWorkflow}/actions`, {
         name: block.name,
@@ -253,14 +238,12 @@ const saveFlow = async () => {
         y_position: block.y,
       });
     }
-
     alert('Workflow guardado exitosamente');
   } catch (error) {
     console.error(error);
     alert('Error al guardar el workflow');
   }
 };
-
 </script>
 
 <style scoped>
@@ -475,6 +458,16 @@ const saveFlow = async () => {
   overflow: hidden;
   position: fixed;
   width: 100%;
+}
+.header .title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  border: none;
+  background: transparent;
+  color: #fff;
+  width: 60%;
+  outline: none;
+  margin-right: 20px;
 }
 
 

@@ -24,10 +24,7 @@
           <span class="highlight">en un solo lugar</span>
         </h1>
         <p>Automatiza procesos, organiza tareas y maximiza tu productividad</p>
-        <button class="start-btn">Comenzar</button>
-        <router-link to="/user/flows" class="btn btn-primary">Ir a Flows</router-link>
-        <router-link to="/user/kanban" class="btn btn-primary">Ir a Kanflow</router-link>
-        <router-link to="/user/flows/flows" class="btn btn-primary">Automatizaciones</router-link>
+        <router-link to="/login" class="start-btn">Comenzar</router-link>
 
       </div>
     </section>
@@ -886,16 +883,21 @@ onMounted(() => {
 }
 
 @media (max-width: 480px) {
+  .content{
+    max-height: 80vh;
+  }
   .content h1 {
-    font-size: 20px; 
+    font-size: 2em; 
   }
 
   .content p {
-    font-size: 14px; 
+    font-size: 1.2em; 
+    margin-bottom: 40px;
   }
 
   .start-btn {
-    font-size: 12px; 
+    font-size: 1.6em;
+
   }
 
   .info-section {
@@ -988,6 +990,29 @@ onMounted(() => {
   .resenas-clientes-texto {
     font-size: 0.9em; 
   }
+  .logo img{
+    max-width: 100%;
+  }
+  .seccion1-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px; /* Ajusta el gap para pantallas pequeñas */
+    }
+
+    .seccion1-footer img {
+      max-width: 250px;
+      width: 100%;
+      height: 150px; /* Mantiene la proporción de la imagen */
+      display: block; /* Asegura que la imagen no tenga espacio extra */
+      object-fit: cover; 
+      margin: 0; 
+    }
+    .seccion1-footer ul {
+      padding-left: 10px; 
+    }
+    .footer-container hr{
+      margin-top: 10px;
+    }
 }
 .fade-in-up {
   opacity: 1;
