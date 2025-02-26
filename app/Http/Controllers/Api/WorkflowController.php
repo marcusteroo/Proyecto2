@@ -12,15 +12,20 @@ class WorkflowController extends Controller
         $workflows = Workflow::all();
         return response()->json($workflows);
     }
+    
     public function store(Request $request)
-    {
-        $workflow = Workflow::create([
-            'nombre' => $request->nombre,
-            'descripcion' => $request->descripcion,
-        ]);
+{
+    $workflow = Workflow::create([
+        'nombre' => $request->nombre,
+        'descripcion' => $request->descripcion,
+        'trigger_type' => $request->trigger['type'] ?? null,
+        'trigger_params' => json_encode($request->trigger ?? []), // Cambio aquí: convertir a JSON
+        'status' => 'active',
+    ]);
 
-        return response()->json(['id_workflow' => $workflow->id_workflow], 201);
-    }
+    return response()->json(['id_workflow' => $workflow->id_workflow], 201);
+}
+    
     public function destroy($id)
     {
         $workflow = Workflow::findOrFail($id);
@@ -28,20 +33,31 @@ class WorkflowController extends Controller
 
         return response()->json(['message' => 'Workflow eliminado'], 200);
     }
+    
     public function update(Request $request, $id)
-    {
-        $workflow = Workflow::findOrFail($id);
-        $workflow->update([
-            'nombre' => $request->nombre,
-            'descripcion' => $request->descripcion,
-        ]);
+{
+    $workflow = Workflow::findOrFail($id);
+    $workflow->update([
+        'nombre' => $request->nombre,
+        'descripcion' => $request->descripcion,
+        'trigger_type' => $request->trigger['type'] ?? $workflow->trigger_type,
+        'trigger_params' => $request->trigger ? json_encode($request->trigger) : $workflow->trigger_params, // Cambio aquí
+        'status' => $request->status ?? $workflow->status,
+    ]);
 
-        return response()->json(['message' => 'Workflow actualizado'], 200);
-    }
+    return response()->json(['message' => 'Workflow actualizado'], 200);
+}
+    
     public function show($id)
     {
-        $workflow = Workflow::findOrFail($id);
+        $workflow = Workflow::with('actions')->findOrFail($id);
         return response()->json($workflow);
     }
 
+    public function getActions($id) 
+    {
+        $workflow = Workflow::findOrFail($id);
+        $actions = $workflow->actions;
+        return response()->json($actions);
+    }
 }

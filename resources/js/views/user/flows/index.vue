@@ -73,22 +73,147 @@
       </div>
     </div>
   </div>
+  <div v-if="showTaskPopup" class="popup-overlay">
+    <div class="popup">
+      <h3>Configurar desencadenador</h3>
+      
+      <!-- Selector de tableros -->
+      <div class="form-group">
+        <label>Seleccione un tablero:</label>
+        <select v-model="selectedBoard" @change="loadTasksForBoard" class="form-select">
+          <option value="">Seleccionar tablero</option>
+          <option v-for="board in boards" :key="board.id" :value="board">
+            {{ board.title }}
+          </option>
+        </select>
+      </div>
+      
+      <!-- Selector de tareas (aparece cuando se selecciona un tablero) -->
+      <div class="form-group" v-if="selectedBoard">
+        <label>Seleccione una tarea:</label>
+        <select v-model="selectedTask" class="form-select">
+          <option value="">Seleccionar tarea</option>
+          <option v-for="task in tasks" :key="task.id" :value="task">
+            {{ task.title }}
+          </option>
+        </select>
+      </div>
+      
+      <!-- Selector de estados (aparece cuando se selecciona una tarea) -->
+      <div class="form-group" v-if="selectedTask">
+        <label>Seleccione un estado:</label>
+        <select v-model="selectedStatus" class="form-select">
+          <option value="">Seleccionar estado</option>
+          <option value="Pendiente">Pendiente</option>
+          <option value="En curso">En curso</option>
+          <option value="Completado">Completado</option>
+          <option value="Stoper">Stoper</option>
+        </select>
+      </div>
+      
+      <!-- Botones de acción -->
+      <div class="popup-actions">
+        <button 
+          @click="confirmTaskSetup" 
+          class="confirm-btn" 
+          :disabled="!selectedBoard || !selectedTask || !selectedStatus">
+          Confirmar
+        </button>
+        <button @click="closeTaskPopup" class="cancel-btn">Cancelar</button>
+      </div>
+    </div>
+    <div v-if="showEmailPopup" class="popup-overlay">
+    <div class="popup">
+      <h3>Configurar Email</h3>
+      
+      <div class="form-group">
+        <label>Destinatario:</label>
+        <input 
+          type="email" 
+          v-model="emailConfig.to" 
+          class="form-input" 
+          placeholder="correo@ejemplo.com"
+        />
+      </div>
+      
+      <div class="form-group">
+        <label>Asunto:</label>
+        <input 
+          type="text" 
+          v-model="emailConfig.subject" 
+          class="form-input" 
+          placeholder="Asunto del correo"
+        />
+      </div>
+      
+      <div class="form-group">
+        <label>Mensaje:</label>
+        <textarea 
+          v-model="emailConfig.message" 
+          class="form-textarea" 
+          rows="4"
+          placeholder="Contenido del correo..."
+        ></textarea>
+      </div>
+      
+      <div class="popup-actions">
+        <button 
+          @click="confirmEmailSetup" 
+          class="confirm-btn" 
+          :disabled="!emailConfig.to || !emailConfig.subject || !emailConfig.message">
+          Confirmar
+        </button>
+        <button @click="closeEmailPopup" class="cancel-btn">Cancelar</button>
+      </div>
+    </div>
+  </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, reactive, nextTick, watch } from "vue";
+import { ref, reactive, nextTick, watch, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import draggable from "vuedraggable";
 import axios from "axios";
 
 // Bloques base
 const availableBlocks = ref([
-  { id: 1, name: "Iniciar", description: "Inicio del flujo" },
+  { id: 1, name: "Tarea", description: "Inicio del flujo con Tarea (desencadenador)" },
   { id: 2, name: "Enviar Email", description: "Envía un correo electrónico" },
   { id: 3, name: "Esperar", description: "Espera un tiempo antes de continuar" },
-  { id: 4, name: "Condición SI/NO", description: "Ejecuta según una condición" },
 ]);
-
+const showEmailPopup = ref(false);
+const emailConfig = reactive({
+  to: '',
+  subject: '',
+  message: ''
+});
+const showTaskPopup = ref(false);
+const boards = ref([]);
+const tasks = ref([]);
+const selectedBoard = ref(null);
+const selectedTask = ref(null);
+const selectedStatus = ref("");
+onMounted(async () => {
+  try {
+    const response = await axios.get('/api/kanban');
+    boards.value = response.data;
+  } catch (error) {
+    console.error('Error al cargar tableros:', error);
+  }
+});
+const loadTasksForBoard = async () => {
+  if (!selectedBoard.value) return;
+  
+  try {
+    const response = await axios.get(`/api/kanban/${selectedBoard.value.id}/tasks`);
+    tasks.value = response.data;
+    selectedTask.value = null; // Resetear la selección de tarea
+    selectedStatus.value = ""; // Resetear la selección de estado
+  } catch (error) {
+    console.error('Error al cargar tareas:', error);
+  }
+};
 // Bloques en el flujo
 const blocks = ref([]);
 
@@ -142,11 +267,47 @@ const placeBlockCentered = async (block) => {
   updateConnections();
 };
 
-// Añadir bloque al hacer clic
 const addBlock = (block) => {
+  if (block.name === "Tarea") {
+    showTaskPopup.value = true;
+    return;
+  } else if (block.name === "Enviar Email") {
+    showEmailPopup.value = true;
+    return;
+  }
+  
+  // Si aún no hay bloques, solo se permite "Tarea"
+  if (blocks.value.length === 0 && block.name !== "Tarea") {
+      alert("La primera acción debe ser Tarea ya que es el desencadenador.");
+      return;
+  }
+
+  // Limita a 3 acciones
+  if (blocks.value.length >= 3) {
+      alert("No se pueden agregar más de 3 acciones.");
+      return;
+  }
+
+  // Evita duplicados
+  if (blocks.value.some(b => b.name === block.name)) {
+      alert("Esta acción ya fue agregada.");
+      return;
+  }
+
   placeBlockCentered(block);
 };
-
+const closeEmailPopup = () => {
+  showEmailPopup.value = false;
+  emailConfig.to = '';
+  emailConfig.subject = '';
+  emailConfig.message = '';
+};
+const closeTaskPopup = () => {
+  showTaskPopup.value = false;
+  selectedBoard.value = null;
+  selectedTask.value = null;
+  selectedStatus.value = "";
+};
 // Manejar el drop
 const onDrop = async (event) => {
   if (draggedBlock) {
@@ -154,7 +315,30 @@ const onDrop = async (event) => {
     draggedBlock = null;
   }
 };
+const confirmEmailSetup = () => {
+  if (!emailConfig.to || !emailConfig.subject || !emailConfig.message) {
+    alert("Por favor, complete todos los campos del email.");
+    return;
+  }
 
+  // Crear un bloque de Email con la configuración seleccionada
+  const emailBlock = {
+    id: Date.now(),
+    name: "Enviar Email",
+    description: "Enviar correo electrónico",
+    config: {
+      to: emailConfig.to,
+      subject: emailConfig.subject,
+      message: emailConfig.message
+    }
+  };
+
+  // Colocar el bloque en el canvas
+  placeBlockCentered(emailBlock);
+  
+  // Cerrar el popup
+  closeEmailPopup();
+};
 // Mostrar popup
 const showPopup = (id) => {
   blockToRemove = id;
@@ -183,7 +367,32 @@ const removeBlockAndSubsequent = async (id) => {
   await nextTick();
   updateConnections();
 };
+const confirmTaskSetup = () => {
+  if (!selectedBoard.value || !selectedTask.value || !selectedStatus.value) {
+    alert("Por favor, complete todas las selecciones.");
+    return;
+  }
 
+  // Crear un bloque de Tarea con la configuración seleccionada
+  const taskBlock = {
+    id: 1,
+    name: "Tarea",
+    description: "Inicio del flujo con Tarea (desencadenador)",
+    config: {
+      boardId: selectedBoard.value.id,
+      boardName: selectedBoard.value.title,
+      taskId: selectedTask.value.id,
+      taskName: selectedTask.value.title,
+      status: selectedStatus.value
+    }
+  };
+
+  // Colocar el bloque en el canvas
+  placeBlockCentered(taskBlock);
+  
+  // Cerrar el popup
+  closeTaskPopup();
+};
 // Actualizar conexiones
 const updateConnections = () => {
   connections.value = [];
@@ -222,26 +431,51 @@ const getBlockStyle = (block, index) => {
 // Guardar flujo
 const saveFlow = async () => {
   try {
-    // Crea el workflow en backend
+    // Verificar que haya bloques
+    if (blocks.value.length === 0) {
+      alert('El flujo necesita al menos un desencadenador');
+      return;
+    }
+    
+    // Verificar que el primer bloque sea de tipo Tarea
+    const trigger = blocks.value[0];
+    if (trigger.name !== "Tarea" || !trigger.config) {
+      alert('El primer bloque debe ser un desencadenador de tipo Tarea');
+      return;
+    }
+
+    // Crear el workflow en backend
     const workflowResponse = await axios.post('/api/workflows', {
-      nombre: flowName.value,
-      descripcion: flowDescription.value,
+      nombre: flowName.value || 'Flujo sin nombre',
+      descripcion: flowDescription.value || `Automatización creada el ${new Date().toISOString().split('T')[0]}`,
+      trigger: {
+        type: 'task_status',
+        boardId: trigger.config.boardId,
+        boardName: trigger.config.boardName,
+        taskId: trigger.config.taskId,
+        taskName: trigger.config.taskName,
+        status: trigger.config.status
+      }
     });
+    
     const idWorkflow = workflowResponse.data.id_workflow;
 
-    // Crea cada acción dentro del workflow
-    for (const block of blocks.value) {
+    // Crear cada acción dentro del workflow
+    for (let i = 0; i < blocks.value.length; i++) {
+      const block = blocks.value[i];
       await axios.post(`/api/workflows/${idWorkflow}/actions`, {
         name: block.name,
         description: block.description || '',
-        x_position: block.x,
-        y_position: block.y,
+        x_position: block.x || 0,
+        y_position: block.y || 0,
+        config: block.config || null,
       });
     }
-    alert('Workflow guardado exitosamente');
+    
+    alert('Flujo de trabajo guardado exitosamente');
   } catch (error) {
     console.error(error);
-    alert('Error al guardar el workflow');
+    alert('Error al guardar el flujo de trabajo');
   }
 };
 </script>
@@ -282,6 +516,10 @@ const saveFlow = async () => {
 .title {
   font-size: 1.5rem;
   font-weight: bold;
+  color: white!important;
+}
+.title::placeholder {
+    color: #fff; 
 }
 
 .run-button {
@@ -468,6 +706,77 @@ const saveFlow = async () => {
   width: 60%;
   outline: none;
   margin-right: 20px;
+}
+.popup {
+  width: 400px;
+  max-width: 90%;
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 14px;
+}
+
+.popup-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  gap: 10px;
+}
+
+.confirm-btn, .cancel-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.confirm-btn {
+  background-color: #007bff;
+  color: white;
+}
+
+.confirm-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+}
+.form-input, .form-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
 }
 
 

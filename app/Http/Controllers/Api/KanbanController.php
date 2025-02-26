@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Kanban;
+use App\Models\Tablero; // Añade el modelo Tablero
+use Illuminate\Support\Facades\DB; // Añade esta línea
+use Illuminate\Support\Facades\Log; // Añade esta línea
 
 class KanbanController extends Controller
 {
@@ -54,5 +57,42 @@ class KanbanController extends Controller
         $kanban->delete();
 
         return response()->json(['message' => 'Kanban eliminado'], 200);
+    }
+    public function getBoards()
+    {
+        try {
+            // Usar el modelo Tablero en lugar de consultar directamente la tabla tareas
+            $boards = Tablero::all()->map(function($tablero) {
+                return [
+                    'id' => $tablero->id_tablero,
+                    'title' => $tablero->nombre
+                ];
+            });
+
+            return response()->json($boards);
+        } catch (\Exception $e) {
+            Log::error('Error en getBoards: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+    public function getTasks($id)
+    {
+        try {
+            $tasks = Kanban::where('id_tablero', $id)
+                ->get()
+                ->map(function($tarea) {
+                    return [
+                        'id' => $tarea->id_tarea,
+                        'title' => $tarea->titulo,
+                        'description' => $tarea->descripcion,
+                        'status' => $tarea->estado
+                    ];
+                });
+                
+            return response()->json($tasks);
+        } catch (\Exception $e) {
+            Log::error('Error en getTasks: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 }
