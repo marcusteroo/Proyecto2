@@ -107,31 +107,32 @@ class ProcessWorkflow implements ShouldQueue
      * Procesa una acción de tipo Email
      */
     protected function processEmailAction($action): void
-{
-    $config = json_decode($action->config, true);
-    
-    if (empty($config['to']) || empty($config['subject']) || empty($config['message'])) {
-        Log::error("Configuración de email incompleta para la acción #{$action->id_action}");
-        throw new \Exception("Configuración de email incompleta");
-    }
-    
-    try {
-        // Enviar correo usando la plantilla
-        Mail::send('emails.workflow-notification', [
-            'subject' => $config['subject'],
-            'message' => $config['message']
-        ], function ($message) use ($config) {
-            $message->to($config['to']);
-            $message->subject($config['subject']);
-        });
+    {
+        // Verificar si config ya es un array o es una cadena JSON
+        $config = is_string($action->config) ? json_decode($action->config, true) : $action->config;
         
-        Log::info("Email enviado correctamente a: {$config['to']}, asunto: {$config['subject']}");
-    } catch (\Exception $e) {
-        Log::error("Error al enviar email: " . $e->getMessage());
-        throw $e;
+        if (empty($config['to']) || empty($config['subject']) || empty($config['message'])) {
+            Log::error("Configuración de email incompleta para la acción #{$action->id_action}");
+            throw new \Exception("Configuración de email incompleta");
+        }
+        
+        try {
+            // Enviar correo usando la plantilla y el destinatario configurado
+            Mail::send('emails.workflow-notification', [
+                'email_subject' => $config['subject'],   // Cambiar nombre de la variable
+                'email_message' => $config['message']    // Cambiar nombre de la variable
+            ], function ($message) use ($config) {
+                // Usar el correo configurado en la acción
+                $message->to($config['to']);
+                $message->subject($config['subject']);
+            });
+            
+            Log::info("Email enviado correctamente a: {$config['to']}, asunto: {$config['subject']}");
+        } catch (\Exception $e) {
+            Log::error("Error al enviar email: " . $e->getMessage());
+            throw $e;
+        }
     }
-}
-
 /**
  * Procesa una acción de tipo Esperar (versión de prueba)
  */

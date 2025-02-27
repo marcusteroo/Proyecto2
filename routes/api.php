@@ -146,20 +146,10 @@ Route::get('/execute-workflow/{id}', function ($id) {
     }
     
     try {
-        // Extraer información del workflow
-        $triggerParams = json_decode($workflow->trigger_params, true);
-        $message = "Se ha activado una automatización por cambio de estado de la tarea {$triggerParams['taskName']} a {$triggerParams['status']}.";
+        // Ejecuta el workflow directamente, que usará la configuración de email guardada
+        App\Jobs\ProcessWorkflow::dispatchSync($workflow);
         
-        // Enviar email directamente
-        $result = App\Services\SimpleSender::sendEmail(
-            'destinatario@ejemplo.com', // Cambia esto por tu email real
-            "Automatización activada: {$workflow->nombre}",
-            $message
-        );
-        
-        return $result 
-            ? "Workflow #{$id} ejecutado y email enviado correctamente." 
-            : "Error al enviar el email del workflow #{$id}.";
+        return "Workflow #{$id} ejecutado. Revisa los logs en storage/logs/laravel.log";
     } catch (\Exception $e) {
         return "Error: " . $e->getMessage();
     }

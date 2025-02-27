@@ -34,10 +34,10 @@
 <body>
     <div class="container">
         <div class="header">
-            <h2>{{ $subject }}</h2>
+            <h2>{{ $email_subject }}</h2>
         </div>
         <div class="content">
-            {!! nl2br(e($message)) !!}
+            {!! nl2br(e($email_message)) !!}
         </div>
         <div class="footer">
             <p>Este es un correo automático enviado desde el sistema de automatizaciones.</p>

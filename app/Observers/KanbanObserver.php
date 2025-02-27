@@ -28,9 +28,10 @@ class KanbanObserver
 
 protected function checkWorkflowTriggers(Kanban $kanban): void
 {
-    Log::info("Buscando workflows para activar con la tarea #{$kanban->id_tarea}, estado='{$kanban->estado}'");
-    
-    $workflows = Workflow::where('trigger_type', 'task_status')
+    try {
+        Log::info("Buscando workflows para activar con la tarea #{$kanban->id_tarea}, estado='{$kanban->estado}'");
+        
+        $workflows = Workflow::where('trigger_type', 'task_status')
         ->where('status', 'active')
         ->get();
     
@@ -41,7 +42,26 @@ protected function checkWorkflowTriggers(Kanban $kanban): void
         
         Log::info("Revisando workflow #{$workflow->id_workflow}: " . json_encode($triggerParams));
         
-        // Continúa con tu lógica...
+        // Verificar que coincida TANTO la tarea como el estado configurado
+        if (
+            isset($triggerParams['taskId']) && 
+            isset($triggerParams['status']) && 
+            $triggerParams['taskId'] == $kanban->id_tarea &&
+            $triggerParams['status'] == $kanban->estado
+        ) {
+            Log::info("¡Coincidencia encontrada! Ejecutando workflow #{$workflow->id_workflow} para tarea #{$kanban->id_tarea} con estado '{$kanban->estado}'");
+            
+            // Ejecutar el workflow
+            ProcessWorkflow::dispatch($workflow);
+        } else {
+            Log::info("El workflow #{$workflow->id_workflow} no coincide con la tarea #{$kanban->id_tarea} y estado '{$kanban->estado}'");
+        }
     }
+        
+    } catch (\Exception $e) {
+        Log::error("Error al procesar workflows para tarea #{$kanban->id_tarea}: {$e->getMessage()}");
+    }
+    
+    
 }
 }
