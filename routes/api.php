@@ -85,3 +85,72 @@ Route::get('kanban/{id}', [KanbanController::class, 'show']);
 Route::post('kanban', [KanbanController::class, 'store']);
 Route::put('kanban/{id}', [KanbanController::class, 'update']);
 Route::delete('kanban/{id}', [KanbanController::class, 'destroy']);
+Route::get('/kanban', [KanbanController::class, 'getBoards']);
+Route::get('/kanban/{id}/tasks', [KanbanController::class, 'getTasks']); 
+Route::get('/test-workflow/{workflowId}', function ($workflowId) {
+    $workflow = App\Models\Workflow::find($workflowId);
+    
+    if (!$workflow) {
+        return "Workflow no encontrado";
+    }
+    
+    // Ejecuta el workflow directamente
+    App\Jobs\ProcessWorkflow::dispatchSync($workflow);
+    
+    return "Workflow #{$workflowId} ejecutado. Revisa los logs en storage/logs/laravel.log";
+});
+
+// Otra ruta para probar el desencadenador con una tarea específica
+Route::get('/test-trigger/{taskId}/{estado}', function ($taskId, $estado) {
+    $tarea = App\Models\Kanban::find($taskId);
+    
+    if (!$tarea) {
+        return "Tarea no encontrada";
+    }
+    
+    // Actualiza el estado
+    $estadoAnterior = $tarea->estado;
+    $tarea->estado = $estado;
+    $tarea->save();
+    
+    return "Estado de tarea #{$taskId} cambiado de '{$estadoAnterior}' a '{$estado}'. Revisa los logs en storage/logs/laravel.log";
+});
+Route::get('/test-email', function () {
+    try {
+        \Illuminate\Support\Facades\Mail::raw('Mensaje de prueba de automatización', function ($message) {
+            $message->to('marc8100@hotmail.com');
+            $message->subject('Prueba de automatización');
+        });
+        
+        return "Email enviado correctamente, revisa los logs";
+    } catch (\Exception $e) {
+        return "Error al enviar email: " . $e->getMessage();
+    }
+});
+Route::get('/send-test-email', function () {
+    $result = App\Services\SimpleSender::sendEmail(
+        'destinatario@ejemplo.com',
+        'Prueba de automatización',
+        'Este es un mensaje de prueba enviado por la automatización.'
+    );
+    
+    return $result 
+        ? "Correo enviado correctamente, revisa los logs." 
+        : "Error al enviar el correo, revisa los logs.";
+});
+Route::get('/execute-workflow/{id}', function ($id) {
+    $workflow = App\Models\Workflow::find($id);
+    
+    if (!$workflow) {
+        return "Workflow no encontrado";
+    }
+    
+    try {
+        // Ejecuta el workflow directamente, que usará la configuración de email guardada
+        App\Jobs\ProcessWorkflow::dispatchSync($workflow);
+        
+        return "Workflow #{$id} ejecutado. Revisa los logs en storage/logs/laravel.log";
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});

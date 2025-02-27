@@ -10,5 +10,28 @@ class WorkflowAction extends Model
 
     protected $table = 'workflow_actions';
     protected $primaryKey = 'id_action';
-    protected $fillable = ['id_workflow', 'name', 'description', 'x_position', 'y_position'];
+    protected $fillable = [
+        'id_workflow', 
+        'action_type',
+        'name', 
+        'description', 
+        'order_index',
+        'x_position', 
+        'y_position',
+        'config'
+    ];
+
+    protected $casts = [
+        'config' => 'array',
+    ];
+
+    public function workflow()
+    {
+        return $this->belongsTo(Workflow::class, 'id_workflow', 'id_workflow');
+    }
+
+    public function logs()
+    {
+        return $this->hasMany(WorkflowActionLog::class, 'id_action', 'id_action');
+    }
 }
