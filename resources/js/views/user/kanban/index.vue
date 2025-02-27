@@ -40,7 +40,10 @@
                 class="editar-tarea"
                 @click.stop="editarTarea(tarea)"
               >
-                ✏️
+              <svg fill="none" viewBox="0 0 16 16" role="presentation" class="css-1t4wpzr">
+                <path stroke="currentcolor" stroke-linejoin="round" stroke-width="1.5" d="M6 1.751H3c-.69 0-1.25.56-1.25 1.25v10c0 .69.56 1.25 1.25 1.25h10c.69 0 1.25-.56 1.25-1.25V10m-.75-5 1.116-1.116a1.25 1.25 0 0 0 0-1.768l-.732-.732a1.25 1.25 0 0 0-1.768 0L11 2.5M13.5 5 9.479 9.021c-.15.15-.336.26-.54.318l-3.189.911.911-3.189a1.25 1.25 0 0 1 .318-.54L11 2.5M13.5 5 11 2.5"></path>
+              </svg>
+
               </span>
             </div>
           </template>
@@ -64,30 +67,88 @@
       </div>
     </div>
 
-    <!-- Popup para editar tarea -->
     <div v-if="popupAbierto" class="popup-overlay">
-      <div class="popup">
-        <h2>Editar Tarea</h2>
-        <input v-model="tareaEditada.titulo" type="text" placeholder="Título de la tarea" />
-        <textarea v-model="tareaEditada.descripcion" placeholder="Descripción"></textarea>
+  <div class="popup">
+    <div class="popup-header">
+      <h2>Editar Tarea</h2>
+      <button class="popup-close" @click="popupAbierto = false">✕</button>
+    </div>
+    <div class="popup-content">
+      <input
+        v-model="tareaEditada.titulo"
+        type="text"
+        placeholder="Título de la tarea"
+        class="popup-input titulo-input"
+      />
+      <!-- Se reemplaza el textarea por un input -->
+      <input
+        v-model="tareaEditada.descripcion"
+        type="text"
+        placeholder="Descripción"
+        class="popup-input descripcion-input"
+      />
 
+      <div class="popup-subtareas">
         <h3>Subtareas</h3>
         <ul>
-          <li v-for="(sub, i) in tareaEditada.subtareas" :key="i">
-            <input type="checkbox" v-model="sub.completado" />
-            <span :class="{ completado: sub.completado }">{{ sub.texto }}</span>
-            <span @click="eliminarSubtarea(i)">❌</span>
+          <li
+            v-for="(sub, i) in tareaEditada.subtareas"
+            :key="i"
+            class="popup-subtarea-item"
+          >
+            <label>
+              <input
+                type="checkbox"
+                v-model="sub.completado"
+                class="popup-checkbox"
+              />
+              <!-- Si no está en edición se muestra el texto; al hacer clic se activa la edición -->
+              <template v-if="!sub.editing">
+                <span :class="{ completado: sub.completado }" @click="sub.editing = true">
+                  {{ sub.texto }}
+                </span>
+              </template>
+              <!-- Modo edición: se muestra un input para editar el texto -->
+              <template v-else>
+                <input
+                  type="text"
+                  v-model="sub.texto"
+                  class="subtarea-edit-input"
+                  @blur="sub.editing = false"
+                  @keydown.enter="sub.editing = false"
+                />
+              </template>
+            </label>
+            <button class="subtarea-delete" @click="eliminarSubtarea(i)">
+              <svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                <path stroke="currentColor" stroke-width="1.5" d="M2.75 5.25h-1v-3.5h12.5v3.5h-1m-10.5 0V13c0 .69.56 1.25 1.25 1.25h8c.69 0 1.25-.56 1.25-1.25V5.25m-10.5 0h10.5m-7.75 3h5"/>
+              </svg>
+            </button>
           </li>
         </ul>
-
-        <input v-model="nuevaSubtarea" type="text" placeholder="Añadir subtarea" />
-        <button @click="agregarSubtarea">Añadir</button>
-
-        <button @click="actualizarTareaBackend">Guardar cambios</button>
-        <button @click="popupAbierto = false">Cerrar</button>
+        <div class="popup-add-subtarea">
+          <input
+            v-model="nuevaSubtarea"
+            type="text"
+            placeholder="Añadir subtarea"
+            class="popup-input"
+          />
+          <button @click="agregarSubtarea" class="popup-button">
+            Añadir
+          </button>
+        </div>
       </div>
     </div>
+    <div class="popup-actions">
+      <button @click="actualizarTareaBackend" class="popup-button guardar-button">
+        Guardar cambios
+      </button>
+    </div>
   </div>
+</div>
+
+
+</div>
 </template>
 
 <script setup>
@@ -317,8 +378,6 @@ const eliminarSubtarea = (i) => {
 .anadir-tarea {
   margin-top: 10px;
 }
-
-/* Popup de edición */
 .popup-overlay {
   position: fixed;
   top: 0;
@@ -329,32 +388,172 @@ const eliminarSubtarea = (i) => {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1000;
 }
+
+/* Contenedor del popup */
 .popup {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  width: 300px;
+  background: #fff;
+  border-radius: 8px;
+  width: 340px;
+  max-width: 95%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
-.popup h2 {
-  margin-top: 0;
-}
-.popup ul {
-  list-style: none;
-  padding: 0;
-}
-.popup li {
+
+/* Header del popup */
+.popup-header {
+  background: linear-gradient(135deg, #0079bf, #005a8e);
+  color: #fff;
+  padding: 12px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 5px 0;
-  padding: 5px;
-  background: #f0f0f0;
-  border-radius: 5px;
 }
-.popup input[type='checkbox'] {
-  margin-right: 10px;
+.popup-header h2 {
+  margin: 0;
+  font-size: 20px;
 }
+.popup-close {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+/* Contenido del popup */
+.popup-content {
+  padding: 16px;
+  flex: 1;
+}
+.popup-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 15px;
+}
+.titulo-input {
+  font-weight: bold;
+  font-size: 16px;
+}
+.descripcion-input {
+  font-style: italic;
+}
+
+/* Sección de subtareas */
+.popup-subtareas h3 {
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+.popup-subtareas ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.popup-subtarea-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  background: #f9f9f9;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+/* Alinear checkbox y texto o input */
+.popup-subtarea-item label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.popup-checkbox {
+  margin: 0;
+}
+.subtarea-delete {
+  background: transparent;
+  border: none;
+  color: #d9534f;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* Estilo para el input en modo edición de subtarea */
+.subtarea-edit-input {
+  padding: 4px 6px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Input y botón de añadir subtarea con la misma altura */
+.popup-add-subtarea {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.popup-add-subtarea input,
+.popup-add-subtarea button {
+  height: 40px;
+  padding: 0 10px;
+  border-radius: 4px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+}
+.popup-add-subtarea button {
+  background-color: #5aac44;
+  color: #fff;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.popup-add-subtarea button:hover {
+  background-color: #519839;
+  transform: translateY(-2px);
+}
+.popup-add-subtarea button:active {
+  transform: translateY(0);
+  background-color: #498d32;
+}
+
+/* Botones generales */
+.popup-button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 4px;
+  background-color: #5aac44;
+  color: #fff;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.popup-button:hover {
+  background-color: #519839;
+  transform: translateY(-2px);
+}
+.popup-button:active {
+  transform: translateY(0);
+  background-color: #498d32;
+}
+.guardar-button {
+  width: 100%;
+}
+
+/* Sección de acciones del popup */
+.popup-actions {
+  padding: 12px 16px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  background: #f7f7f7;
+}
+
+
 textarea {
   width: 100%;
   height: 80px;
