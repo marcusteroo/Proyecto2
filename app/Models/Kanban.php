@@ -10,7 +10,7 @@ class Kanban extends Model
     use HasFactory;
 
     protected $table = 'tareas'; // Nombre de la tabla en la base de datos
-    protected $primaryKey = 'id_tablero'; // Clave primaria personalizada
+    protected $primaryKey = 'id_tarea'; // Clave primaria personalizada
     public $timestamps = true; // Habilita created_at y updated_at
 
     protected $fillable = ['titulo', 'descripcion', 'estado', 'id_tablero'];
