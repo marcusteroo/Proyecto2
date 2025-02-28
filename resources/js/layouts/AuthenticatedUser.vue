@@ -125,7 +125,7 @@ const items = ref([
     {
         label: 'Kanban',
         icon: 'pi pi-th-large',
-        to: '/app/kanban',
+        to: '/app/kanbans',
     },
     {
         label: 'Automatizaciones',

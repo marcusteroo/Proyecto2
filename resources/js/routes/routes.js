@@ -121,11 +121,18 @@ export default [
                 component: () => import('../views/user/flows/index.vue'),
             },
             {
+                path: 'kanbans',
+                name: 'user.kanbans',
+                component: () => import('../views/user/kanban/kanbans.vue'),
+                meta: { breadCrumb: 'Kanbans' }
+            },
+            {
                 path: 'kanban',
                 name: 'user.kanban',
                 component: () => import('../views/user/kanban/index.vue'),
                 meta: { breadCrumb: 'Kanban' }
             },
+            
             {
                 path: 'flows',
                 name: 'user.flows.flows',

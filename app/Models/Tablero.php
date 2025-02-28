@@ -16,4 +16,8 @@ class Tablero extends Model
     protected $keyType = 'int';
 
     protected $fillable = ['id_tablero', 'nombre', 'id_creador'];
+    public function tablero()
+    {
+        return $this->belongsTo(User::class, 'id_creador');
+    }
 }
