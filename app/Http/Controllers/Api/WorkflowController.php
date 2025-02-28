@@ -37,15 +37,16 @@ class WorkflowController extends Controller
     public function update(Request $request, $id)
 {
     $workflow = Workflow::findOrFail($id);
+    
     $workflow->update([
         'nombre' => $request->nombre,
         'descripcion' => $request->descripcion,
-        'trigger_type' => $request->trigger['type'] ?? $workflow->trigger_type,
-        'trigger_params' => $request->trigger ? json_encode($request->trigger) : $workflow->trigger_params, // Cambio aquí
-        'status' => $request->status ?? $workflow->status,
+        'trigger_type' => $request->trigger['type'],
+        'trigger_params' => json_encode($request->trigger),
+        'status' => 'active'
     ]);
-
-    return response()->json(['message' => 'Workflow actualizado'], 200);
+    
+    return response()->json($workflow);
 }
     
     public function show($id)
@@ -60,4 +61,12 @@ class WorkflowController extends Controller
         $actions = $workflow->actions;
         return response()->json($actions);
     }
+    public function deleteActions($id)
+{
+    $workflow = Workflow::findOrFail($id);
+    // Eliminar todas las acciones del workflow
+    $workflow->actions()->delete();
+    
+    return response()->json(['message' => 'Actions deleted']);
+}
 }

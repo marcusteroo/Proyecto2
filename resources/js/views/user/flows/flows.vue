@@ -13,7 +13,6 @@
                 <h2>{{ flow.nombre }}</h2>
                 <p>{{ flow.descripcion }}</p>
                 <div class="actions">
-                    <button class="edit-btn" @click="editFlow(flow.id_workflow)">✏️ Editar</button>
                     <button class="delete-btn" @click="deleteFlow(flow.id_workflow)">🗑️ Eliminar</button>
                 </div>
             </div>
