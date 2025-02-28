@@ -15,7 +15,7 @@ use App\Http\Controllers\Api\WorkflowController;
 use App\Http\Controllers\Api\WorkflowActionController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Api\KanbanController;
-
+use App\Http\Controllers\Api\TableroController; // <-- Se agrega el controlador de Tableros
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -26,8 +26,7 @@ Route::post('reset-password', [ResetPasswordController::class, 'reset'])->name('
 Route::group(['middleware' => 'auth:sanctum'], function() {
 
     Route::apiResource('users', UserController::class);
-
-    Route::post('users/updateimg', [UserController::class,'updateimg']); //Listar
+    Route::post('users/updateimg', [UserController::class, 'updateimg']);
 
     Route::apiResource('posts', PostControllerAdvance::class);
     Route::apiResource('categories', CategoryController::class);
@@ -60,17 +59,20 @@ Route::get('get-posts', [PostControllerAdvance::class, 'getPosts']);
 Route::get('get-category-posts/{id}', [PostControllerAdvance::class, 'getCategoryByPosts']);
 Route::get('get-post/{id}', [PostControllerAdvance::class, 'getPost']);
 
-Route::get('note',[NoteController::class,'index'])->name('note.index');
-Route::post('note',[NoteController::class,'store'])->name('note.store');
-Route::get('note/{id}',[NoteController::class,'show'])->name('note.show');
-Route::put('note/{id}',[NoteController::class,'update'])->name('note.update');
-Route::delete('note/{id}',[NoteController::class,'destroy'])->name('note.destroy');
-Route::get('author',[AuthorController::class,'index']);
-Route::post('author',[AuthorController::class,'store']);
-Route::delete('author/{author}',[AuthorController::class,'destroy'])->name('author.destroy');
-Route::get('author/{id}',[AuthorController::class,'show']);
-Route::put('author/{id}',[AuthorController::class,'update']);
+Route::get('note', [NoteController::class, 'index'])->name('note.index');
+Route::post('note', [NoteController::class, 'store'])->name('note.store');
+Route::get('note/{id}', [NoteController::class, 'show'])->name('note.show');
+Route::put('note/{id}', [NoteController::class, 'update'])->name('note.update');
+Route::delete('note/{id}', [NoteController::class, 'destroy'])->name('note.destroy');
+
+Route::get('author', [AuthorController::class, 'index']);
+Route::post('author', [AuthorController::class, 'store']);
+Route::delete('author/{author}', [AuthorController::class, 'destroy'])->name('author.destroy');
+Route::get('author/{id}', [AuthorController::class, 'show']);
+Route::put('author/{id}', [AuthorController::class, 'update']);
+
 Route::post('send-message', [WhatsAppController::class, 'sendMessage']);
+
 Route::post('/workflows', [WorkflowController::class, 'store']);
 Route::post('/workflows/{id}/actions', [WorkflowActionController::class, 'store']);
 Route::get('/workflows', [WorkflowController::class, 'index']);
@@ -79,14 +81,20 @@ Route::put('/workflows/{id}', [WorkflowController::class, 'update']);
 Route::put('/workflow-actions/{id}', [WorkflowActionController::class, 'update']);
 Route::get('/workflows/{id}', [WorkflowController::class, 'show']);
 Route::get('/workflows-action/{id}', [WorkflowController::class, 'getActions']);
+
 Route::post('/check-email', [RegisterController::class, 'checkEmail']);
+
 Route::apiResource('kanbans', KanbanController::class);
 Route::get('kanban/{id}', [KanbanController::class, 'show']);
 Route::post('kanban', [KanbanController::class, 'store']);
 Route::put('kanban/{id}', [KanbanController::class, 'update']);
 Route::delete('kanban/{id}', [KanbanController::class, 'destroy']);
 Route::get('/kanban', [KanbanController::class, 'getBoards']);
-Route::get('/kanban/{id}/tasks', [KanbanController::class, 'getTasks']); 
+Route::get('/kanban/{id}/tasks', [KanbanController::class, 'getTasks']);
+
+// Nueva API para Tableros, que se adapta a las llamadas definidas en el componente Vue
+Route::apiResource('tableros', TableroController::class);
+
 Route::get('/test-workflow/{workflowId}', function ($workflowId) {
     $workflow = App\Models\Workflow::find($workflowId);
     
@@ -115,6 +123,7 @@ Route::get('/test-trigger/{taskId}/{estado}', function ($taskId, $estado) {
     
     return "Estado de tarea #{$taskId} cambiado de '{$estadoAnterior}' a '{$estado}'. Revisa los logs en storage/logs/laravel.log";
 });
+
 Route::get('/test-email', function () {
     try {
         \Illuminate\Support\Facades\Mail::raw('Mensaje de prueba de automatización', function ($message) {
@@ -127,6 +136,7 @@ Route::get('/test-email', function () {
         return "Error al enviar email: " . $e->getMessage();
     }
 });
+
 Route::get('/send-test-email', function () {
     $result = App\Services\SimpleSender::sendEmail(
         'destinatario@ejemplo.com',
@@ -138,6 +148,7 @@ Route::get('/send-test-email', function () {
         ? "Correo enviado correctamente, revisa los logs." 
         : "Error al enviar el correo, revisa los logs.";
 });
+
 Route::get('/execute-workflow/{id}', function ($id) {
     $workflow = App\Models\Workflow::find($id);
     
