@@ -11,13 +11,20 @@ class Tablero extends Model
     protected $table = 'tableros'; 
     protected $primaryKey = 'id_tablero'; 
 
-    public $incrementing = false; 
+    // Permitir autoincremento
+    public $incrementing = true; 
 
     protected $keyType = 'int';
 
-    protected $fillable = ['id_tablero', 'nombre', 'id_creador'];
-    public function tablero()
+    protected $fillable = ['nombre', 'id_creador', 'color_fondo'];
+    
+    public function creator()
     {
         return $this->belongsTo(User::class, 'id_creador');
+    }
+    
+    public function tareas()
+    {
+        return $this->hasMany(Kanban::class, 'id_tablero');
     }
 }

@@ -1,0 +1,153 @@
+/* Tema oscuro global */
+.dark-theme {
+    --bg-main: #1e1e2e;
+    --bg-secondary: #292a36;
+    --bg-tertiary: #24252d;
+    --border-color: #383a46;
+    --text-primary: #e4e6eb;
+    --text-secondary: #b5bac1;
+    --shadow-color: rgba(0,0,0,0.3);
+    
+    /* Colores de acento - mantener los mismos para consistencia */
+    --accent-color: #1A00FF;
+    --accent-light: #4D33FF;
+  }
+  
+  /* Aplicar estilos al cuerpo de la página */
+  html.dark-theme,
+  body.dark-theme {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+  }
+  
+  /* Estilos para el sidebar */
+  .dark-theme .layout-sidebar {
+    background-color: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+  }
+  
+  .dark-theme .menu-item a {
+    color: var(--text-secondary);
+  }
+  
+  .dark-theme .menu-item a:hover,
+  .dark-theme .menu-item a.selected {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+  }
+  
+  /* Estilos para el contenido principal */
+  .dark-theme .layout-main-container {
+    background-color: var(--bg-main);
+  }
+  
+  .dark-theme .card {
+    background-color: var(--bg-secondary);
+    box-shadow: 0 0 10px var(--shadow-color);
+    border: 1px solid var(--border-color);
+  }
+  
+  /* Estilos para títulos y textos */
+  .dark-theme h1, 
+  .dark-theme h2, 
+  .dark-theme h3, 
+  .dark-theme h4, 
+  .dark-theme h5, 
+  .dark-theme h6 {
+    color: var(--text-primary);
+  }
+  
+  .dark-theme p, 
+  .dark-theme span, 
+  .dark-theme label {
+    color: var(--text-secondary);
+  }
+  
+  /* Estilos para inputs y formularios */
+  .dark-theme input, 
+  .dark-theme select, 
+  .dark-theme textarea {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+  }
+  
+  .dark-theme input:focus, 
+  .dark-theme select:focus, 
+  .dark-theme textarea:focus {
+    border-color: var(--accent-color);
+  }
+  
+  /* Estilos para Kanban */
+  .dark-theme .kanban-container {
+    background-color: var(--bg-main);
+  }
+  
+  .dark-theme .seccion {
+    background-color: var(--bg-secondary);
+  }
+  
+  .dark-theme .tarea {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+  }
+  
+  .dark-theme .tarea-titulo {
+    color: var(--text-primary);
+  }
+  
+  .dark-theme .tarea-descripcion {
+    color: var(--text-secondary);
+  }
+  
+  .dark-theme .popup {
+    background-color: var(--bg-secondary);
+  }
+  
+  .dark-theme .popup-input {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+  }
+  
+  /* Estilos para Flows */
+  .dark-theme .workflow-builder {
+    background-color: var(--bg-main);
+  }
+  
+  .dark-theme .workflow-canvas {
+    background-color: var(--bg-secondary);
+  }
+  
+  .dark-theme .workflow-block {
+    background-color: var(--bg-tertiary);
+    border-color: var(--accent-color);
+  }
+  
+  .dark-theme .block-name {
+    color: var(--text-primary);
+  }
+  
+  /* Botones y acciones */
+  .dark-theme .btn-primary {
+    background-color: var(--accent-color);
+  }
+  
+  .dark-theme .btn-primary:hover {
+    background-color: var(--accent-light);
+  }
+  
+  /* Tablas de datos */
+  .dark-theme table th,
+  .dark-theme table td {
+    border-color: var(--border-color);
+    color: var(--text-primary);
+  }
+  
+  .dark-theme table th {
+    background-color: var(--bg-tertiary);
+  }
+  
+  .dark-theme table tr:nth-child(even) {
+    background-color: var(--bg-tertiary);
+  }

@@ -8,7 +8,6 @@
             <div class="layout-sidebar">
                 <!-- Cabecera del sidebar (usuario y roles) -->
                 <div class="sidebar-header container-nombre-usuario">
-                    <Avatar :image="authStore().user?.avatar" shape="circle" class="mr-2" />
                     <div class="sidebar-userinfo">
                         <span class="nombre-usuario">Bienvenido, {{ user.name }}</span>
                         <hr>
@@ -131,6 +130,11 @@ const items = ref([
         label: 'Automatizaciones',
         icon: 'pi pi-cog',
         to: '/app/flows',
+    },
+    {
+        label: 'Configuración',
+        icon: 'pi pi-sliders-h',
+        to: '/app/settings',
     }
 ]);
 
@@ -339,5 +343,22 @@ const isOutsideClicked = (event) => {
 }
 .disable-scroll{
     overflow-x: hidden!important;
+}
+.menu {
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 80px);
+}
+
+.menu-item:last-child {
+    margin-top: auto;
+}
+.sidebar-userinfo hr {
+  border: none;
+  height: 2px;  
+  background-color: white; 
+  margin: 8px 0;  
+  opacity: 0.8;   
+  width: 100%;    
 }
 </style>

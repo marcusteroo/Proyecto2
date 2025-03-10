@@ -15,11 +15,14 @@ class TableroController extends Controller
     
     public function store(Request $request)
     {
-        $tablero = Tablero::create([
-            'id_tablero' => $request->id_tablero,
-            'nombre' => $request->nombre,
-            'id_creador' => $request->id_creador,
-        ]);
+        $tablero = new Tablero();
+        $tablero->nombre = $request->nombre;
+        $tablero->id_creador = $request->id_creador;
+        // Si enviamos el color desde el frontend
+        if ($request->has('color_fondo')) {
+            $tablero->color_fondo = $request->color_fondo;
+        }
+        $tablero->save();
 
         return response()->json(['id_tablero' => $tablero->id_tablero], 201);
     }

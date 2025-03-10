@@ -69,4 +69,29 @@ class WorkflowController extends Controller
     
     return response()->json(['message' => 'Actions deleted']);
 }
+public function execute($id)
+{
+    $workflow = Workflow::find($id);
+    
+    if (!$workflow) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Workflow no encontrado'
+        ], 404);
+    }
+    
+    try {
+        \App\Jobs\ProcessWorkflow::dispatchSync($workflow);
+        
+        return response()->json([
+            'success' => true,
+            'message' => "Workflow #{$id} ejecutado correctamente"
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => "Error: " . $e->getMessage()
+        ], 500);
+    }
+}
 }

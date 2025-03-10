@@ -63,11 +63,25 @@ import "primeflex/primeflex.css";
 import "primeicons/primeicons.css";
 import 'sweetalert2/dist/sweetalert2.min.css';
 import '../css/theme.css';
+import '../css/dark-theme.css';
 import '@fortawesome/fontawesome-free/css/all.css';
+const initTheme = () => {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark-theme');
+        document.body.classList.add('dark-theme');
+    } else {
+        document.documentElement.classList.remove('dark-theme');
+        document.body.classList.remove('dark-theme');
+    }
+};
 
+// Ejecutar al inicio
+initTheme();
 const app = createApp({
     created() {
-        useAuth().getUser()
+        useAuth().getUser(),
+        initTheme();
     }
 });
 

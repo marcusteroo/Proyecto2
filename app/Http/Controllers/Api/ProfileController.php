@@ -29,12 +29,17 @@ class ProfileController extends Controller
     {
         $user = $request->user()->load('roles');
         $avatar = '';
-        if (count($user->media) > 0) {
-            $avatar = $user->media[0]->original_url;
+        
+        try {
+            if ($user->media && count($user->media) > 0) {
+                $avatar = $user->media[0]->original_url;
+            }
+        } catch (\Exception $e) {
+            // Puedes registrar el error si lo necesitas
+            // \Log::error('Error al acceder a media: ' . $e->getMessage());
         }
+        
         $user->avatar = $avatar;
-
-
         return $this->successResponse($user, 'User found');
     }
 }

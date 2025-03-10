@@ -139,10 +139,12 @@ export default [
                 component: () => import('../views/user/flows/flows.vue'),
             },
             {
-                path: 'flows/:id',
-                name: 'flows.edit',
-                component: () => import('../views/user/flows/EditFlow.vue'),
+                path: 'settings',
+                name: 'user.settings',
+                component: () => import('../views/user/settings/Index.vue'),
+                meta: { breadCrumb: 'Configuración' }
             },
+            
         ]
     },
 
