@@ -280,6 +280,37 @@ export default [
                     }
                 ]
             },
+            {
+                name: 'kanbans',
+                path: 'kanbans',
+                meta: { breadCrumb: 'Kanbans'},
+                children: [
+                    {
+                        name: 'kanbans.index',
+                        path: '',
+                        component: () => import('../views/admin/kanbans/Index.vue'),
+                        meta: { breadCrumb: 'Usuarios' }
+                    },
+                    {
+                        name: 'kanbans.create',
+                        path: 'create',
+                        component: () => import('../views/admin/kanbans/Create.vue'),
+                        meta: {
+                            breadCrumb: 'Crear Usuario',
+                            linked: false
+                        }
+                    },
+                    {
+                        name: 'kanbans.edit',
+                        path: 'edit/:id',
+                        component: () => import('../views/admin/kanbans/Edit.vue'),
+                        meta: {
+                            breadCrumb: 'Editar Usuario',
+                            linked: false
+                        }
+                    }
+                ]
+            },
 
             //TODO Organizar rutas
             {
