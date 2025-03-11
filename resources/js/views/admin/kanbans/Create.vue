@@ -5,13 +5,13 @@
                 <div class="card-body">
                     <form @submit.prevent="submitForm">
                         <div class="mb-3">
-                            <label for="post-title" class="form-label">Name</label>
-                            <input v-model="post.name" id="post-title" type="text" class="form-control">
+                            <label for="post-title" class="form-label">id_tablero</label>
+                            <input v-model="post.id_tablero" id="post-title" type="text" class="form-control">
                             <div class="text-danger mt-1">
-                                {{ errors.name }}
+                                {{ errors.id_tablero }}
                             </div>
                             <div class="text-danger mt-1">
-                                <div v-for="message in validationErrors?.name">
+                                <div v-for="message in validationErrors?.id_tablero">
                                     {{ message }}
                                 </div>
                             </div>
@@ -45,7 +45,7 @@
                             <label for="post-category" class="form-label">
                                 Role
                             </label>
-                            <!-- <v-select multiple v-model="post.role_id" :options="roleList" :reduce="role => role.id" label="name" class="form-control" /> -->
+                            <!-- <v-select multiple v-model="post.role_id" :options="roleList" :reduce="role => role.id" label="id_tablero" class="form-control" /> -->
                             <div class="text-danger mt-1">
                                 {{ errors.role_id }}
                             </div>
@@ -71,11 +71,9 @@
 </template>
 <script setup>
     import { onMounted, reactive } from "vue";
-    import useRoles from "@/composables/roles";
-    import useUsers from "@/composables/users";
+    import useKanbans from "@/composables/kanbans";
 
-    const { roleList, getRoleList } = useRoles();
-    const { storeUser, validationErrors, isLoading } = useUsers();
+    const { storeUser, validationErrors, isLoading } = useKanbans();
 
     import { useForm, useField, defineRule } from "vee-validate";
     import { required, min } from "@/validation/rules";
@@ -84,20 +82,20 @@
 
     // Define a validation schema
     const schema = {
-        name: 'required',
+        id_tablero: 'required',
         email: 'required',
         password: 'required|min:8',
     }
     // Create a form context with the validation schema
     const { validate, errors } = useForm({ validationSchema: schema })
     // Define actual fields for validation
-    const { value: name } = useField('name', null, { initialValue: '' });
+    const { value: id_tablero } = useField('id_tablero', null, { initialValue: '' });
     const { value: email } = useField('email', null, { initialValue: '' });
     const { value: password } = useField('password', null, { initialValue: '' });
     const { value: role_id } = useField('role_id', null, { initialValue: '', label: 'role' });
 
     const post = reactive({
-        name,
+        id_tablero,
         email,
         password,
         role_id,

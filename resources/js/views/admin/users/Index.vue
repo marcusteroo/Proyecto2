@@ -48,25 +48,10 @@
                         <Column field="email" header="Email" sortable></Column>
                         <Column field="created_at" header="Creado el" sortable></Column>
 
-<!--                        <Column header="categories" sortable-->
-<!--                                sortField="categories.name"-->
-<!--                                filterField="categories"-->
-<!--                                :showFilterMatchModes="false">-->
-<!--                            <template #body="slotProps">-->
-<!--                            <span v-for="cat in slotProps.data.categories" class="ms-2 badge  bg-secondary bg-gradient">-->
-<!--                                {{ cat.name }}-->
-<!--                            </span>-->
-<!--                            </template>-->
-
-<!--                        </Column>-->
 
                         <Column class="pe-0 me-0 icon-column-2">
                             <template #body="slotProps">
-
-<!--                                <router-link :to="{ name: 'users.tasks', params: { id: slotProps.data.id } }">-->
-<!--                                    <Button icon="pi pi-eye"  severity="help" size="small" class="mr-1"/>-->
-<!--                                </router-link>-->
-
+                                
                                 <router-link v-if="can('user-edit')" :to="{ name: 'users.edit', params: { id: slotProps.data.id } }">
                                     <Button icon="pi pi-pencil" severity="info" size="small" class="mr-1"/>
                                 </router-link>
