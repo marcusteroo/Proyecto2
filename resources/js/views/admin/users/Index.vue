@@ -90,5 +90,5 @@ const initFilters = () => {
 onMounted(() => {
     getUsers()
 })
-
+console.log(users.data)
 </script>

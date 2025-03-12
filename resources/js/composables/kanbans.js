@@ -1,11 +1,9 @@
 import { ref, inject } from 'vue'
 import { useRouter } from 'vue-router'
 
-export default function  Kanbans() {
+export default function Kanbans() {
     const kanbans = ref([])
-    const kanban = ref({
-        name: ''
-    })
+    const kanban = ref({ name: '' })
 
     const router = useRouter()
     const validationErrors = ref({})
@@ -20,26 +18,34 @@ export default function  Kanbans() {
         order_column = 'created_at',
         order_direction = 'desc'
     ) => {
-        axios.get('/api/kanbans?page=' + page +
+        axios.get('/api/tableros?page=' + page +
             '&search_id=' + search_id +
             '&search_title=' + search_title +
             '&search_global=' + search_global +
             '&order_column=' + order_column +
             '&order_direction=' + order_direction)
             .then(response => {
-                kanbans.value = response.data;
+                if (Array.isArray(response.data)) {
+                    kanbans.value = { data: response.data }
+                } else {
+                    kanbans.value = response.data
+                }
             })
     }
 
     const getKanbansWithTasks = async () => {
-        axios.get('/api/kanbanswithtasks')
+        axios.get('/api/tableroswithtasks')
             .then(response => {
-                kanbans.value = response.data;
+                if (Array.isArray(response.data)) {
+                    kanbans.value = { data: response.data }
+                } else {
+                    kanbans.value = response.data
+                }
             })
     }
 
     const getKanban = async (id) => {
-        axios.get('/api/kanbans/' + id)
+        axios.get('/api/tableros/' + id)
             .then(response => {
                 kanban.value = response.data.data;
                 console.log(kanban.value)
@@ -47,20 +53,21 @@ export default function  Kanbans() {
     }
 
     const createKanbanDB = async (id) => {
-        return axios.put('/api/kanbans/db/create/' + id);
+        return axios.put('/api/tableros/db/create/' + id);
     }
 
     const deleteKanbanDB = async (id) => {
-        return axios.put('/api/kanbans/db/delete/' + id);
+        return axios.put('/api/tableros/db/delete/' + id);
     }
 
     const changeKanbanPasswordDB = async (id) => {
-        return axios.put('/api/kanbans/db/password/' + id);
+        return axios.put('/api/tableros/db/password/' + id);
     }
 
     const createKanbanProceduredDB = async (id) => {
-        return axios.put('/api/kanbans/db/procedure/' + id);
+        return axios.put('/api/tableros/db/procedure/' + id);
     }
+
     const storeKanban = async (kanban) => {
         if (isLoading.value) return;
 
@@ -74,12 +81,12 @@ export default function  Kanbans() {
             }
         }
 
-        axios.post('/api/kanbans', serializedPost)
+        axios.post('/api/tableros', serializedPost)
             .then(response => {
-                router.push({name: 'kanbans.index'})
+                router.push({ name: 'kanbans.index' })
                 swal({
                     icon: 'success',
-                    title: 'kanban saved successfully'
+                    title: 'Kanban saved successfully'
                 })
             })
             .catch(error => {
@@ -96,13 +103,11 @@ export default function  Kanbans() {
         isLoading.value = true
         validationErrors.value = {}
 
-        axios.put('/api/kanbans/' + kanban.id, kanban)
+        axios.put('/api/tableros/' + kanban.id, kanban)
             .then(response => {
-                //router.push({name: 'kanbans.index'})
-
                 swal({
                     icon: 'success',
-                    title: 'kanban updated successfully'
+                    title: 'Kanban updated successfully'
                 })
             })
             .catch(error => {
@@ -127,15 +132,12 @@ export default function  Kanbans() {
         })
             .then(result => {
                 if (result.isConfirmed) {
-                    axios.delete('/api/kanbans/' + id)
+                    axios.delete('/api/tableros/' + id)
                         .then(response => {
                             kanbans.value.data.splice(index, 1);
-
-                            //getKanbans()
-                            //router.push({name: 'kanbans.index'})
                             swal({
                                 icon: 'success',
-                                title: 'kanban deleted successfully'
+                                title: 'Kanban deleted successfully'
                             })
                         })
                         .catch(error => {
