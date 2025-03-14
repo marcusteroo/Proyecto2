@@ -1,5 +1,5 @@
 <template>
-  <div class="workflow-builder">
+  <div class="workflow-builder" :class="{'dark-theme': isDarkTheme}">
     <!-- Cabecera -->
     <header class="header">
       <!-- En lugar de Flow Builder, un input editable para el usuario -->
@@ -30,17 +30,30 @@
       <!-- Área de trabajo -->
       <main class="workflow-canvas" @drop="onDrop" @dragover.prevent>
         <svg class="connections">
-          <line
-            v-for="(connection, index) in connections"
-            :key="index"
-            :x1="connection.x1"
-            :y1="connection.y1"
-            :x2="connection.x2"
-            :y2="connection.y2"
-            stroke="#000"
-            stroke-width="2"
-            marker-end="url(#arrowhead)"
-          />
+          <template v-for="(connection, index) in connections" :key="index">
+            <!-- Línea recta para desktop -->
+            <line v-if="!connection.useCurve"
+              :x1="connection.x1"
+              :y1="connection.y1"
+              :x2="connection.x2"
+              :y2="connection.y2"
+              stroke="#000"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+            />
+            <!-- Curva para móvil -->
+            <path v-else
+              :d="`M${connection.x1},${connection.y1} 
+                  C${connection.x1},${connection.y1 + 20} 
+                    ${connection.x2},${connection.y2 - 20} 
+                    ${connection.x2},${connection.y2}`"
+              fill="none"
+              stroke="#000"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+            />
+          </template>
+          
           <defs>
             <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
               <polygon points="0 0, 10 3.5, 0 7" fill="#000" />
@@ -72,106 +85,110 @@
         <button @click="hidePopup">No</button>
       </div>
     </div>
-  </div>
-  <div v-if="showTaskPopup" class="popup-overlay">
-    <div class="popup">
-      <h3>Configurar desencadenador</h3>
-      
-      <!-- Selector de tableros -->
-      <div class="form-group">
-        <label>Seleccione un tablero:</label>
-        <select v-model="selectedBoard" @change="loadTasksForBoard" class="form-select">
-          <option value="">Seleccionar tablero</option>
-          <option v-for="board in boards" :key="board.id" :value="board">
-            {{ board.title }}
-          </option>
-        </select>
-      </div>
-      
-      <!-- Selector de tareas (aparece cuando se selecciona un tablero) -->
-      <div class="form-group" v-if="selectedBoard">
-        <label>Seleccione una tarea:</label>
-        <select v-model="selectedTask" class="form-select">
-          <option value="">Seleccionar tarea</option>
-          <option v-for="task in tasks" :key="task.id" :value="task">
-            {{ task.title }}
-          </option>
-        </select>
-      </div>
-      
-      <!-- Selector de estados (aparece cuando se selecciona una tarea) -->
-      <div class="form-group" v-if="selectedTask">
-        <label>Seleccione un estado:</label>
-        <select v-model="selectedStatus" class="form-select">
-          <option value="">Seleccionar estado</option>
-          <option value="Pendiente">Pendiente</option>
-          <option value="En curso">En curso</option>
-          <option value="Completado">Completado</option>
-          <option value="Stoper">Stoper</option>
-        </select>
-      </div>
-      
-      <!-- Botones de acción -->
-      <div class="popup-actions">
-        <button 
-          @click="confirmTaskSetup" 
-          class="confirm-btn" 
-          :disabled="!selectedBoard || !selectedTask || !selectedStatus">
-          Confirmar
-        </button>
-        <button @click="closeTaskPopup" class="cancel-btn">Cancelar</button>
+
+    <!-- Popup de tarea (MOVIDO FUERA DEL ANIDAMIENTO) -->
+    <div v-if="showTaskPopup" class="popup-overlay">
+      <div class="popup">
+        <h3>Configurar desencadenador</h3>
+        
+        <!-- Selector de tableros -->
+        <div class="form-group">
+          <label>Seleccione un tablero:</label>
+          <select v-model="selectedBoard" @change="loadTasksForBoard" class="form-select">
+            <option value="">Seleccionar tablero</option>
+            <option v-for="board in boards" :key="board.id" :value="board">
+              {{ board.title }}
+            </option>
+          </select>
+        </div>
+        
+        <!-- Selector de tareas (aparece cuando se selecciona un tablero) -->
+        <div class="form-group" v-if="selectedBoard">
+          <label>Seleccione una tarea:</label>
+          <select v-model="selectedTask" class="form-select">
+            <option value="">Seleccionar tarea</option>
+            <option v-for="task in tasks" :key="task.id" :value="task">
+              {{ task.title }}
+            </option>
+          </select>
+        </div>
+        
+        <!-- Selector de estados (aparece cuando se selecciona una tarea) -->
+        <div class="form-group" v-if="selectedTask">
+          <label>Seleccione un estado:</label>
+          <select v-model="selectedStatus" class="form-select">
+            <option value="">Seleccionar estado</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="En curso">En curso</option>
+            <option value="Completado">Completado</option>
+            <option value="Stoper">Stoper</option>
+          </select>
+        </div>
+        
+        <!-- Botones de acción -->
+        <div class="popup-actions">
+          <button 
+            @click="confirmTaskSetup" 
+            class="confirm-btn" 
+            :disabled="!selectedBoard || !selectedTask || !selectedStatus">
+            Confirmar
+          </button>
+          <button @click="closeTaskPopup" class="cancel-btn">Cancelar</button>
+        </div>
       </div>
     </div>
+
+    <!-- Popup de email (MOVIDO FUERA DEL ANIDAMIENTO) -->
     <div v-if="showEmailPopup" class="popup-overlay">
-    <div class="popup">
-      <h3>Configurar Email</h3>
-      
-      <div class="form-group">
-        <label>Destinatario:</label>
-        <input 
-          type="email" 
-          v-model="emailConfig.to" 
-          class="form-input" 
-          placeholder="correo@ejemplo.com"
-        />
-      </div>
-      
-      <div class="form-group">
-        <label>Asunto:</label>
-        <input 
-          type="text" 
-          v-model="emailConfig.subject" 
-          class="form-input" 
-          placeholder="Asunto del correo"
-        />
-      </div>
-      
-      <div class="form-group">
-        <label>Mensaje:</label>
-        <textarea 
-          v-model="emailConfig.message" 
-          class="form-textarea" 
-          rows="4"
-          placeholder="Contenido del correo..."
-        ></textarea>
-      </div>
-      
-      <div class="popup-actions">
-        <button 
-          @click="confirmEmailSetup" 
-          class="confirm-btn" 
-          :disabled="!emailConfig.to || !emailConfig.subject || !emailConfig.message">
-          Confirmar
-        </button>
-        <button @click="closeEmailPopup" class="cancel-btn">Cancelar</button>
+      <div class="popup">
+        <h3>Configurar Email</h3>
+        
+        <div class="form-group">
+          <label>Destinatario:</label>
+          <input 
+            type="email" 
+            v-model="emailConfig.to" 
+            class="form-input" 
+            placeholder="correo@ejemplo.com"
+          />
+        </div>
+        
+        <div class="form-group">
+          <label>Asunto:</label>
+          <input 
+            type="text" 
+            v-model="emailConfig.subject" 
+            class="form-input" 
+            placeholder="Asunto del correo"
+          />
+        </div>
+        
+        <div class="form-group">
+          <label>Mensaje:</label>
+          <textarea 
+            v-model="emailConfig.message" 
+            class="form-textarea" 
+            rows="4"
+            placeholder="Contenido del correo..."
+          ></textarea>
+        </div>
+        
+        <div class="popup-actions">
+          <button 
+            @click="confirmEmailSetup" 
+            class="confirm-btn" 
+            :disabled="!emailConfig.to || !emailConfig.subject || !emailConfig.message">
+            Confirmar
+          </button>
+          <button @click="closeEmailPopup" class="cancel-btn">Cancelar</button>
+        </div>
       </div>
     </div>
-  </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, nextTick, watch, onMounted } from "vue";
+import { ref, reactive, nextTick, watch, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import draggable from "vuedraggable";
 import axios from "axios";
@@ -180,7 +197,6 @@ import axios from "axios";
 const availableBlocks = ref([
   { id: 1, name: "Tarea", description: "Inicio del flujo con Tarea (desencadenador)" },
   { id: 2, name: "Enviar Email", description: "Envía un correo electrónico" },
-  { id: 3, name: "Esperar", description: "Espera un tiempo antes de continuar" },
 ]);
 const showEmailPopup = ref(false);
 const emailConfig = reactive({
@@ -194,14 +210,62 @@ const tasks = ref([]);
 const selectedBoard = ref(null);
 const selectedTask = ref(null);
 const selectedStatus = ref("");
+const isDarkTheme = ref(localStorage.getItem('theme') === 'dark');
+const isMobile = ref(window.innerWidth < 768);
+const updateMobileState = () => {
+  isMobile.value = window.innerWidth < 768;
+};
 onMounted(async () => {
   try {
     const response = await axios.get('/api/kanban');
     boards.value = response.data;
+    
+    // Aplicar tema actual al cargar
+    applyGlobalTheme();
+    
+    // Escuchar cambios globales de tema
+    window.addEventListener('themeChanged', () => {
+      applyGlobalTheme();
+    });
+    
+    // También escuchar cambios en localStorage
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'theme') {
+        applyGlobalTheme();
+      }
+    });
   } catch (error) {
     console.error('Error al cargar tableros:', error);
   }
+  window.addEventListener('resize', updateMobileState);
 });
+onUnmounted(() => {
+  window.removeEventListener('resize', updateMobileState);
+  window.removeEventListener('themeChanged', applyGlobalTheme);
+  window.removeEventListener('storage', handleStorageChange);
+});
+// Función para aplicar el tema global
+const applyGlobalTheme = () => {
+  // Obtener el tema actual del localStorage
+  const currentTheme = localStorage.getItem('theme') || 'light';
+  // Actualizar el estado local
+  isDarkTheme.value = currentTheme === 'dark';
+};
+
+// Función para manejar cambios en el almacenamiento
+const handleStorageChange = (e) => {
+  if (e.key === 'theme') {
+    applyGlobalTheme();
+  }
+};
+const adjustBlocksPosition = () => {
+  blocks.value.forEach((block, index) => {
+    // Espaciar más los bloques en móvil
+    const spacing = isMobile.value ? 150 : 100;
+    block.y = index * spacing + 20;
+  });
+  updateConnections();
+};
 const loadTasksForBoard = async () => {
   if (!selectedBoard.value) return;
   
@@ -268,30 +332,31 @@ const placeBlockCentered = async (block) => {
 };
 
 const addBlock = (block) => {
+  // Si aún no hay bloques, solo se permite "Tarea"
+  if (blocks.value.length === 0 && block.name !== "Tarea") {
+    alert("La primera acción debe ser Tarea ya que es el desencadenador.");
+    return;
+  }
+
+  // Limita a 3 acciones
+  if (blocks.value.length >= 3) {
+    alert("No se pueden agregar más de 3 acciones.");
+    return;
+  }
+
+  // Evita duplicados
+  if (blocks.value.some(b => b.name === block.name)) {
+    alert("Esta acción ya fue agregada.");
+    return;
+  }
+
+  // Muestra el popup correspondiente
   if (block.name === "Tarea") {
     showTaskPopup.value = true;
     return;
   } else if (block.name === "Enviar Email") {
     showEmailPopup.value = true;
     return;
-  }
-  
-  // Si aún no hay bloques, solo se permite "Tarea"
-  if (blocks.value.length === 0 && block.name !== "Tarea") {
-      alert("La primera acción debe ser Tarea ya que es el desencadenador.");
-      return;
-  }
-
-  // Limita a 3 acciones
-  if (blocks.value.length >= 3) {
-      alert("No se pueden agregar más de 3 acciones.");
-      return;
-  }
-
-  // Evita duplicados
-  if (blocks.value.some(b => b.name === block.name)) {
-      alert("Esta acción ya fue agregada.");
-      return;
   }
 
   placeBlockCentered(block);
@@ -311,7 +376,37 @@ const closeTaskPopup = () => {
 // Manejar el drop
 const onDrop = async (event) => {
   if (draggedBlock) {
-    await placeBlockCentered(draggedBlock);
+    // Verificar si es el primer bloque y no es de tipo Tarea
+    if (blocks.value.length === 0 && draggedBlock.name !== "Tarea") {
+      alert("La primera acción debe ser Tarea ya que es el desencadenador.");
+      draggedBlock = null;
+      return;
+    }
+    
+    // Limitar a 3 acciones
+    if (blocks.value.length >= 3) {
+      alert("No se pueden agregar más de 3 acciones.");
+      draggedBlock = null;
+      return;
+    }
+    
+    // Evitar duplicados
+    if (blocks.value.some(b => b.name === draggedBlock.name)) {
+      alert("Esta acción ya fue agregada.");
+      draggedBlock = null;
+      return;
+    }
+    
+    // Si es tipo Tarea o Email, mostrar el popup correspondiente
+    if (draggedBlock.name === "Tarea") {
+      showTaskPopup.value = true;
+    } else if (draggedBlock.name === "Enviar Email") {
+      showEmailPopup.value = true;
+    } else {
+      // Para otros tipos de bloques
+      await placeBlockCentered(draggedBlock);
+    }
+    
     draggedBlock = null;
   }
 };
@@ -375,7 +470,7 @@ const confirmTaskSetup = () => {
 
   // Crear un bloque de Tarea con la configuración seleccionada
   const taskBlock = {
-    id: 1,
+    id: Date.now(), // Usar Date.now() en lugar de 1 fijo
     name: "Tarea",
     description: "Inicio del flujo con Tarea (desencadenador)",
     config: {
@@ -419,12 +514,28 @@ const updateConnections = () => {
 
 // Posición de cada bloque
 const getBlockStyle = (block, index) => {
+  // Ajustar dinámicamente la anchura según el tamaño de pantalla
+  const canvas = document.querySelector(".workflow-canvas");
+  if (!canvas) return {};
+  
+  const canvasWidth = canvas.clientWidth;
+  let blockWidth = 350; // Anchura por defecto
+  
+  if (canvasWidth < 576) {
+    blockWidth = 220;
+  } else if (canvasWidth < 768) {
+    blockWidth = 250;
+  } else if (canvasWidth < 1200) {
+    blockWidth = 300;
+  }
+  
   return {
     position: "absolute",
     zIndex: index,
-    left: `calc(50% - 175px)`, // Ancho ~350px para centrar
+    left: `calc(50% - ${blockWidth/2}px)`,
     top: `${block.y}px`,
-    transform: 'none'
+    transform: 'none',
+    width: `${blockWidth}px`
   };
 };
 
@@ -478,6 +589,8 @@ const saveFlow = async () => {
     alert('Error al guardar el flujo de trabajo');
   }
 };
+watch([isMobile, () => blocks.value.length], adjustBlocksPosition);
+
 </script>
 
 <style scoped>
@@ -778,7 +891,217 @@ const saveFlow = async () => {
   resize: vertical;
   min-height: 80px;
 }
+.dark-theme {
+  background-color: #121212;
+  color: #e4e6eb;
+}
 
+.dark-theme .header {
+  background: #1A00FF;
+}
+
+.dark-theme .blocks-list {
+  background: #1e1e2e;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dark-theme .blocks-title {
+  color: #e4e6eb;
+}
+
+.dark-theme .workflow-canvas {
+  background: #1e1e2e;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><circle cx="1" cy="1" r="1" fill="%23444" /></svg>');
+}
+
+.dark-theme .workflow-block {
+  background: #292a36;
+  border-color: #1A00FF;
+}
+
+.dark-theme .block-name,
+.dark-theme .block-description {
+  color: #e4e6eb;
+}
+
+.dark-theme .popup {
+  background: #1e1e2e;
+  color: #e4e6eb;
+}
+
+.dark-theme .form-group label {
+  color: #e4e6eb;
+}
+
+.dark-theme .form-select,
+.dark-theme .form-input,
+.dark-theme .form-textarea {
+  background-color: #121212;
+  border-color: #383a46;
+  color: #e4e6eb;
+}
+
+.dark-theme .popup-actions button {
+  background-color: #292a36;
+  color: #e4e6eb;
+}
+
+.dark-theme .confirm-btn {
+  background-color: #1A00FF;
+}
+
+.dark-theme .confirm-btn:disabled {
+  background-color: #383a46;
+}
+
+.dark-theme .cancel-btn {
+  background-color: #24252d;
+  border-color: #383a46;
+}
+
+.dark-theme svg line {
+  stroke: #adb5bd;
+}
+
+.dark-theme svg polygon {
+  fill: #adb5bd;
+}
+/* Sobreescribir el selector que está causando el problema */
+:deep(.dark-theme .layout-sidebar),
+:deep(body.dark-theme .layout-sidebar) {
+  background-color: #3f359b!important;
+}
+
+/* Asegurarse de que los textos de la barra lateral sean blancos */
+:deep(.dark-theme .layout-sidebar .nav-link-text),
+:deep(.dark-theme .layout-sidebar .user-name),
+:deep(.dark-theme .layout-sidebar .sidebar-title),
+:deep(.dark-theme .layout-sidebar .greeting-text),
+:deep(.dark-theme .layout-sidebar .app-version) {
+  color: white !important;
+}
+@media (max-width: 1200px) {
+  .workflow-block {
+    width: 300px; /* Bloques más estrechos en pantallas medianas */
+  }
+  
+  
+}
+
+@media (max-width: 992px) {
+  .main-content {
+    flex-direction: column; /* Cambia a layout vertical */
+  }
+  
+  .blocks-list {
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+  }
+  
+  .block-item {
+    display: inline-block;
+    width: calc(33.33% - 10px);
+    margin-right: 10px;
+    text-align: center;
+  }
+  
+  .workflow-canvas {
+    height: calc(100vh - 400px); /* Ajusta la altura */
+  }
+}
+
+@media (max-width: 768px) {
+  .workflow-builder {
+    padding: 10px;
+    height: auto;
+    min-height: 100vh;
+  }
+  
+  .header {
+    flex-direction: column;
+    padding: 12px;
+    gap: 10px;
+  }
+  
+  .title {
+    width: 100%;
+    text-align: center;
+    margin-right: 0;
+  }
+  
+  .run-button {
+    width: 100%;
+  }
+  
+  .workflow-block {
+    width: 250px;
+  }
+  
+  
+  
+  .block-item {
+    width: calc(50% - 10px); /* 2 por fila en tablets */
+  }
+}
+
+@media (max-width: 576px) {
+  .workflow-builder {
+    padding: 8px;
+  }
+  
+  .popup {
+    width: 95%;
+    padding: 15px;
+  }
+  
+  .workflow-block {
+    width: 220px;
+  }
+  
+  
+  
+  .block-item {
+    width: 100%; /* 1 por fila en móviles */
+    margin-right: 0;
+  }
+  
+  .remove-button {
+    padding: 3px 6px;
+    font-size: 0.9rem;
+  }
+  
+  .form-group label {
+    font-size: 14px;
+  }
+  
+  .form-select, .form-input, .form-textarea {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  .popup-overlay {
+    padding: 0 10px;
+    align-items: flex-start;
+    padding-top: 20%;
+  }
+  
+  .popup {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+  
+  .popup-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .confirm-btn, .cancel-btn {
+    width: 100%;
+    padding: 10px;
+  }
+}
 
 
 </style>

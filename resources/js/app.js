@@ -70,11 +70,17 @@ const initTheme = () => {
     if (savedTheme === 'dark') {
         document.documentElement.classList.add('dark-theme');
         document.body.classList.add('dark-theme');
+        // No uses layoutConfig aquí
     } else {
         document.documentElement.classList.remove('dark-theme');
         document.body.classList.remove('dark-theme');
+        // No uses layoutConfig aquí
     }
 };
+
+window.addEventListener('themeChanged', (e) => {
+    initTheme();
+});
 
 // Ejecutar al inicio
 initTheme();

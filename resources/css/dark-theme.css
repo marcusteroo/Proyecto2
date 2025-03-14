@@ -151,3 +151,43 @@
   .dark-theme table tr:nth-child(even) {
     background-color: var(--bg-tertiary);
   }
+  html.dark-theme,
+body.dark-theme {
+  background-color: #121212;
+  color: #e4e6eb;
+}
+
+
+
+.dark-theme .app-topbar {
+  background-color: #1e1e2e;
+  border-color: #2d2d3a;
+}
+
+.dark-theme .content-wrapper {
+  background-color: #121212;
+}
+
+.dark-theme .breadcrumb-container {
+  background-color: #1e1e2e;
+  border-color: #2d2d3a;
+}
+/* Mantener el texto de la barra lateral en blanco en tema oscuro */
+.dark-theme .layout-sidebar .nav-link-text,
+.dark-theme .layout-sidebar .sidebar-title,
+.dark-theme .layout-sidebar .user-name,
+.dark-theme .layout-sidebar .greeting-text,
+.dark-theme .layout-sidebar .app-version,
+.dark-theme .layout-sidebar .user-role-badge {
+  color: white !important;
+}
+
+/* Mantener el hover en blanco también */
+.dark-theme .layout-sidebar .nav-link:hover {
+  color: white !important;
+}
+
+/* Mantener el texto activo en blanco */
+.dark-theme .layout-sidebar .nav-item.active .nav-link {
+  color: white !important;
+}

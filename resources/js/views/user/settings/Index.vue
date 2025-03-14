@@ -142,6 +142,7 @@
   import { ref, reactive, onMounted, watch } from 'vue';
   import { authStore } from '../../../store/auth';
   import { useToast } from 'primevue/usetoast';
+  import { useLayout } from '../../../composables/layout';
   import axios from 'axios';
   
   // Estado del componente
@@ -151,6 +152,7 @@
   const auth = authStore();
   const user = auth.user;
   const toast = useToast();
+  const { layoutConfig } = useLayout();
   
   // Tabs disponibles en configuración (eliminado el tab de notificaciones)
   const tabs = [
@@ -176,7 +178,25 @@
   const preferences = reactive({
     theme: localStorage.getItem('theme') || 'light',
   });
+  const applyTheme = (theme) => {
+  // Guardar en localStorage
+  localStorage.setItem('theme', theme);
   
+  // Remover clases primero para evitar conflictos
+  document.documentElement.classList.remove('dark-theme', 'light-theme');
+  document.body.classList.remove('dark-theme', 'light-theme');
+  
+  // Aplicar nuevas clases
+  document.documentElement.classList.add(theme + '-theme');
+  document.body.classList.add(theme + '-theme');
+  
+  // Emitir evento con bubbling para asegurar que todos los componentes lo reciben
+  window.dispatchEvent(new CustomEvent('themeChanged', { 
+    detail: theme,
+    bubbles: true, 
+    composed: true
+  }));
+};
   // Observar cambios en el tema y aplicar clase global
   watch(() => preferences.theme, (newTheme) => {
     applyTheme(newTheme);
@@ -189,22 +209,7 @@
   });
   
   // Función para aplicar el tema seleccionado a toda la aplicación
-  const applyTheme = (theme) => {
-    // Aplicar a localStorage
-    localStorage.setItem('theme', theme);
-    
-    // Aplicar a document para CSS global
-    document.documentElement.setAttribute('data-theme', theme);
-    
-    // Aplicar clases globales si es necesario
-    if (theme === 'dark') {
-      document.body.classList.add('dark-theme');
-      document.documentElement.classList.add('dark-theme');
-    } else {
-      document.body.classList.remove('dark-theme');
-      document.documentElement.classList.remove('dark-theme');
-    }
-  };
+
   
   // Cargar datos del usuario
   const loadUserData = async () => {

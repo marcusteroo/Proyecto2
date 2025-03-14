@@ -113,7 +113,7 @@ export default [
         path: '/app',
         component: AuthenticatedUserLayout,
         beforeEnter: requireLogin,
-        redirect: { name: 'user.kanban' },
+        redirect: { name: 'user.kanbans' },
         children: [
             {
                 path: 'flows/flow',
