@@ -596,14 +596,24 @@
   </template>
   
   <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onBeforeMount } from "vue";
 import { Swiper, SwiperSlide } from 'swiper/vue';
+import { useRouter } from "vue-router";
+import { authStore } from "@/store/auth";
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/effect-coverflow';
 import { Navigation, Pagination, EffectCoverflow } from 'swiper/modules';
-
+// Inicializar el router y el store de autenticación
+const router = useRouter();
+const auth = authStore();
+//Esto es para que si el usuario ya esta logeado lo rediriga a la pagina de app
+onBeforeMount(() => {
+  if (auth.authenticated) {
+    router.push('/app');
+  }
+});
 const isMonthly = ref(true);
 const price = ref(40); 
 
@@ -1544,7 +1554,7 @@ onMounted(() => {
   justify-content: center;
   min-height: 100vh;
   background-color: #131033;
-  padding: 20px 20px;
+  padding: 60px 20px;
   font-family: "Figtree", sans-serif;
   color: white;
 

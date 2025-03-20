@@ -10,7 +10,7 @@ class Workflow extends Model
 
     protected $table = 'workflows';
     protected $primaryKey = 'id_workflow';
-    protected $fillable = ['nombre', 'descripcion', 'trigger_type', 'trigger_params', 'status'];
+    protected $fillable = ['nombre', 'descripcion', 'trigger_type', 'trigger_params', 'status','id_creador'];
 
     protected $casts = [
         'trigger_params' => 'array',
@@ -25,5 +25,9 @@ class Workflow extends Model
     public function executions()
     {
         return $this->hasMany(WorkflowExecution::class, 'id_workflow', 'id_workflow');
+    }
+    public function creador()
+    {
+        return $this->belongsTo(User::class, 'id_creador', 'id');
     }
 }

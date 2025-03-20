@@ -71,4 +71,8 @@ class User extends Authenticatable implements HasMedia
                 ->height(env('IMAGE_HEIGHT', 300));
         }
     }
+    public function workflows()
+{
+    return $this->hasMany(Workflow::class, 'id_creador', 'id');
+}
 }

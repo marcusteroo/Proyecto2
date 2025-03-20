@@ -1,9 +1,9 @@
 <?php
 namespace App\Http\Controllers\Api;
-
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Tablero;
+use Illuminate\Support\Facades\Auth;
 
 class TableroController extends Controller
 {
@@ -50,5 +50,15 @@ class TableroController extends Controller
     {
         $tablero = Tablero::findOrFail($id);
         return response()->json($tablero);
+    }
+    public function getByUser($userId)
+    {
+        // Esto es para evitar que un usuario simplemente cambie el ID en la URL para acceder a tableros de otros usuarios.
+        if (Auth::id() != $userId) {
+            return response()->json(['error' => 'No autorizado'], 403);
+        }
+        
+        $tableros = Tablero::where('id_creador', $userId)->get();
+        return response()->json($tableros);
     }
 }

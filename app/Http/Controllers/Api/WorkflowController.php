@@ -9,22 +9,23 @@ class WorkflowController extends Controller
 {
     public function index()
     {
-        $workflows = Workflow::all();
+        $workflows = Workflow::where('id_creador', auth()->id())->get();
         return response()->json($workflows);
     }
     
     public function store(Request $request)
-{
-    $workflow = Workflow::create([
-        'nombre' => $request->nombre,
-        'descripcion' => $request->descripcion,
-        'trigger_type' => $request->trigger['type'] ?? null,
-        'trigger_params' => json_encode($request->trigger ?? []), // Cambio aquí: convertir a JSON
-        'status' => 'active',
-    ]);
+    {
+        $workflow = Workflow::create([
+            'nombre' => $request->nombre,
+            'descripcion' => $request->descripcion,
+            'trigger_type' => $request->trigger['type'] ?? null,
+            'trigger_params' => json_encode($request->trigger ?? []),
+            'status' => 'active',
+            'id_creador' => auth()->id() // Asignar el usuario autenticado
+        ]);
 
-    return response()->json(['id_workflow' => $workflow->id_workflow], 201);
-}
+        return response()->json(['id_workflow' => $workflow->id_workflow], 201);
+    }
     
     public function destroy($id)
     {

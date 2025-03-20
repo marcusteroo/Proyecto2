@@ -179,23 +179,32 @@
       const fetchTableros = async () => {
         isLoading.value = true;
         try {
-            const response = await axios.get('/api/tableros');
-            
-            if (Array.isArray(response.data)) {
+          // Obtener el ID del usuario autenticado
+          const auth = authStore();
+          const userId = auth.user?.id;
+          
+          if (!userId) {
+            console.error('Usuario no autenticado');
+            tableros.value = [];
+            return;
+          }
+          
+          const response = await axios.get(`/api/tableros/user/${userId}`);
+          
+          if (Array.isArray(response.data)) {
             tableros.value = response.data;
             console.log('Tableros cargados:', tableros.value);
-            } else {
+          } else {
             console.error('La respuesta del servidor no es un array:', response.data);
             tableros.value = [];
-            }
+          }
         } catch (error) {
-            console.error('Error al obtener los tableros:', error);
-            tableros.value = [];
+          console.error('Error al obtener los tableros:', error);
+          tableros.value = [];
         } finally {
-            isLoading.value = false;
+          isLoading.value = false;
         }
-        };
-      
+      };
       // Crear nuevo tablero
       // Modificar la función createBoard
         const createBoard = async () => {

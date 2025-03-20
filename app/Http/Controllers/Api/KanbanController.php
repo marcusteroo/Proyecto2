@@ -75,24 +75,15 @@ class KanbanController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-    public function getTasks($id)
+    public function getTasks($idTablero)
     {
         try {
-            $tasks = Kanban::where('id_tablero', $id)
-                ->get()
-                ->map(function($tarea) {
-                    return [
-                        'id' => $tarea->id_tarea,
-                        'title' => $tarea->titulo,
-                        'description' => $tarea->descripcion,
-                        'status' => $tarea->estado
-                    ];
-                });
-                
-            return response()->json($tasks);
+            // Buscar tareas filtrando por el id_tablero específico
+            $tareas = Kanban::where('id_tablero', $idTablero)->get();
+            return response()->json($tareas);
         } catch (\Exception $e) {
-            Log::error('Error en getTasks: ' . $e->getMessage());
-            return response()->json(['error' => $e->getMessage()], 500);
+            Log::error('Error al obtener tareas del tablero: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al cargar las tareas'], 500);
         }
     }
 }

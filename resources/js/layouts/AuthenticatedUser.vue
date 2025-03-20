@@ -147,34 +147,65 @@
   
   // Migas de pan dinámicas
   const crumbs = computed(() => {
-    let pathArray = route.path.split("/");
-    pathArray.shift();
+  let pathArray = route.path.split("/");
+  pathArray.shift(); // Eliminar primer elemento vacío
+
+  // Crear array de migas de pan
+  let breadcrumbs = [];
   
-    let breadcrumbs = [
-      {
-        route: '/app',
-        icon: 'pi pi-home',
-        label: 'Inicio',
-        disabled: false,
-      }
-    ];
-  
-    pathArray.forEach((segment, idx) => {
-      if (segment === 'app') return;
-  
-      const lastRoute = breadcrumbs[breadcrumbs.length - 1].route;
-      let base = lastRoute === '/app' ? '/app' : lastRoute;
-  
-      breadcrumbs.push({
-        route: base + '/' + segment,
-        label: route.matched[idx]?.meta.breadCrumb || 
-               segment.charAt(0).toUpperCase() + segment.slice(1),
-        disabled: idx + 1 === pathArray.length || route.matched[idx]?.meta.linked === false,
-      });
-    });
-  
-    return breadcrumbs;
+  // Siempre añadir "Inicio" como primera miga de pan
+  breadcrumbs.push({
+    label: "Inicio",
+    icon: "pi pi-home", // Icono de PrimeVue para casa/inicio
+    route: "/app",
+    disabled: false
   });
+
+  // Si solo tenemos '/app', no añadir más migas
+  if (pathArray.length <= 1) {
+    return breadcrumbs;
+  }
+  
+  // Procesar el resto de segmentos de la URL, saltando el segmento "app"
+  for (let idx = 1; idx < pathArray.length; idx++) {
+    const path = pathArray[idx];
+    let label = route.matched[idx]?.meta.breadCrumb || path;
+    
+    // Caso especial para kanban
+    if (path === "kanban" && idx === 1) {
+      breadcrumbs.push({
+        label: "Tableros",
+        route: "/app/kanbans",
+        disabled: false
+      });
+      continue;
+    }
+    
+    // Caso especial para ID de kanban
+    if (idx > 0 && pathArray[idx-1] === "kanban" && !isNaN(path)) {
+      breadcrumbs.push({
+        label: `Tablero ${path}`,
+        disabled: true
+      });
+      continue;
+    }
+    
+    // Construir ruta acumulativa
+    let currentPath = "/app";
+    for (let i = 1; i <= idx; i++) {
+      currentPath += "/" + pathArray[i];
+    }
+    
+    // Añadir miga normal
+    breadcrumbs.push({
+      route: currentPath,
+      label: label,
+      disabled: idx + 1 === pathArray.length || route.matched[idx]?.meta.linked === false,
+    });
+  }
+  
+  return breadcrumbs;
+});
   
   // Manejo del layout
   const { layoutConfig, layoutState, isSidebarActive } = useLayout();
@@ -721,4 +752,14 @@ body.dark-theme .layout-sidebar,
   background-color: #3f359b !important;
   background-image: none !important; 
 }
+.layout-sidebar .nav-link-icon{
+  color: white !important;
+}
+.layout-sidebar .nav-item.active .nav-link-icon {
+  color: rgb(20, 6, 102) !important; 
+}
+.layout-sidebar .nav-link-text{
+  color: white !important;
+}
+
 </style>

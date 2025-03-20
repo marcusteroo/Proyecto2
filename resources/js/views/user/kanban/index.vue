@@ -1,6 +1,6 @@
 <template>
   <div class="kanban-container">
-    <h1 class="kanban-title">Mi Tablero Kanban</h1>
+    <h1 class="kanban-title">{{ kanbanTitle }}</h1>
     
     <!-- Sección de listas de tareas -->
     <div class="columna">
@@ -167,6 +167,9 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import draggable from 'vuedraggable';
+import { useRoute } from 'vue-router';
+const route = useRoute();
+const id_tablero = route.params.id;
 const estadoAColumna = {
   'Pendiente': 0,       // Sin Empezar
   'En curso': 1,        // En Curso 
@@ -185,6 +188,7 @@ const sinEmpezar = ref([]);
 const enCurso = ref([]);
 const finalizadas = ref([]);
 const stopper = ref([]);
+const kanbanTitle = ref('Mi Tablero Kanban');
 
 // Lista de listas (columnas) y títulos
 const listas = ref([]);
@@ -198,13 +202,20 @@ const nuevasTareas = ref(['', '', '', '']);
 const popupAbierto = ref(false);
 const tareaEditada = ref(null);
 const nuevaSubtarea = ref('');
-const id_tablero = 1;
 
 // Cargar tareas desde el backend al montar el componente
 onMounted(async () => {
   try {
-    const response = await axios.get('/api/kanbans');
+   
+    const tableroResponse = await axios.get(`/api/tableros/${id_tablero}`);
+    const tableroInfo = tableroResponse.data;
+    
+    document.title = tableroInfo.nombre || 'Tablero Kanban';
+    kanbanTitle.value = tableroInfo.nombre || 'Mi Tablero Kanban';
+
+    const response = await axios.get(`/api/kanban/${id_tablero}/tasks`);
     const kanbans = response.data;
+    
     kanbans.forEach(kanban => {
       const tarea = {
         ...kanban,
@@ -213,12 +224,10 @@ onMounted(async () => {
         hover: false
       };
 
-      // Usar el mapeo para determinar en qué columna va
       const columnaIndex = estadoAColumna[tarea.estado];
       if (columnaIndex !== undefined) {
         listas.value[columnaIndex].push(tarea);
       } else {
-        // Si el estado no coincide con ninguno de los mapeos, ponerlo en Sin Empezar
         listas.value[0].push(tarea);
       }
     });
@@ -272,15 +281,14 @@ const onTaskAdded = async (event, toColumnIndex) => {
 // Función para agregar tarea (crea la tarea en el backend y la agrega a la lista local)
 const agregarTarea = async (index, nuevaTarea, estado) => {
   if (nuevaTarea.trim()) {
-    // Convertir el título de columna al estado de la base de datos
     const estadoBaseDatos = columnaAEstado[index];
     
     const tarea = {
       titulo: nuevaTarea.trim(),
       descripcion: '',
       subtareas: [],
-      estado: estadoBaseDatos, // Usar el estado correcto para la BD
-      id_tablero: id_tablero,
+      estado: estadoBaseDatos,
+      id_tablero: id_tablero, 
       completado: false,
       hover: false
     };
@@ -289,7 +297,7 @@ const agregarTarea = async (index, nuevaTarea, estado) => {
         titulo: tarea.titulo,
         descripcion: tarea.descripcion,
         estado: tarea.estado,
-        id_tablero: id_tablero
+        id_tablero: id_tablero 
       });
       tarea.id_tarea = response.data.id_tarea;
       listas.value[index].push(tarea);
