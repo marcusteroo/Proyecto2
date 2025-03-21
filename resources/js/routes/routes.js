@@ -313,6 +313,37 @@ export default [
                     }
                 ]
             },
+            {
+                name: 'tareas',
+                path: 'tareas',
+                meta: { breadCrumb: 'Tareas'},
+                children: [
+                    {
+                        name: 'tareas.index',
+                        path: '',
+                        component: () => import('../views/admin/tareas/Index.vue'),
+                        meta: { breadCrumb: 'Usuarios' }
+                    },
+                    {
+                        name: 'tareas.create',
+                        path: 'create',
+                        component: () => import('../views/admin/tareas/Create.vue'),
+                        meta: {
+                            breadCrumb: 'Crear Usuario',
+                            linked: false
+                        }
+                    },
+                    {
+                        name: 'tareas.edit',
+                        path: 'edit/:id',
+                        component: () => import('../views/admin/tareas/Edit.vue'),
+                        meta: {
+                            breadCrumb: 'Editar Usuario',
+                            linked: false
+                        }
+                    }
+                ]
+            },
 
             //TODO Organizar rutas
             {

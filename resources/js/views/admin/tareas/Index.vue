@@ -4,13 +4,13 @@
       <div class="card border-0">
         <!-- Encabezado de la tarjeta -->
         <div class="card-header bg-transparent">
-          <h5 class="float-start">Kanbans</h5>
+          <h5 class="float-start">Tareas</h5>
           <router-link
-            v-if="can('kanban-create')"
-            :to="{ name: 'kanbans.create' }"
+            v-if="can('tarea-create')"
+            :to="{ name: 'tareas.create' }"
             class="btn btn-primary btn-sm float-end"
           >
-            Create Kanban
+            Create Tarea
           </router-link>
         </div>
   
@@ -30,34 +30,38 @@
             <table class="table">
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Nombre</th>
-                  <th>ID Creador</th>
-                  <th>Color Fondo</th>
+                  <th>ID Tarea</th>
+                  <th>Titulo</th>
+                  <th>Descripcion</th>
+                  <th>Estado</th>
+                  <th>ID Tablero</th>
                   <th>Created at</th>
                   <th>Updated at</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="kanban in kanbans.data" :key="kanban.id_tablero">
-                  <td>{{ kanban.id_tablero }}</td>
-                  <td>{{ kanban.nombre }}</td>
-                  <td>{{ kanban.id_creador }}</td>
-                  <td>{{ kanban.color_fondo }}</td>
-                  <td>{{ kanban.created_at }}</td>
-                  <td>{{ kanban.updated_at }}</td>
+                <tr v-for="tarea in kanbans.data" :key="tarea.id_tarea">
+                  <td>{{ tarea.id_tarea }}</td>
+                  <td>{{ tarea.titulo }}</td>
+                  <td>{{ tarea.id_descripcion }}</td>
+                  <td>{{ tarea.estado }}</td>
+                  <td>{{ tarea.id_tablero }}</td>
+                  <td>{{ tarea.created_at }}</td>
+                  <td>{{ tarea.updated_at }}</td>
                   <td>
                     <!-- Se muestran siempre para probar -->
                     <router-link
-                      :to="{ name: 'kanbans.edit', params: { id: kanban.id_tablero } }"
+                      v-if="tarea.id || tarea.id_tarea"
+                      :to="{ name: 'tareas.edit', params: { id: tarea.id || tarea.id_tarea } }"
                       class="badge bg-primary"
                     >
                       Edit
                     </router-link>
+
                     <a
                       href="#"
-                      @click.prevent="deleteKanban(kanban.id_tablero)"
+                      @click.prevent="deleteTarea(tarea.id_tarea)"
                       class="ms-2 badge bg-danger"
                     >
                       Delete
@@ -81,10 +85,10 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useAbility } from "@casl/vue";
-import useKanbans from "@/composables/kanbans";
+import useTareas from "@/composables/tareas";
 
-// Importamos el composable que gestiona los Kanbans
-const { kanbans, getKanbans, deleteKanban } = useKanbans();
+// Importamos el composable que gestiona los Tareas
+const { kanbans, getTareas, deleteTarea } = useTareas();
 
 // Obtenemos la función can() de CASL
 const { can } = useAbility();
@@ -92,8 +96,8 @@ const { can } = useAbility();
 // (Opcional) variable para búsqueda global; puedes usarla para filtrar la data
 const search_global = ref("");
 
-// Al montar el componente, cargamos los Kanbans
+// Al montar el componente, cargamos los Tareas
 onMounted(() => {
-  getKanbans();
+  getTareas();
 });
 </script>
