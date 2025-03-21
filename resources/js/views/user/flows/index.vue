@@ -86,104 +86,172 @@
       </div>
     </div>
 
-    <!-- Popup de tarea (MOVIDO FUERA DEL ANIDAMIENTO) -->
+    <!-- Popup de tarea -->
     <div v-if="showTaskPopup" class="popup-overlay">
-      <div class="popup">
-        <h3>Configurar desencadenador</h3>
-        
-        <!-- Selector de tableros -->
-        <div class="form-group">
-          <label>Seleccione un tablero:</label>
-          <select v-model="selectedBoard" @change="loadTasksForBoard" class="form-select">
-            <option value="">Seleccionar tablero</option>
-            <option v-for="board in boards" :key="board.id" :value="board">
-              {{ board.title }}
-            </option>
-          </select>
+      <div class="popup popup-modern">
+        <!-- Header del popup -->
+        <div class="popup-header">
+          <h3>Configurar Desencadenador</h3>
+          <button class="popup-close" @click="closeTaskPopup"><span class="close-symbol">×</span></button>
         </div>
         
-        <!-- Selector de tareas (aparece cuando se selecciona un tablero) -->
-        <div class="form-group" v-if="selectedBoard">
-          <label>Seleccione una tarea:</label>
-          <select v-model="selectedTask" class="form-select">
-            <option value="">Seleccionar tarea</option>
-            <option v-for="task in tasks" :key="task.id" :value="task">
-              {{ task.title }}
-            </option>
-          </select>
+        <!-- Body del popup -->
+        <div class="popup-body">
+          <!-- Selector de tableros con UI mejorada -->
+          <div class="form-group">
+            <label class="form-label">Seleccione un tablero</label>
+            <div class="select-wrapper">
+              <select v-model="selectedBoard" @change="loadTasksForBoard" class="form-select">
+                <option value="">Seleccionar tablero</option>
+                <option v-for="board in boards" :key="board.id_tablero" :value="board">
+                  {{ board.nombre }}
+                </option>
+              </select>
+              <span class="select-icon">
+                <i class="pi pi-chevron-down"></i>
+              </span>
+            </div>
+          </div>
+          
+          <!-- Selector de tareas con animación de carga -->
+          <div class="form-group" v-if="selectedBoard">
+            <label class="form-label">Seleccione una tarea</label>
+            <div v-if="isLoadingTasks" class="loading-indicator">
+              <div class="spinner"></div>
+              <span>Cargando tareas...</span>
+            </div>
+            <div v-else class="select-wrapper">
+              <select v-model="selectedTask" class="form-select">
+                <option value="">Seleccionar tarea</option>
+                <option v-for="task in tasks" :key="task.id_tarea" :value="task">
+                  {{ task.titulo }}
+                </option>
+              </select>
+              <span class="select-icon">
+                <i class="pi pi-chevron-down"></i>
+              </span>
+            </div>
+            <div v-if="tasks.length === 0 && !isLoadingTasks" class="empty-message">
+              No hay tareas disponibles en este tablero
+            </div>
+          </div>
+          
+          <!-- Selector de estados con diseño visual -->
+          <div class="form-group" v-if="selectedTask">
+            <label class="form-label">¿Cuándo se activará este flujo?</label>
+            <div class="status-options">
+              <div 
+                v-for="status in statusOptions" 
+                :key="status.value"
+                class="status-option" 
+                :class="{ active: selectedStatus === status.value }"
+                @click="selectedStatus = status.value"
+              >
+                <div class="status-icon" :style="{ backgroundColor: status.color }">
+                  <i :class="status.icon"></i>
+                </div>
+                <div class="status-details">
+                  <div class="status-label">{{ status.label }}</div>
+                  <div class="status-desc">{{ status.description }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         
-        <!-- Selector de estados (aparece cuando se selecciona una tarea) -->
-        <div class="form-group" v-if="selectedTask">
-          <label>Seleccione un estado:</label>
-          <select v-model="selectedStatus" class="form-select">
-            <option value="">Seleccionar estado</option>
-            <option value="Pendiente">Pendiente</option>
-            <option value="En curso">En curso</option>
-            <option value="Completado">Completado</option>
-            <option value="Stoper">Stoper</option>
-          </select>
-        </div>
-        
-        <!-- Botones de acción -->
-        <div class="popup-actions">
+        <!-- Footer del popup -->
+        <div class="popup-footer">
+          <button @click="closeTaskPopup" class="btn-cancel">
+            <i class="pi pi-times"></i>
+            Cancelar
+          </button>
           <button 
             @click="confirmTaskSetup" 
-            class="confirm-btn" 
-            :disabled="!selectedBoard || !selectedTask || !selectedStatus">
+            class="btn-confirm" 
+            :disabled="!selectedBoard || !selectedTask || !selectedStatus"
+          >
+            <i class="pi pi-check"></i>
             Confirmar
           </button>
-          <button @click="closeTaskPopup" class="cancel-btn">Cancelar</button>
         </div>
       </div>
     </div>
 
-    <!-- Popup de email (MOVIDO FUERA DEL ANIDAMIENTO) -->
+    <!-- Popup de email modernizado -->
     <div v-if="showEmailPopup" class="popup-overlay">
-      <div class="popup">
-        <h3>Configurar Email</h3>
-        
-        <div class="form-group">
-          <label>Destinatario:</label>
-          <input 
-            type="email" 
-            v-model="emailConfig.to" 
-            class="form-input" 
-            placeholder="correo@ejemplo.com"
-          />
+      <div class="popup popup-modern">
+        <!-- Header del popup -->
+        <div class="popup-header">
+          <h3>Configurar Email</h3>
+          <button class="popup-close" @click="closeEmailPopup"><span class="close-symbol">×</span></button>
         </div>
         
-        <div class="form-group">
-          <label>Asunto:</label>
-          <input 
-            type="text" 
-            v-model="emailConfig.subject" 
-            class="form-input" 
-            placeholder="Asunto del correo"
-          />
+        <!-- Body del popup -->
+        <div class="popup-body">
+          <div class="form-group">
+            <label class="form-label">
+              <i class="pi pi-envelope"></i>
+              Destinatario
+            </label>
+            <div class="input-wrapper">
+              <input 
+                type="email" 
+                v-model="emailConfig.to" 
+                class="form-input" 
+                placeholder="correo@ejemplo.com"
+              />
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">
+              <i class="pi pi-tag"></i>
+              Asunto
+            </label>
+            <div class="input-wrapper">
+              <input 
+                type="text" 
+                v-model="emailConfig.subject" 
+                class="form-input" 
+                placeholder="Asunto del correo"
+              />
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">
+              <i class="pi pi-file-edit"></i>
+              Mensaje
+            </label>
+            <div class="textarea-wrapper">
+              <textarea 
+                v-model="emailConfig.message" 
+                class="form-textarea" 
+                rows="4"
+                placeholder="Contenido del correo..."
+              ></textarea>
+            </div>
+          </div>
         </div>
         
-        <div class="form-group">
-          <label>Mensaje:</label>
-          <textarea 
-            v-model="emailConfig.message" 
-            class="form-textarea" 
-            rows="4"
-            placeholder="Contenido del correo..."
-          ></textarea>
-        </div>
-        
-        <div class="popup-actions">
+        <!-- Footer del popup -->
+        <div class="popup-footer">
+          <button @click="closeEmailPopup" class="btn-cancel">
+            <i class="pi pi-times"></i>
+            Cancelar
+          </button>
           <button 
             @click="confirmEmailSetup" 
-            class="confirm-btn" 
-            :disabled="!emailConfig.to || !emailConfig.subject || !emailConfig.message">
+            class="btn-confirm" 
+            :disabled="!emailConfig.to || !emailConfig.subject || !emailConfig.message"
+          >
+            <i class="pi pi-check"></i>
             Confirmar
           </button>
-          <button @click="closeEmailPopup" class="cancel-btn">Cancelar</button>
         </div>
       </div>
     </div>
+    <Toast position="bottom-right" />
   </div>
 </template>
 
@@ -192,6 +260,8 @@ import { ref, reactive, nextTick, watch, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import draggable from "vuedraggable";
 import axios from "axios";
+import { useToast } from 'primevue/usetoast';
+import { authStore } from "../../../store/auth";
 
 // Bloques base
 const availableBlocks = ref([
@@ -210,35 +280,72 @@ const tasks = ref([]);
 const selectedBoard = ref(null);
 const selectedTask = ref(null);
 const selectedStatus = ref("");
+const isLoadingTasks = ref(false);
+const toast = useToast();
 const isDarkTheme = ref(localStorage.getItem('theme') === 'dark');
 const isMobile = ref(window.innerWidth < 768);
 const updateMobileState = () => {
   isMobile.value = window.innerWidth < 768;
 };
+const statusOptions = [
+  { 
+    value: "Pendiente", 
+    label: "Cuando la tarea esté pendiente", 
+    description: "Se activa al poner una tarea en estado 'Sin empezar'",
+    color: "#ffa500",
+    icon: "pi pi-clock"
+  },
+  { 
+    value: "En curso", 
+    label: "Cuando la tarea esté en progreso", 
+    description: "Se activa al cambiar una tarea a 'En curso'",
+    color: "#1e90ff",
+    icon: "pi pi-spin pi-sync"
+  },
+  { 
+    value: "Completado", 
+    label: "Cuando la tarea se complete", 
+    description: "Se activa al marcar una tarea como completada",
+    color: "#32cd32",
+    icon: "pi pi-check-circle"
+  },
+  { 
+    value: "Stopper", 
+    label: "Cuando la tarea se bloquee", 
+    description: "Se activa cuando una tarea se marca como bloqueada",
+    color: "#ff4500",
+    icon: "pi pi-exclamation-triangle"
+  }
+];
 onMounted(async () => {
+  // Cargar tableros del usuario
+  await loadBoards();
+  
+  // Aplicar tema actual al cargar y configurar eventos
+  applyGlobalTheme();
+  window.addEventListener('themeChanged', applyGlobalTheme);
+  window.addEventListener('storage', handleStorageChange);
+  window.addEventListener('resize', updateMobileState);
+});
+//Esto es para cargar solo los tableros del usuario
+const loadBoards = async () => {
   try {
-    const response = await axios.get('/api/kanban');
+    
+    const auth = authStore();
+    const userId = auth.user?.id;
+    
+    if (!userId) {
+      console.error("Usuario no autenticado");
+      return;
+    }
+    
+    // Usar la API que filtra tableros por usuario
+    const response = await axios.get(`/api/tableros/user/${userId}`);
     boards.value = response.data;
-    
-    // Aplicar tema actual al cargar
-    applyGlobalTheme();
-    
-    // Escuchar cambios globales de tema
-    window.addEventListener('themeChanged', () => {
-      applyGlobalTheme();
-    });
-    
-    // También escuchar cambios en localStorage
-    window.addEventListener('storage', (e) => {
-      if (e.key === 'theme') {
-        applyGlobalTheme();
-      }
-    });
   } catch (error) {
     console.error('Error al cargar tableros:', error);
   }
-  window.addEventListener('resize', updateMobileState);
-});
+};
 onUnmounted(() => {
   window.removeEventListener('resize', updateMobileState);
   window.removeEventListener('themeChanged', applyGlobalTheme);
@@ -270,12 +377,16 @@ const loadTasksForBoard = async () => {
   if (!selectedBoard.value) return;
   
   try {
-    const response = await axios.get(`/api/kanban/${selectedBoard.value.id}/tasks`);
+    isLoadingTasks.value = true;
+    const response = await axios.get(`/api/kanban/${selectedBoard.value.id_tablero}/tasks`);
     tasks.value = response.data;
-    selectedTask.value = null; // Resetear la selección de tarea
-    selectedStatus.value = ""; // Resetear la selección de estado
+    selectedTask.value = null;
+    selectedStatus.value = "";
   } catch (error) {
     console.error('Error al cargar tareas:', error);
+    tasks.value = [];
+  } finally {
+    isLoadingTasks.value = false;
   }
 };
 // Bloques en el flujo
@@ -464,20 +575,26 @@ const removeBlockAndSubsequent = async (id) => {
 };
 const confirmTaskSetup = () => {
   if (!selectedBoard.value || !selectedTask.value || !selectedStatus.value) {
-    alert("Por favor, complete todas las selecciones.");
+    // Notificación elegante en lugar de alert
+    toast.add({ 
+      severity: 'warn',
+      summary: 'Configuración incompleta', 
+      detail: 'Por favor, complete todas las selecciones', 
+      life: 3000 
+    });
     return;
   }
 
   // Crear un bloque de Tarea con la configuración seleccionada
   const taskBlock = {
-    id: Date.now(), // Usar Date.now() en lugar de 1 fijo
+    id: Date.now(),
     name: "Tarea",
-    description: "Inicio del flujo con Tarea (desencadenador)",
+    description: "Desencadenador: " + selectedTask.value.titulo,
     config: {
-      boardId: selectedBoard.value.id,
-      boardName: selectedBoard.value.title,
-      taskId: selectedTask.value.id,
-      taskName: selectedTask.value.title,
+      boardId: selectedBoard.value.id_tablero,
+      boardName: selectedBoard.value.nombre,
+      taskId: selectedTask.value.id_tarea,
+      taskName: selectedTask.value.titulo,
       status: selectedStatus.value
     }
   };
@@ -485,8 +602,16 @@ const confirmTaskSetup = () => {
   // Colocar el bloque en el canvas
   placeBlockCentered(taskBlock);
   
-  // Cerrar el popup
+  // Cerrar el popup con animación
   closeTaskPopup();
+  
+  // Notificación de éxito
+  toast.add({ 
+    severity: 'success',
+    summary: 'Desencadenador configurado', 
+    detail: `La automatización se iniciará cuando "${selectedTask.value.titulo}" pase a estado "${selectedStatus.value}"`, 
+    life: 3000 
+  });
 };
 // Actualizar conexiones
 const updateConnections = () => {
@@ -594,6 +719,7 @@ watch([isMobile, () => blocks.value.length], adjustBlocksPosition);
 </script>
 
 <style scoped>
+/* Base Styles */
 .workflow-builder {
   display: flex;
   flex-direction: column;
@@ -602,19 +728,10 @@ watch([isMobile, () => blocks.value.length], adjustBlocksPosition);
   border-radius: 12px;
   padding: 20px;
   gap: 20px;
-}
-.workflow-canvas {
-  position: relative;
-  flex-grow: 1;
-  height: 100%;
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  overflow: auto;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><circle cx="1" cy="1" r="1" fill="%23ccc" /></svg>');
+  transition: background-color 0.3s ease;
 }
 
+/* Header Styles */
 .header {
   display: flex;
   justify-content: space-between;
@@ -623,52 +740,76 @@ watch([isMobile, () => blocks.value.length], adjustBlocksPosition);
   color: #fff;
   padding: 15px 20px;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: background 0.3s ease;
 }
 
 .title {
   font-size: 1.5rem;
   font-weight: bold;
-  color: white!important;
+  border: none;
+  background: transparent;
+  color: white !important;
+  width: 60%;
+  outline: none;
+  margin-right: 20px;
+  transition: opacity 0.2s ease;
 }
+
 .title::placeholder {
-    color: #fff; 
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.title:focus {
+  opacity: 0.9;
 }
 
 .run-button {
-  padding: 10px 20px;
+  padding: 10px 24px;
   background: #005a9e;
   color: #fff;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .run-button:hover {
   background: #003f73;
+  transform: translateY(-1px);
 }
 
+.run-button:active {
+  transform: translateY(0);
+}
+
+/* Layout Styles */
 .main-content {
   display: flex;
-  flex-grow: 1; /* Ocupa todo el espacio restante */
+  flex-grow: 1;
   gap: 20px;
-  overflow: hidden; /* Evita que los bloques sobresalgan */
+  overflow: hidden;
 }
 
+/* Sidebar Styles */
 .blocks-list {
   width: 250px;
   background: #ffffff;
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
   flex-shrink: 0;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 .blocks-title {
   font-size: 1.25rem;
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
 }
 
 .block-item {
@@ -677,27 +818,34 @@ watch([isMobile, () => blocks.value.length], adjustBlocksPosition);
   color: #fff;
   border-radius: 8px;
   cursor: grab;
-  margin-bottom: 10px;
-  transition: background 0.3s, transform 0.2s ease-in-out;
+  margin-bottom: 12px;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
 }
 
 .block-item:hover {
   background: #005a9e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .block-item:active {
-  transform: none; /* Desactivar el efecto de zoom cuando se arrastra */
+  transform: none;
   opacity: 0.7;
 }
 
+/* Canvas Styles */
 .workflow-canvas {
   flex-grow: 1;
   background: #ffffff;
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
   position: relative;
   background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><circle cx="1" cy="1" r="1" fill="%23ccc" /></svg>');
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 .connections {
@@ -710,31 +858,33 @@ watch([isMobile, () => blocks.value.length], adjustBlocksPosition);
   z-index: 0;
 }
 
+/* Block Styles */
 .workflow-block {
   display: flex;
-  justify-content: center; /* Centrar el contenido horizontalmente */
-  align-items: center; /* Centrar el contenido verticalmente */
+  justify-content: center;
+  align-items: center;
   padding: 15px;
   background: #f0f4f8;
-  border: 2px solid #0078d4; /* Borde azul más profesional */
+  border: 2px solid #0078d4;
   border-radius: 8px;
-  position: absolute; /* Asegura que los bloques se posicionen correctamente */
-  transition: background 0.3s, transform 0.2s;
+  position: absolute;
+  transition: all 0.3s ease;
   cursor: grab;
-  margin-bottom: 40px; /* Aumenta el espacio entre bloques */
-  width: 350px; /* Hacer los bloques más anchos */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 40px;
+  width: 350px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .workflow-block:hover {
   background: #e1e1e1;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
 }
 
 .block-name {
   font-size: 1rem;
   font-weight: bold;
   margin: 0;
-  text-align: center; /* Centrar el texto */
+  text-align: center;
 }
 
 .remove-button {
@@ -747,150 +897,437 @@ watch([isMobile, () => blocks.value.length], adjustBlocksPosition);
   cursor: pointer;
   font-size: 1rem;
   color: #ff4d4f;
-  transition: background 0.3s, color 0.3s;
-  padding: 5px 10px;
+  transition: all 0.2s ease;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
 }
 
 .remove-button:hover {
   color: #fff;
+  background-color: rgba(255, 77, 79, 0.8);
+  transform: scale(1.15);
 }
 
-/* Estilos para el popup de confirmación */
+/* Popup Styles - Optimized and Enhanced */
 .popup-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(3px);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .popup {
   background: #fff;
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
   text-align: center;
+  max-width: 90%;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  from { 
+    transform: scale(0.95);
+    opacity: 0; 
+  }
+  to { 
+    transform: scale(1);
+    opacity: 1; 
+  }
 }
 
 .popup button {
   margin: 10px;
-  padding: 10px 20px;
+  padding: 10px 24px;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.2s ease;
+  font-weight: 500;
 }
 
 .popup button:first-of-type {
   background: #ff4d4f;
   color: #fff;
+  box-shadow: 0 2px 5px rgba(255, 77, 79, 0.25);
 }
 
 .popup button:first-of-type:hover {
   background: #ff1a1a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(255, 77, 79, 0.3);
 }
 
 .popup button:last-of-type {
-  background: #ccc;
+  background: #f0f0f0;
+  color: #333;
 }
 
 .popup button:last-of-type:hover {
-  background: #999;
+  background: #e0e0e0;
+  transform: translateY(-2px);
 }
+
+.popup button:active {
+  transform: translateY(0);
+}
+
+/* Enhanced Popup Styles */
+.popup-modern {
+  width: 500px;
+  max-width: 95vw;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideIn {
+  from { 
+    transform: translateY(20px);
+    opacity: 0; 
+  }
+  to { 
+    transform: translateY(0);
+    opacity: 1; 
+  }
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  background: linear-gradient(135deg, #3f359b, #1A00FF);
+  color: white;
+  position: relative;
+}
+
+.popup-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(to right, #23a6d5, #6f42c1);
+}
+
+.popup-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.popup-close {
+  background-color: #ff3b30!important;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.close-symbol {
+  color: white;
+  font-size: 24px;
+  line-height: 1;
+  position: relative;
+  font-family: Arial, sans-serif;
+}
+.popup-close:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+.popup-body {
+  padding: 24px 28px;
+  flex-grow: 1;
+  overflow-y: auto;
+  max-height: 65vh;
+}
+
+.popup-footer {
+  display: flex;
+  justify-content: center; 
+  align-items: center;
+  gap: 16px; 
+  padding: 16px 24px;
+  border-top: 1px solid #eee;
+  background: #f9f9f9;
+}
+
+/* Enhanced Form Styles */
+.form-group {
+  margin-bottom: 22px;
+}
+
+.form-label {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.form-label i {
+  margin-right: 8px;
+  color: #3f359b;
+  font-size: 1.1em;
+}
+
+.select-wrapper {
+  position: relative;
+}
+
+.select-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #666;
+  transition: transform 0.2s;
+}
+
+.form-select:focus + .select-icon {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.form-select,
+.form-input, 
+.form-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 15px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background-color: white;
+  transition: all 0.25s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) inset;
+}
+
+.form-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.form-select:focus,
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #3f359b;
+  box-shadow: 0 0 0 3px rgba(63, 53, 155, 0.15);
+}
+
+.input-wrapper,
+.textarea-wrapper {
+  position: relative;
+}
+
+.input-wrapper i,
+.textarea-wrapper i {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #aaa;
+  pointer-events: none;
+}
+
+/* Enhanced Button Styles */
+.btn-cancel,
+.btn-confirm {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 500;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn-cancel {
+  background-color: #f0f0f0;
+  color: #666;
+}
+
+.btn-cancel:hover {
+  background-color: #e0e0e0;
+  transform: translateY(-1px);
+}
+
+.btn-confirm {
+  background-color:#5cb85c	!important;
+  color: white !important;
+  box-shadow: 0 4px 10px rgba(26, 0, 255, 0.2);
+}
+
+.btn-confirm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(26, 0, 255, 0.3);
+  background: linear-gradient(135deg, #4f45ab, #2a10ff);
+}
+
+.btn-confirm:active {
+  transform: translateY(0);
+}
+
+.btn-confirm:disabled {
+  background: linear-gradient(135deg, #a6a6a6, #7a7a7a);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
+/* Loading Indicator */
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0;
+  color: #666;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(63, 53, 155, 0.2);
+  border-top-color: #3f359b;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.empty-message {
+  color: #888;
+  font-size: 14px;
+  padding: 12px;
+  font-style: italic;
+  text-align: center;
+  border: 1px dashed #ddd;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+/* Status Options */
+.status-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.status-option {
+  display: flex;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.status-option:hover {
+  background-color: #f9f9f9;
+  transform: translateY(-2px);
+}
+
+.status-option.active {
+  border-color: #1A00FF;
+  background-color: rgba(26, 0, 255, 0.05);
+  box-shadow: 0 0 0 2px rgba(26, 0, 255, 0.2);
+}
+
+.status-option.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: #1A00FF;
+}
+
+.status-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+  color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease;
+}
+
+.status-option:hover .status-icon {
+  transform: scale(1.1);
+}
+
+.status-details {
+  flex: 1;
+}
+
+.status-label {
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 15px;
+}
+
+.status-desc {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4;
+}
+
+/* Utility Classes */
 [draggable]:focus {
     outline: none !important;
 }
+
 .no-scroll {
   overflow: hidden;
   position: fixed;
   width: 100%;
 }
-.header .title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  border: none;
-  background: transparent;
-  color: #fff;
-  width: 60%;
-  outline: none;
-  margin-right: 20px;
-}
-.popup {
-  width: 400px;
-  max-width: 90%;
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-}
 
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-.form-select {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: white;
-  font-size: 14px;
-}
-
-.popup-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 20px;
-  gap: 10px;
-}
-
-.confirm-btn, .cancel-btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.confirm-btn {
-  background-color: #007bff;
-  color: white;
-}
-
-.confirm-btn:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-}
-
-.cancel-btn {
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
-}
-.form-input, .form-textarea {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: white;
-  font-size: 14px;
-  margin-top: 5px;
-}
-
-.form-textarea {
-  resize: vertical;
-  min-height: 80px;
-}
+/* Dark Theme */
 .dark-theme {
   background-color: #121212;
   color: #e4e6eb;
@@ -898,82 +1335,116 @@ watch([isMobile, () => blocks.value.length], adjustBlocksPosition);
 
 .dark-theme .header {
   background: #1A00FF;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .dark-theme .blocks-list {
   background: #1e1e2e;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .dark-theme .blocks-title {
   color: #e4e6eb;
+  border-bottom-color: #383a46;
 }
 
 .dark-theme .workflow-canvas {
   background: #1e1e2e;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><circle cx="1" cy="1" r="1" fill="%23444" /></svg>');
 }
 
 .dark-theme .workflow-block {
   background: #292a36;
   border-color: #1A00FF;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
 }
 
-.dark-theme .block-name,
-.dark-theme .block-description {
-  color: #e4e6eb;
+.dark-theme .workflow-block:hover {
+  background: #333446;
 }
 
 .dark-theme .popup {
   background: #1e1e2e;
   color: #e4e6eb;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
 }
 
-.dark-theme .form-group label {
+.dark-theme .popup-modern {
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+}
+
+.dark-theme .popup-footer {
+  background-color: #292a36;
+  border-top-color: #383a46;
+}
+
+.dark-theme .form-label {
   color: #e4e6eb;
 }
 
 .dark-theme .form-select,
 .dark-theme .form-input,
 .dark-theme .form-textarea {
-  background-color: #121212;
-  border-color: #383a46;
-  color: #e4e6eb;
-}
-
-.dark-theme .popup-actions button {
   background-color: #292a36;
+  border-color: #383a46;
+  color: #e4e6eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) inset;
+}
+
+.dark-theme .form-select:focus,
+.dark-theme .form-input:focus,
+.dark-theme .form-textarea:focus {
+  box-shadow: 0 0 0 3px rgba(26, 0, 255, 0.3);
+  border-color: #1A00FF;
+}
+
+.dark-theme .btn-cancel {
+  background-color: #383a46;
   color: #e4e6eb;
 }
 
-.dark-theme .confirm-btn {
-  background-color: #1A00FF;
+.dark-theme .btn-cancel:hover {
+  background-color: #44465a;
 }
 
-.dark-theme .confirm-btn:disabled {
-  background-color: #383a46;
+.dark-theme .status-option {
+  border-color: #383a46;
+  background-color: #292a36;
 }
 
-.dark-theme .cancel-btn {
-  background-color: #24252d;
+.dark-theme .status-option:hover {
+  background-color: #333446;
+}
+
+.dark-theme .status-option.active {
+  background-color: rgba(26, 0, 255, 0.2);
+}
+
+.dark-theme .status-desc {
+  color: #adb5bd;
+}
+
+.dark-theme .empty-message {
+  color: #adb5bd;
   border-color: #383a46;
 }
 
-.dark-theme svg line {
+.dark-theme svg line,
+.dark-theme svg path {
   stroke: #adb5bd;
 }
 
 .dark-theme svg polygon {
   fill: #adb5bd;
 }
-/* Sobreescribir el selector que está causando el problema */
+
+/* Sidebar Theme Override */
 :deep(.dark-theme .layout-sidebar),
 :deep(body.dark-theme .layout-sidebar) {
-  background-color: #3f359b!important;
+  background-color: #3f359b !important;
 }
 
-/* Asegurarse de que los textos de la barra lateral sean blancos */
 :deep(.dark-theme .layout-sidebar .nav-link-text),
 :deep(.dark-theme .layout-sidebar .user-name),
 :deep(.dark-theme .layout-sidebar .sidebar-title),
@@ -981,17 +1452,17 @@ watch([isMobile, () => blocks.value.length], adjustBlocksPosition);
 :deep(.dark-theme .layout-sidebar .app-version) {
   color: white !important;
 }
+
+/* Responsive Styles */
 @media (max-width: 1200px) {
   .workflow-block {
-    width: 300px; /* Bloques más estrechos en pantallas medianas */
+    width: 300px;
   }
-  
-  
 }
 
 @media (max-width: 992px) {
   .main-content {
-    flex-direction: column; /* Cambia a layout vertical */
+    flex-direction: column;
   }
   
   .blocks-list {
@@ -999,23 +1470,30 @@ watch([isMobile, () => blocks.value.length], adjustBlocksPosition);
     max-height: 200px;
     overflow-y: auto;
     margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .blocks-title {
+    width: 100%;
   }
   
   .block-item {
-    display: inline-block;
-    width: calc(33.33% - 10px);
-    margin-right: 10px;
-    text-align: center;
+    flex: 0 0 calc(33.33% - 10px);
+    margin-bottom: 0;
   }
   
   .workflow-canvas {
-    height: calc(100vh - 400px); /* Ajusta la altura */
+    height: calc(100vh - 350px);
+    min-height: 400px;
   }
 }
 
 @media (max-width: 768px) {
   .workflow-builder {
     padding: 10px;
+    gap: 15px;
     height: auto;
     min-height: 100vh;
   }
@@ -1030,6 +1508,7 @@ watch([isMobile, () => blocks.value.length], adjustBlocksPosition);
     width: 100%;
     text-align: center;
     margin-right: 0;
+    font-size: 1.3rem;
   }
   
   .run-button {
@@ -1040,16 +1519,26 @@ watch([isMobile, () => blocks.value.length], adjustBlocksPosition);
     width: 250px;
   }
   
-  
-  
   .block-item {
-    width: calc(50% - 10px); /* 2 por fila en tablets */
+    flex: 0 0 calc(50% - 10px);
+  }
+  
+  .popup-header {
+    padding: 16px 20px;
+  }
+  
+  .popup-body {
+    padding: 20px;
   }
 }
 
 @media (max-width: 576px) {
   .workflow-builder {
     padding: 8px;
+  }
+  
+  .header {
+    padding: 10px;
   }
   
   .popup {
@@ -1061,15 +1550,12 @@ watch([isMobile, () => blocks.value.length], adjustBlocksPosition);
     width: 220px;
   }
   
-  
-  
   .block-item {
-    width: 100%; /* 1 por fila en móviles */
-    margin-right: 0;
+    flex: 0 0 100%;
   }
   
   .remove-button {
-    padding: 3px 6px;
+    padding: 3px;
     font-size: 0.9rem;
   }
   
@@ -1078,30 +1564,51 @@ watch([isMobile, () => blocks.value.length], adjustBlocksPosition);
   }
   
   .form-select, .form-input, .form-textarea {
-    padding: 6px 10px;
-    font-size: 13px;
+    padding: 10px;
+    font-size: 14px;
   }
+  
   .popup-overlay {
     padding: 0 10px;
     align-items: flex-start;
     padding-top: 20%;
   }
   
-  .popup {
-    max-height: 70vh;
-    overflow-y: auto;
+  .popup-modern {
+    max-height: 80vh;
   }
   
-  .popup-actions {
-    flex-direction: column;
-    gap: 8px;
+  .popup-body {
+    max-height: 60vh;
   }
   
-  .confirm-btn, .cancel-btn {
+  .popup-footer {
+    flex-direction: column-reverse;
+    gap: 10px;
+    padding: 15px;
+  }
+  
+  .btn-cancel, .btn-confirm {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
+  }
+  
+  .status-option {
+    padding: 12px 10px;
+  }
+  
+  .status-icon {
+    width: 32px;
+    height: 32px;
+    margin-right: 12px;
+  }
+  
+  .status-label {
+    font-size: 14px;
+  }
+  
+  .status-desc {
+    font-size: 12px;
   }
 }
-
-
 </style>

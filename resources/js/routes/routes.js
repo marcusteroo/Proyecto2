@@ -127,7 +127,7 @@ export default [
                 meta: { breadCrumb: 'Kanbans' }
             },
             {
-                path: 'kanban',
+                path: 'kanban/:id',
                 name: 'user.kanban',
                 component: () => import('../views/user/kanban/index.vue'),
                 meta: { breadCrumb: 'Kanban' }

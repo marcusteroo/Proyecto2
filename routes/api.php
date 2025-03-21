@@ -92,7 +92,7 @@ Route::delete('kanban/{id}', [KanbanController::class, 'destroy']);
 Route::get('/kanban', [KanbanController::class, 'getBoards']);
 Route::get('/kanban/{id}/tasks', [KanbanController::class, 'getTasks']);
 
-// Nueva API para Tableros, que se adapta a las llamadas definidas en el componente Vue
 Route::apiResource('tableros', TableroController::class);
 Route::get('/execute-workflow/{id}', [WorkflowController::class, 'execute']);
 Route::put('/password', [UserController::class, 'updatePassword'])->middleware('auth:sanctum');
+Route::get('tableros/user/{id}', [TableroController::class, 'getByUser']);

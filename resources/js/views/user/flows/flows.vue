@@ -24,9 +24,6 @@
           <button class="view-btn active">
             <i class="pi pi-th-large"></i>
           </button>
-          <button class="view-btn">
-            <i class="pi pi-list"></i>
-          </button>
         </div>
       </div>
   
@@ -66,10 +63,6 @@
             </div>
           </div>
           <div class="flow-card-footer">
-            <button class="flow-action-btn primary" @click="editFlow(flow.id_workflow)">
-              <i class="pi pi-pencil"></i>
-              <span>Editar</span>
-            </button>
             <button class="flow-action-btn danger" @click="confirmDelete(flow)">
               <i class="pi pi-trash"></i>
               <span>Eliminar</span>
@@ -106,6 +99,7 @@
   <script>
   import axios from 'axios';
   import { ref, computed, onMounted } from 'vue';
+  import { useRouter } from 'vue-router';
   
   export default {
     setup() {
@@ -113,6 +107,7 @@
       const loading = ref(true);
       const deleting = ref(false);
       const searchText = ref('');
+      const router = useRouter();
       
       const deleteDialog = ref({
         show: false,
@@ -159,14 +154,10 @@
         }
       };
   
-      const editFlow = (id) => {
-        // Suponiendo que tienes una ruta para editar flujos
-        // this.$router.push({ name: 'flows.edit', params: { id } });
-      };
   
       const addFlow = () => {
-        // Navegar a la página de creación de flujos
-        location.href = '/app/flows/flow';
+        
+        router.push('/app/flows/flow');
       };
   
       const formatDate = (dateString) => {
@@ -209,7 +200,6 @@
         fetchFlows,
         confirmDelete,
         deleteFlow,
-        editFlow,
         addFlow,
         formatDate,
         getRandomColor
@@ -354,6 +344,7 @@
     align-items: center;
     justify-content: center;
     color: white;
+    background-color: #0078D4!important;
   }
   
   .flow-icon {
