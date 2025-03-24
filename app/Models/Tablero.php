@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Tablero extends Model
 {
@@ -27,4 +28,22 @@ class Tablero extends Model
     {
         return $this->hasMany(Kanban::class, 'id_tablero');
     }
+    public function usuariosCompartidos()
+{
+    return $this->belongsToMany(User::class, 'usuarios_tableros', 'tablero_id', 'user_id')
+                ->withPivot('fecha_compartido')
+                ->withTimestamps();
+}
+public function isOwnedBy($userId)
+{
+    return $this->id_creador == $userId;
+}
+public function favoritos(): MorphMany
+{
+    return $this->morphMany(Favorito::class, 'favorable');
+}
+public function esFavoritoDe($userId)
+{
+    return $this->favoritos()->where('user_id', $userId)->exists();
+} 
 }

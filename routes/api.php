@@ -15,7 +15,8 @@ use App\Http\Controllers\Api\WorkflowController;
 use App\Http\Controllers\Api\WorkflowActionController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Api\KanbanController;
-use App\Http\Controllers\Api\TableroController; // <-- Se agrega el controlador de Tableros
+use App\Http\Controllers\Api\TableroController; 
+use App\Http\Controllers\Api\FavoritoController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -40,6 +41,13 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('category-list', [CategoryController::class, 'getList']);
     Route::get('/user', [ProfileController::class, 'user']);
     Route::put('/user', [ProfileController::class, 'update']);
+    Route::post('/workflows/{id}/share', [WorkflowController::class, 'shareWorkflow']);
+    Route::get('/workflows/users/potential', [WorkflowController::class, 'getPotentialUsers']);
+    Route::get('/tableros/users/potential-share', [TableroController::class, 'getPotentialUsers']);
+    Route::post('/tableros/{id}/share', [TableroController::class, 'shareTablero']);
+    Route::get('/favoritos', [FavoritoController::class, 'index']);
+    Route::post('/favoritos/toggle', [FavoritoController::class, 'toggleFavorito']);
+    Route::post('/favoritos/check', [FavoritoController::class, 'isFavorito']);
 
     Route::get('abilities', function(Request $request) {
         return $request->user()->roles()->with('permissions')

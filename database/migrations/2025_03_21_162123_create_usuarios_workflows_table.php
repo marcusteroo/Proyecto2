@@ -8,18 +8,19 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('usuarios_tableros', function (Blueprint $table) {
+        Schema::create('usuarios_workflows', function (Blueprint $table) {
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('tablero_id')->constrained('tableros', 'id_tablero')->onDelete('cascade');
+            $table->foreignId('workflow_id')->constrained('workflows', 'id_workflow')->onDelete('cascade');
+            $table->enum('rol', ['propietario', 'editor', 'espectador'])->default('espectador');
             $table->timestamp('fecha_compartido')->useCurrent();
-            // Clave primaria compuesta
-            $table->primary(['user_id', 'tablero_id']);
+            // Define la clave primaria compuesta
+            $table->primary(['user_id', 'workflow_id']);
             $table->timestamps();
         });
     }
 
     public function down()
     {
-        Schema::dropIfExists('usuarios_tableros');
+        Schema::dropIfExists('usuarios_workflows');
     }
 };

@@ -24,28 +24,49 @@
   
             <!-- Lista de tableros existentes -->
             <div 
-                v-for="tablero in tableros" 
-                :key="tablero.id_tablero" 
-                class="board-card"
-                :style="{ backgroundColor: tablero.color_fondo || getRandomColor(tablero.id_tablero) }"
-                @click="$router.push(`/app/kanban/${tablero.id_tablero}`)"
-                >
-                <div class="board-card-overlay"></div>
-                <div class="board-card-content">
-                    <h3 class="board-title">{{ tablero.nombre }}</h3>
-                    <p class="board-meta">Creado {{ formatDate(tablero.created_at) }}</p>
-                </div>
+              v-for="tablero in tableros" 
+              :key="tablero.id_tablero" 
+              class="board-card"
+              :class="{ 'is-shared': tablero.is_shared }"
+              :style="{ backgroundColor: tablero.color_fondo || getRandomColor(tablero.id_tablero) }"
+              @click="$router.push(`/app/kanban/${tablero.id_tablero}`)"
+            >
+  <div class="board-card-overlay"></div>
+  
+  <div class="board-card-content">
+    <h3 class="board-title">{{ tablero.nombre }}</h3>
+    
+    <div class="shared-info" v-if="tablero.is_shared">
+      <i class="pi pi-share-alt"></i> 
+      <span>Compartido por {{ tablero.shared_by }}</span>
+    </div>
+    
+    <p class="board-meta">Creado {{ formatDate(tablero.created_at) }}</p>
+  </div>
 
-                <div class="board-actions">
-                    <button @click.stop="$router.push(`/app/kanban/${tablero.id_tablero}`)" class="board-action-btn">
-                    <i class="pi pi-external-link"></i>
-                    </button>
-                    <button @click.stop="confirmDelete(tablero)" class="board-action-btn danger">
-                    <i class="pi pi-trash"></i>
-                    </button>
-                </div>
-                </div>
-          </div>
+  <div class="board-actions">
+    <button @click.stop="$router.push(`/app/kanban/${tablero.id_tablero}`)" class="board-action-btn">
+      <i class="pi pi-external-link"></i>
+    </button>
+    
+    <div class="board-action-btn" @click.stop>
+      <FavoritoButton 
+        tipo="tablero" 
+        :itemId="tablero.id_tablero"
+        @favoriteChanged="fetchTableros"
+      />
+    </div>
+    
+    <!-- Solo mostrar el botón de compartir si es propietario -->
+    <button v-if="!tablero.is_shared" @click.stop="shareTablero(tablero)" class="board-action-btn share-btn">
+      <i class="pi pi-share-alt"></i>
+    </button>
+    <button v-if="!tablero.is_shared" @click.stop="confirmDelete(tablero)" class="board-action-btn danger">
+      <i class="pi pi-trash"></i>
+    </button>
+  </div>
+</div>
+            </div>
         </div>
       </div>
   
@@ -119,6 +140,14 @@
           </div>
         </div>
       </div>
+
+      <!-- Añadir el componente de diálogo para compartir al final del template -->
+      <ShareTableroDialog 
+        :show="showShareDialog"
+        :tablero-id="selectedTablero?.id_tablero"
+        @close="showShareDialog = false"
+        @shared="fetchTableros"
+      />
     </div>
   </template>
   
@@ -126,8 +155,14 @@
   import axios from 'axios';
   import { onMounted, ref, reactive, nextTick, watch } from 'vue';
   import { authStore } from "@/store/auth";
+  import ShareTableroDialog from '../../../components/ShareTableroDialog.vue';
+  import FavoritoButton from '../../../components/FavoritoButton.vue';
   
   export default {
+    components: {
+      FavoritoButton,
+      ShareTableroDialog
+    },
     setup() {
       // Estado de datos y UI
       const tableros = ref([]);
@@ -268,6 +303,15 @@
           isLoading.value = false;
         }
       };
+
+      // Compartir tablero
+      const showShareDialog = ref(false);
+      const selectedTablero = ref(null);
+
+      const shareTablero = (tablero) => {
+        selectedTablero.value = tablero;
+        showShareDialog.value = true;
+      };
       
       // Generar color basado en ID (para mantener consistencia)
       const getRandomColor = (id) => {
@@ -308,7 +352,10 @@
         confirmDelete,
         deleteBoard,
         getRandomColor,
-        formatDate
+        formatDate,
+        showShareDialog,
+        selectedTablero,
+        shareTablero
       };
     }
   };
@@ -807,4 +854,127 @@
       height: 100px;
     }
   }
+  .shared-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  z-index: 3;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  max-width: 80%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.share-btn:hover {
+  background-color: rgba(0, 120, 215, 0.6);
+}
+.shared-info {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  width: fit-content;
+  backdrop-filter: blur(2px);
+}
+
+.shared-info i {
+  font-size: 0.8rem;
+}
+
+.board-title {
+  margin-bottom: 0.25rem; 
+  
+}
+
+.board-meta {
+  margin-top: 0.25rem; 
+
+}
+
+.board-card.is-shared {
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.share-btn:hover {
+  background-color: rgba(0, 120, 215, 0.6);
+}
+.favorite-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+}
+
+.board-actions {
+  position: absolute;
+  bottom: 8px; 
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 3;
+}
+
+.board-action-btn .favorito-btn {
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+}
+
+.favorito-btn i {
+  font-size: 1rem;
+}
+.favorito-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: #fff; 
+}
+
+
+.favorito-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #f59e0b;
+}
+
+.favorito-btn.is-favorite {
+  color: #f59e0b;
+}
+
+.favorito-btn.is-favorite:hover {
+  color: #d97706;
+}
+
+:deep(.dark-theme) .favorito-btn,
+:deep(body.dark-theme) .favorito-btn {
+  color: #fff;
+}
+
+:deep(.dark-theme) .favorito-btn:hover,
+:deep(body.dark-theme) .favorito-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
   </style>
