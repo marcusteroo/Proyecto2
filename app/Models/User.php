@@ -72,7 +72,39 @@ class User extends Authenticatable implements HasMedia
         }
     }
     public function workflows()
+    {
+        return $this->belongsToMany(Workflow::class, 'usuarios_workflows', 'user_id', 'workflow_id')
+                ->withPivot('rol', 'fecha_compartido')
+                ->withTimestamps();
+    }
+    public function ownedWorkflows()
 {
-    return $this->hasMany(Workflow::class, 'id_creador', 'id');
+    return $this->workflows()->wherePivot('rol', 'propietario');
+}
+public function sharedWorkflows()
+{
+    return $this->workflows()->wherePivot('rol', '!=', 'propietario');
+}
+public function tablerosCompartidos()
+{
+    return $this->belongsToMany(Tablero::class, 'usuarios_tableros', 'user_id', 'tablero_id')
+                ->withPivot('fecha_compartido')
+                ->withTimestamps();
+}
+public function favoritos()
+{
+    return $this->hasMany(Favorito::class);
+}
+public function workflowsFavoritos()
+{
+    return $this->belongsToMany(Workflow::class, 'favoritos', 'user_id', 'favorable_id')
+            ->where('favorable_type', Workflow::class)
+            ->withTimestamps();
+}
+public function tablerosFavoritos()
+{
+    return $this->belongsToMany(Tablero::class, 'favoritos', 'user_id', 'favorable_id')
+            ->where('favorable_type', Tablero::class)
+            ->withTimestamps();
 }
 }

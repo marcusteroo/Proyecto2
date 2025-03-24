@@ -149,6 +149,14 @@ class UserController extends Controller
         'message' => 'Contraseña actualizada correctamente'
     ]);
 }
+public function getPotentialShareUsers()
+{
+    $users = User::select('id', 'name', 'email')
+            ->where('id', '!=', Auth::id())
+            ->get();
+            
+    return response()->json($users);
+}
 
 
 }

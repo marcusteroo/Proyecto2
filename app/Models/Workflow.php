@@ -1,33 +1,60 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Workflow extends Model
 {
     use HasFactory;
 
-    protected $table = 'workflows';
     protected $primaryKey = 'id_workflow';
-    protected $fillable = ['nombre', 'descripcion', 'trigger_type', 'trigger_params', 'status','id_creador'];
-
-    protected $casts = [
-        'trigger_params' => 'array',
+    protected $fillable = [
+        'nombre', 
+        'descripcion', 
+        'status', 
+        'id_creador',
+        'trigger_type',
+        'trigger_params'
     ];
 
-    public function actions()
+    /**
+     * Los usuarios que tienen acceso a este workflow
+     */
+    public function users()
     {
-        return $this->hasMany(WorkflowAction::class, 'id_workflow', 'id_workflow')
-            ->orderBy('order_index');
+        return $this->belongsToMany(User::class, 'usuarios_workflows', 'workflow_id', 'user_id')
+                    ->withPivot('rol', 'fecha_compartido')
+                    ->withTimestamps();
     }
 
-    public function executions()
+    /**
+     * El propietario del workflow
+     */
+    public function owner()
     {
-        return $this->hasMany(WorkflowExecution::class, 'id_workflow', 'id_workflow');
+        return $this->users()->wherePivot('rol', 'propietario')->first();
     }
-    public function creador()
+    
+    /**
+     * Determina si un usuario es propietario del workflow
+     */
+    public function isOwnedBy($userId)
+{
+    return $this->id_creador == $userId;
+}
+public function favoritos(): MorphMany
+{
+    return $this->morphMany(Favorito::class, 'favorable');
+}
+public function esFavoritoDe($userId)
+{
+    return $this->favoritos()->where('user_id', $userId)->exists();
+}
+public function actions()
     {
-        return $this->belongsTo(User::class, 'id_creador', 'id');
+        return $this->hasMany(WorkflowAction::class, 'id_workflow', 'id_workflow');
     }
 }

@@ -132,6 +132,12 @@ export default [
                 component: () => import('../views/user/kanban/index.vue'),
                 meta: { breadCrumb: 'Kanban' }
             },
+            {
+                name: 'user.favoritos',
+                path: 'favoritos',
+                component: () => import('../views/user/favoritos/Index.vue'),
+                meta: { breadCrumb: 'Favoritos' }
+            },
             
             {
                 path: 'flows',
