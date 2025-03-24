@@ -87,8 +87,8 @@ Route::post('/check-email', [RegisterController::class, 'checkEmail']);
 Route::apiResource('kanbans', KanbanController::class);
 Route::get('kanban/{id}', [KanbanController::class, 'show']);
 Route::post('kanban', [KanbanController::class, 'store']);
-Route::put('kanban/{id}', [KanbanController::class, 'update']);
-Route::delete('kanban/{id}', [KanbanController::class, 'destroy']);
+Route::put('kanban/{id}', [KanbanController::class, 'update']); // ✅ Soporte para PUT
+Route::patch('kanban/{id}', [KanbanController::class, 'update']); // ✅ Soporte para PATCHRoute::delete('kanban/{id}', [KanbanController::class, 'destroy']);
 Route::get('/kanban', [KanbanController::class, 'getBoards']);
 Route::get('/kanban/{id}/tasks', [KanbanController::class, 'getTasks']);
 

@@ -50,6 +50,13 @@ const model = ref([
             { label: 'Categorias', icon: 'pi pi-fw pi-id-card', to: '/admin/categories', permision: 'category-list' }
 
         ]
+    },
+    {
+        label: 'Kanbans',
+        items: [
+            { label: 'Kanbans', icon: 'pi pi-fw pi-bookmark', to: '/admin/kanbans', permision:'kanbans-list' },
+            { label: 'Tareas', icon: 'pi pi-fw pi-bookmark', to: '/admin/tareas', permision:'tareas-list' }
+        ]
     }
 ]);
 </script>

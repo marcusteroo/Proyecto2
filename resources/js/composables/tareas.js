@@ -2,8 +2,8 @@ import { ref, inject } from 'vue'
 import { useRouter } from 'vue-router'
 
 export default function Tareas() {
-    const kanbans = ref([])
-    const kanban = ref({ name: '' })
+    const tareas = ref([])
+    const tarea = ref({ name: '' })
 
     const router = useRouter()
     const validationErrors = ref({})
@@ -18,7 +18,7 @@ export default function Tareas() {
         order_column = 'created_at',
         order_direction = 'desc'
     ) => {
-        axios.get('/api/kanban?page=' + page +
+        axios.get('/api/kanbans?page=' + page +
             '&search_id=' + search_id +
             '&search_title=' + search_title +
             '&search_global=' + search_global +
@@ -26,67 +26,56 @@ export default function Tareas() {
             '&order_direction=' + order_direction)
             .then(response => {
                 if (Array.isArray(response.data)) {
-                    kanbans.value = { data: response.data }
+                    tareas.value = { data: response.data }
                 } else {
-                    kanbans.value = response.data
+                    tareas.value = response.data
                 }
             })
     }
-
-    /*const getTareasWithTasks = async () => {
-        axios.get('/api/kanbanwithtasks')
-            .then(response => {
-                if (Array.isArray(response.data)) {
-                    kanbans.value = { data: response.data }
-                } else {
-                    kanbans.value = response.data
-                }
-            })
-    }*/
 
     const getTarea = async (id) => {
-        axios.get('/api/kanban/' + id)
+        axios.get('/api/kanbans/' + id)
             .then(response => {
-                kanban.value = response.data.data;
-                console.log(kanban.value)
+                tarea.value = response.data.data;
+                console.log(tarea.value)
             })
     }
 
-    const createTareasDB = async (id) => {
-        return axios.put('/api/kanban/db/create/' + id);
+    const createTareaDB = async (id) => {
+        return axios.put('/api/kanbans/db/create/' + id);
     }
 
-    const deleteTareasDB = async (id) => {
-        return axios.put('/api/kanban/db/delete/' + id);
+    const deleteTareaDB = async (id) => {
+        return axios.put('/api/kanbans/db/delete/' + id);
     }
 
-    const changeTareasPasswordDB = async (id) => {
-        return axios.put('/api/kanban/db/password/' + id);
+    const changeTareaPasswordDB = async (id) => {
+        return axios.put('/api/kanbans/db/password/' + id);
     }
 
-    const createTareasProceduredDB = async (id) => {
-        return axios.put('/api/kanban/db/procedure/' + id);
+    const createTareaProceduredDB = async (id) => {
+        return axios.put('/api/kanbans/db/procedure/' + id);
     }
 
-    const storeTareas = async (kanban) => {
+    const storeTarea = async (tarea) => {
         if (isLoading.value) return;
 
         isLoading.value = true
         validationErrors.value = {}
 
         let serializedPost = new FormData()
-        for (let item in kanban) {
-            if (kanban.hasOwnProperty(item)) {
-                serializedPost.append(item, kanban[item])
+        for (let item in tarea) {
+            if (tarea.hasOwnProperty(item)) {
+                serializedPost.append(item, tarea[item])
             }
         }
 
-        axios.post('/api/kanban', serializedPost)
+        axios.post('/api/kanbans', serializedPost)
             .then(response => {
-                router.push({ name: 'kanbans.index' })
+                router.push({ name: 'tareas.index' })
                 swal({
                     icon: 'success',
-                    title: 'Tareas saved successfully'
+                    title: 'Tarea guardada exitosamente'
                 })
             })
             .catch(error => {
@@ -97,17 +86,17 @@ export default function Tareas() {
             .finally(() => isLoading.value = false)
     }
 
-    const updateTareas = async (kanban) => {
+    const updateTarea = async (tarea) => {
         if (isLoading.value) return;
 
         isLoading.value = true
         validationErrors.value = {}
 
-        axios.put('/api/kanban/' + kanban.id, kanban)
+        axios.put('/api/kanbans/' + tarea.id, tarea)
             .then(response => {
                 swal({
                     icon: 'success',
-                    title: 'Tareas updated successfully'
+                    title: 'Tarea actualizada exitosamente'
                 })
             })
             .catch(error => {
@@ -118,13 +107,13 @@ export default function Tareas() {
             .finally(() => isLoading.value = false)
     }
 
-    const deleteTareas = async (id, index) => {
+    const deleteTarea = async (id, index) => {
         swal({
-            title: 'Are you sure?',
-            text: 'You won\'t be able to revert this action!',
+            title: '¿Estás seguro?',
+            text: '¡No podrás revertir esta acción!',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Yes, delete it!',
+            confirmButtonText: 'Sí, eliminar',
             confirmButtonColor: '#ef4444',
             timer: 20000,
             timerProgressBar: true,
@@ -132,18 +121,18 @@ export default function Tareas() {
         })
             .then(result => {
                 if (result.isConfirmed) {
-                    axios.delete('/api/kanban/' + id)
+                    axios.delete('/api/kanbans/' + id)
                         .then(response => {
-                            kanbans.value.data.splice(index, 1);
+                            tareas.value.data.splice(index, 1);
                             swal({
                                 icon: 'success',
-                                title: 'Tareas deleted successfully'
+                                title: 'Tarea eliminada exitosamente'
                             })
                         })
                         .catch(error => {
                             swal({
                                 icon: 'error',
-                                title: 'Something went wrong'
+                                title: 'Algo salió mal'
                             })
                         })
                 }
@@ -151,17 +140,17 @@ export default function Tareas() {
     }
 
     return {
-        kanbans,
-        kanban,
+        tareas,
+        tarea,
         getTareas,
         getTarea,
-        createTareasDB,
-        deleteTareasDB,
-        changeTareasPasswordDB,
-        createTareasProceduredDB,
-        storeTareas,
-        updateTareas,
-        deleteTareas,
+        createTareaDB,
+        deleteTareaDB,
+        changeTareaPasswordDB,
+        createTareaProceduredDB,
+        storeTarea,
+        updateTarea,
+        deleteTarea,
         validationErrors,
         isLoading
     }

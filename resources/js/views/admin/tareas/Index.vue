@@ -10,18 +10,18 @@
             :to="{ name: 'tareas.create' }"
             class="btn btn-primary btn-sm float-end"
           >
-            Create Tarea
+            Crear Tarea
           </router-link>
         </div>
-  
+
         <!-- Cuerpo de la tarjeta -->
         <div class="card-body shadow-sm">
-          <!-- (Opcional) Barra de búsqueda o filtros -->
+          <!-- Barra de búsqueda -->
           <div class="mb-3">
             <input
               v-model="search_global"
               type="text"
-              placeholder="Search..."
+              placeholder="Buscar..."
               class="form-control w-25"
             />
           </div>
@@ -31,40 +31,37 @@
               <thead>
                 <tr>
                   <th>ID Tarea</th>
-                  <th>Titulo</th>
-                  <th>Descripcion</th>
+                  <th>Título</th>
+                  <th>Descripción</th>
                   <th>Estado</th>
                   <th>ID Tablero</th>
-                  <th>Created at</th>
-                  <th>Updated at</th>
-                  <th>Actions</th>
+                  <th>Creado en</th>
+                  <th>Actualizado en</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="tarea in kanbans.data" :key="tarea.id_tarea">
+                <tr v-for="tarea in tareas.data" :key="tarea.id_tarea">
                   <td>{{ tarea.id_tarea }}</td>
                   <td>{{ tarea.titulo }}</td>
-                  <td>{{ tarea.id_descripcion }}</td>
+                  <td>{{ tarea.descripcion }}</td>
                   <td>{{ tarea.estado }}</td>
                   <td>{{ tarea.id_tablero }}</td>
                   <td>{{ tarea.created_at }}</td>
                   <td>{{ tarea.updated_at }}</td>
                   <td>
-                    <!-- Se muestran siempre para probar -->
                     <router-link
-                      v-if="tarea.id || tarea.id_tarea"
-                      :to="{ name: 'tareas.edit', params: { id: tarea.id || tarea.id_tarea } }"
+                      :to="{ name: 'tareas.edit', params: { id: tarea.id_tarea } }"
                       class="badge bg-primary"
                     >
-                      Edit
+                      Editar
                     </router-link>
-
                     <a
                       href="#"
                       @click.prevent="deleteTarea(tarea.id_tarea)"
                       class="ms-2 badge bg-danger"
                     >
-                      Delete
+                      Eliminar
                     </a>
                   </td>
                 </tr>
@@ -72,32 +69,33 @@
             </table>
           </div>
         </div>
-  
-        <!-- Pie de la tarjeta (puedes agregar paginación u otra info) -->
+
+        <!-- Pie de la tarjeta -->
         <div class="card-footer">
-          <!-- Aquí podrías colocar controles de paginación -->
+          <!-- Controles de paginación u otra info -->
         </div>
       </div>
     </div>
   </div>
 </template>
-  
+
 <script setup>
 import { ref, onMounted } from "vue";
 import { useAbility } from "@casl/vue";
 import useTareas from "@/composables/tareas";
 
-// Importamos el composable que gestiona los Tareas
-const { kanbans, getTareas, deleteTarea } = useTareas();
+// Obtenemos el composable que gestiona las tareas
+const { tareas, getTareas, deleteTarea } = useTareas();
 
-// Obtenemos la función can() de CASL
+// Obtenemos la función de permisos
 const { can } = useAbility();
 
-// (Opcional) variable para búsqueda global; puedes usarla para filtrar la data
+// Variable para búsqueda global
 const search_global = ref("");
 
-// Al montar el componente, cargamos los Tareas
-onMounted(() => {
-  getTareas();
+// Al montar el componente, obtenemos las tareas y las mostramos en la consola
+onMounted(async () => {
+  await getTareas();
+  console.log("Datos de la tabla:", tareas.value);
 });
 </script>
