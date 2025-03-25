@@ -52,7 +52,15 @@
                   <div class="nav-active-indicator"></div>
                 </router-link>
               </li>
-              
+              <li class="nav-item" :class="{ 'active': route.path.startsWith('/app/favoritos') }">
+                <router-link to="/app/favoritos" class="nav-link">
+                  <div class="nav-link-icon">
+                    <i class="pi pi-star"></i>
+                  </div>
+                  <span class="nav-link-text">Favoritos</span>
+                  <div class="nav-active-indicator"></div>
+                </router-link>
+              </li>
               <li class="nav-item" :class="{ 'active': route.path.startsWith('/app/settings') }">
                 <router-link to="/app/settings" class="nav-link">
                   <div class="nav-link-icon">
@@ -62,6 +70,7 @@
                   <div class="nav-active-indicator"></div>
                 </router-link>
               </li>
+              
             </ul>
           </nav>
   

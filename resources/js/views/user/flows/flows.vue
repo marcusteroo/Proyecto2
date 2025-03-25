@@ -46,7 +46,17 @@
   
       <div v-else class="flows-grid">
         <div v-for="flow in filteredFlows" :key="flow.id_workflow" class="flow-card">
+          <div class="shared-badge" v-if="flow.is_shared">
+            Compartido por {{ flow.shared_by }}
+          </div>
           <div class="flow-card-header" :style="{ backgroundColor: getRandomColor(flow.id_workflow) }">
+            <div class="favorite-icon">
+              <FavoritoButton 
+                tipo="workflow" 
+                :itemId="flow.id_workflow" 
+                @favoriteChanged="fetchFlows"
+              />
+            </div>
             <div class="flow-icon">
               <i class="pi pi-bolt"></i>
             </div>
@@ -63,6 +73,10 @@
             </div>
           </div>
           <div class="flow-card-footer">
+            <button v-if="flow.is_owner" class="flow-action-btn primary" @click="shareFlow(flow)">
+              <i class="pi pi-share-alt"></i>
+              <span>Compartir</span>
+            </button>
             <button class="flow-action-btn danger" @click="confirmDelete(flow)">
               <i class="pi pi-trash"></i>
               <span>Eliminar</span>
@@ -93,6 +107,14 @@
           </div>
         </div>
       </div>
+
+      <!-- Añadir el componente de diálogo para compartir -->
+      <ShareWorkflowDialog 
+        :show="showShareDialog"
+        :workflow-id="selectedWorkflow?.id_workflow"
+        @close="showShareDialog = false"
+        @shared="fetchFlows"
+      />
     </div>
   </template>
   
@@ -100,8 +122,14 @@
   import axios from 'axios';
   import { ref, computed, onMounted } from 'vue';
   import { useRouter } from 'vue-router';
+  import ShareWorkflowDialog from '../../../components/ShareWorkflowDialog.vue';
+  import FavoritoButton from '../../../components/FavoritoButton.vue';
   
   export default {
+    components: {
+      FavoritoButton,
+      ShareWorkflowDialog
+    },
     setup() {
       const flows = ref([]);
       const loading = ref(true);
@@ -113,6 +141,9 @@
         show: false,
         flow: null
       });
+
+      const showShareDialog = ref(false);
+      const selectedWorkflow = ref(null);
   
       const filteredFlows = computed(() => {
         if (!searchText.value) return flows.value;
@@ -154,9 +185,12 @@
         }
       };
   
+      const shareFlow = (flow) => {
+        selectedWorkflow.value = flow;
+        showShareDialog.value = true;
+      };
   
       const addFlow = () => {
-        
         router.push('/app/flows/flow');
       };
   
@@ -197,9 +231,12 @@
         searchText,
         filteredFlows,
         deleteDialog,
+        showShareDialog,
+        selectedWorkflow,
         fetchFlows,
         confirmDelete,
         deleteFlow,
+        shareFlow,
         addFlow,
         formatDate,
         getRandomColor
@@ -756,5 +793,29 @@ body.dark-theme .cancel-btn {
   background-color: #24252d;
   border-color: #383a46;
   color: #e4e6eb;
+}
+.shared-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(26, 0, 255, 0.8);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  z-index: 1;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.flow-card {
+  position: relative; 
+  
+}
+.favorite-icon {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 2;
 }
   </style>
