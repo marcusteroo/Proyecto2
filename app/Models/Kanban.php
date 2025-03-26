@@ -20,4 +20,9 @@ class Kanban extends Model
     {
         return $this->belongsTo(User::class, 'id_tablero');
     }
+        // En el modelo Kanban.php
+    public function subtareas()
+    {
+        return $this->hasMany(Subtarea::class, 'id_tarea');
+}
 }

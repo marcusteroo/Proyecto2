@@ -42,7 +42,7 @@
                   <div class="tarea-meta" v-if="tarea.subtareas && tarea.subtareas.length > 0">
                     <span class="subtareas-count">
                       <i class="subtareas-icon">☑</i>
-                      {{ tarea.subtareas.filter(s => s.completado).length }}/{{ tarea.subtareas.length }}
+                      {{ tarea.subtareas.filter(s => s.estado === 1).length }}/{{ tarea.subtareas.length }}
                     </span>
                   </div>
                 </div>
@@ -112,25 +112,27 @@
                 <label>
                   <input
                     type="checkbox"
-                    v-model="sub.completado"
-                    class="popup-checkbox"
+                    :checked="sub.estado === 1"
+                    @change="sub.estado = $event.target.checked ? 1 : 0"
                   />
+
                   <!-- Si no está en edición se muestra el texto; al hacer clic se activa la edición -->
+                  <!-- Después (correcto) -->
                   <template v-if="!sub.editing">
-                    <span :class="{ completado: sub.completado }" @click="sub.editing = true">
-                      {{ sub.texto }}
+                    <span :class="{ completado: sub.estado === 1 }" @click="sub.editing = true">
+                      {{ sub.titulo }}
                     </span>
                   </template>
-                  <!-- Modo edición: se muestra un input para editar el texto -->
                   <template v-else>
                     <input
                       type="text"
-                      v-model="sub.texto"
+                      v-model="sub.titulo"
                       class="subtarea-edit-input"
                       @blur="sub.editing = false"
                       @keydown.enter="sub.editing = false"
                     />
                   </template>
+
                 </label>
                 <button class="subtarea-delete" @click="eliminarSubtarea(i)">
                   <svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
@@ -203,10 +205,8 @@ const popupAbierto = ref(false);
 const tareaEditada = ref(null);
 const nuevaSubtarea = ref('');
 
-// Cargar tareas desde el backend al montar el componente
 onMounted(async () => {
   try {
-   
     const tableroResponse = await axios.get(`/api/tableros/${id_tablero}`);
     const tableroInfo = tableroResponse.data;
     
@@ -216,14 +216,32 @@ onMounted(async () => {
     const response = await axios.get(`/api/kanban/${id_tablero}/tasks`);
     const kanbans = response.data;
     
-    kanbans.forEach(kanban => {
-      const tarea = {
-        ...kanban,
-        subtareas: kanban.subtareas || [],
-        completado: kanban.completado || false,
-        hover: false
-      };
+    // Usar Promise.all para cargar tareas y subtareas de manera concurrente
+    const tareasConSubtareas = await Promise.all(kanbans.map(async (kanban) => {
+      try {
+        // Se corrige la ruta para obtener las subtareas de la tarea
+        const subtaskResponse = await axios.get(`/api/subtareas/tarea/${kanban.id_tarea}`);
+        const subtareas = subtaskResponse.data;
 
+        return {
+          ...kanban,
+          subtareas: subtareas || [],
+          completado: kanban.completado || false,
+          hover: false
+        };
+      } catch (subtaskError) {
+        console.error(`Error al cargar subtareas para tarea ${kanban.id_tarea}:`, subtaskError);
+        return {
+          ...kanban,
+          subtareas: [],
+          completado: kanban.completado || false,
+          hover: false
+        };
+      }
+    }));
+
+    // Distribuir tareas en las columnas correspondientes
+    tareasConSubtareas.forEach(tarea => {
       const columnaIndex = estadoAColumna[tarea.estado];
       if (columnaIndex !== undefined) {
         listas.value[columnaIndex].push(tarea);
@@ -326,7 +344,23 @@ const toggleCompletado = (tarea) => {
 const actualizarTareaBackend = async () => {
   if (tareaEditada.value && tareaEditada.value.id_tarea) {
     try {
+      // Primero actualizar la tarea principal
       await axios.put(`/api/kanban/${tareaEditada.value.id_tarea}`, tareaEditada.value);
+      
+      // Luego actualizar subtareas en bloque (se corrige la ruta para actualizar las subtareas)
+      if (tareaEditada.value.subtareas) {
+        await axios.put(`/api/subtareas/tarea/${tareaEditada.value.id_tarea}`, {
+          subtareas: tareaEditada.value.subtareas.map(subtarea => ({
+            id: subtarea.id,
+            texto: subtarea.texto,
+            completado: subtarea.completado
+          }))
+        });
+
+
+      }
+
+      // Actualizar en la lista local
       const lista = listas.value.find(list => list.some(t => t.id_tarea === tareaEditada.value.id_tarea));
       if (lista) {
         const idx = lista.findIndex(t => t.id_tarea === tareaEditada.value.id_tarea);
@@ -341,21 +375,47 @@ const actualizarTareaBackend = async () => {
   }
 };
 
+
 // Agrega una subtarea a la tarea en edición
-const agregarSubtarea = () => {
-  if (nuevaSubtarea.value.trim()) {
-    if (!tareaEditada.value.subtareas) {
-      tareaEditada.value.subtareas = [];
+const agregarSubtarea = async () => {
+  if (nuevaSubtarea.value.trim() && tareaEditada.value) {
+    try {
+      // Al crear la subtarea, le damos un estado = 0 por defecto
+      const response = await axios.post('/api/subtareas', {
+        titulo: nuevaSubtarea.value.trim(),
+        estado: 0,
+        id_tarea: tareaEditada.value.id_tarea
+      });
+
+      const nuevaSubtareaConId = {
+        id_subtarea: response.data.id_subtarea, // <-- en el controller devolvemos id_subtarea
+        titulo: nuevaSubtarea.value.trim(),
+        estado: 0
+      };
+
+      tareaEditada.value.subtareas.push(nuevaSubtareaConId);
+      nuevaSubtarea.value = '';
+    } catch (error) {
+      console.error('Error al agregar subtarea:', error);
     }
-    tareaEditada.value.subtareas.push({ texto: nuevaSubtarea.value.trim(), completado: false });
-    nuevaSubtarea.value = '';
   }
 };
 
+
 // Elimina una subtarea de la tarea en edición
-const eliminarSubtarea = (i) => {
+const eliminarSubtarea = async (index) => {
   if (tareaEditada.value && tareaEditada.value.subtareas) {
-    tareaEditada.value.subtareas.splice(i, 1);
+    const subtareaAEliminar = tareaEditada.value.subtareas[index];
+    
+    try {
+      // Eliminar subtarea del backend
+      await axios.delete(`/api/subtareas/${subtareaAEliminar.id_subtarea}`);
+      
+      // Eliminar subtarea del frontend
+      tareaEditada.value.subtareas.splice(index, 1);
+    } catch (error) {
+      console.error('Error al eliminar subtarea:', error);
+    }
   }
 };
 </script>

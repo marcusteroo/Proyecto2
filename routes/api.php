@@ -17,6 +17,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Api\KanbanController;
 use App\Http\Controllers\Api\TableroController; 
 use App\Http\Controllers\Api\FavoritoController;
+use App\Http\Controllers\Api\SubtareaController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -104,3 +105,13 @@ Route::apiResource('tableros', TableroController::class);
 Route::get('/execute-workflow/{id}', [WorkflowController::class, 'execute']);
 Route::put('/password', [UserController::class, 'updatePassword'])->middleware('auth:sanctum');
 Route::get('tableros/user/{id}', [TableroController::class, 'getByUser']);
+
+Route::prefix('subtareas')->group(function () {
+    Route::get('/', [SubtareaController::class, 'index']);
+    Route::post('/', [SubtareaController::class, 'store']);
+    Route::get('/{id}', [SubtareaController::class, 'show']);
+    Route::put('/{id}', [SubtareaController::class, 'update']);
+    Route::delete('/{id}', [SubtareaController::class, 'destroy']);
+    Route::get('/tarea/{idTarea}', [SubtareaController::class, 'getSubtareasByTarea']);
+    Route::put('/tarea/{idTarea}', [SubtareaController::class, 'updateSubtareas']);
+});
