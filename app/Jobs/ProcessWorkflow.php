@@ -12,6 +12,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+//Esto es para ejecutar los workflows en segundo plano sin afectar a la pagina
 
 class ProcessWorkflow implements ShouldQueue
 {
@@ -19,20 +20,14 @@ class ProcessWorkflow implements ShouldQueue
 
     protected $workflow;
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct(Workflow $workflow)
     {
         $this->workflow = $workflow;
     }
 
-    /**
-     * Execute the job.
-     */
     public function handle(): void
     {
-        // Registrar inicio de ejecución
+        
         $execution = WorkflowExecution::create([
             'id_workflow' => $this->workflow->id_workflow,
             'status' => 'running',
@@ -55,44 +50,40 @@ class ProcessWorkflow implements ShouldQueue
                     // Procesar según el tipo de acción
                     switch ($action->action_type) {
                         case 'Tarea':
-                            // El trigger ya se ejecutó, nada que hacer aquí
+                            
                             break;
                             
                         case 'Enviar Email':
                             $this->processEmailAction($action);
                             break;
-                            
-                        case 'Esperar':
-                            $this->processWaitAction($action);
-                            break;
                     }
 
-                    // Marcar acción como completada
+                  
                     $actionLog->update([
                         'status' => 'completed',
                         'completed_at' => now()
                     ]);
 
                 } catch (\Exception $e) {
-                    // Marcar acción como fallida
+                    
                     $actionLog->update([
                         'status' => 'failed',
                         'result' => $e->getMessage(),
                         'completed_at' => now()
                     ]);
                     
-                    throw $e; // Re-lanzar para detener todo el workflow
+                    throw $e; 
                 }
             }
 
-            // Marcar ejecución como completada
+            
             $execution->update([
                 'status' => 'completed',
                 'completed_at' => now()
             ]);
 
         } catch (\Exception $e) {
-            // Marcar ejecución como fallida
+            
             $execution->update([
                 'status' => 'failed',
                 'result' => $e->getMessage(),
@@ -104,7 +95,7 @@ class ProcessWorkflow implements ShouldQueue
     }
 
     /**
-     * Procesa una acción de tipo Email
+     * Procesa la accion del Email
      */
     protected function processEmailAction($action): void
     {
@@ -117,12 +108,12 @@ class ProcessWorkflow implements ShouldQueue
         }
         
         try {
-            // Enviar correo usando la plantilla y el destinatario configurado
+            // Esto es para enviar el correo usando la plantilla que tenemos por defecto
             Mail::send('emails.workflow-notification', [
-                'email_subject' => $config['subject'],   // Cambiar nombre de la variable
-                'email_message' => $config['message']    // Cambiar nombre de la variable
+                'email_subject' => $config['subject'],   
+                'email_message' => $config['message']    
             ], function ($message) use ($config) {
-                // Usar el correo configurado en la acción
+                // Esto es para usar el correo que tenemos configurado en la automatización
                 $message->to($config['to']);
                 $message->subject($config['subject']);
             });
@@ -133,15 +124,4 @@ class ProcessWorkflow implements ShouldQueue
             throw $e;
         }
     }
-/**
- * Procesa una acción de tipo Esperar (versión de prueba)
- */
-protected function processWaitAction($action): void
-{
-    $config = json_decode($action->config, true);
-    $seconds = $config['seconds'] ?? 5;
-    Log::info("SIMULACIÓN: Esperaría {$seconds} segundos");
-    // No hacer sleep realmente para las pruebas
-    // sleep($seconds);
-}
 }
