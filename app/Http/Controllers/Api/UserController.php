@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\Task;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
@@ -19,14 +20,16 @@ class UserController extends Controller
         if (!in_array($orderColumn, ['id', 'name', 'created_at'])) {
             $orderColumn = 'created_at';
         }
+        
         $orderDirection = request('order_direction', 'desc');
         if (!in_array($orderDirection, ['asc', 'desc'])) {
             $orderDirection = 'desc';
         }
-        $users = User::
-        when(request('search_id'), function ($query) {
-            $query->where('id', request('search_id'));
-        })
+        
+        $users = User::with('roles')
+            ->when(request('search_id'), function ($query) {
+                $query->where('id', request('search_id'));
+            })
             ->when(request('search_title'), function ($query) {
                 $query->where('name', 'like', '%'.request('search_title').'%');
             })
@@ -34,7 +37,6 @@ class UserController extends Controller
                 $query->where(function($q) {
                     $q->where('id', request('search_global'))
                         ->orWhere('name', 'like', '%'.request('search_global').'%');
-
                 });
             })
             ->orderBy($orderColumn, $orderDirection)

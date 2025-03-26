@@ -27,5 +27,8 @@ Route::post('logout', [AuthenticatedSessionController::class, 'logout']);
 Route::view('/{any?}', 'main-view')
     ->name('dashboard')
     ->where('any', '.*');
+Route::get('/login', function () {
+    return view('main-view');
+})->name('login');
 
 
