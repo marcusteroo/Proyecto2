@@ -6,12 +6,10 @@ use App\Models\Kanban;
 use App\Models\Workflow;
 use App\Jobs\ProcessWorkflow;
 use Illuminate\Support\Facades\Log;
-
+//Esto es para escuchar los eventos en tiempo real
 class KanbanObserver
 {
-    /**
-     * Handle the Kanban "updated" event.
-     */
+   
     public function updated(Kanban $kanban): void
 {
     Log::info("Tarea #{$kanban->id_tarea} actualizada");
