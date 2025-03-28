@@ -150,8 +150,14 @@ export default [
                 component: () => import('../views/user/settings/Index.vue'),
                 meta: { breadCrumb: 'Configuración' }
             },
-            
+            {
+                path: 'rate',
+                name: 'user.rate',
+                component: () => import('../views/user/rating/Index.vue'), 
+                meta: { breadCrumb: 'Valorar' }
+            }              
         ]
+
     },
 
 
@@ -291,20 +297,20 @@ export default [
             {
                 name: 'kanbans',
                 path: 'kanbans',
-                meta: { breadCrumb: 'Kanbans'},
+                meta: { breadCrumb: 'Kanbans' },
                 children: [
                     {
                         name: 'kanbans.index',
                         path: '',
                         component: () => import('../views/admin/kanbans/Index.vue'),
-                        meta: { breadCrumb: 'Usuarios' }
+                        meta: { breadCrumb: 'Kanbans' } // Antes: 'Usuarios'
                     },
                     {
                         name: 'kanbans.create',
                         path: 'create',
                         component: () => import('../views/admin/kanbans/Create.vue'),
                         meta: {
-                            breadCrumb: 'Crear Usuario',
+                            breadCrumb: 'Crear Kanban',  // Antes: 'Crear Usuario'
                             linked: false
                         }
                     },
@@ -313,7 +319,7 @@ export default [
                         path: 'edit/:id',
                         component: () => import('../views/admin/kanbans/Edit.vue'),
                         meta: {
-                            breadCrumb: 'Editar Usuario',
+                            breadCrumb: 'Editar Kanban', // Antes: 'Editar Usuario'
                             linked: false
                         }
                     }
@@ -322,20 +328,20 @@ export default [
             {
                 name: 'tareas',
                 path: 'tareas',
-                meta: { breadCrumb: 'Tareas'},
+                meta: { breadCrumb: 'Tareas' },
                 children: [
                     {
                         name: 'tareas.index',
                         path: '',
                         component: () => import('../views/admin/tareas/Index.vue'),
-                        meta: { breadCrumb: 'Usuarios' }
+                        meta: { breadCrumb: 'Tareas' } // Antes: 'Usuarios'
                     },
                     {
                         name: 'tareas.create',
                         path: 'create',
                         component: () => import('../views/admin/tareas/Create.vue'),
                         meta: {
-                            breadCrumb: 'Crear Usuario',
+                            breadCrumb: 'Crear Tarea',   // Antes: 'Crear Usuario'
                             linked: false
                         }
                     },
@@ -344,13 +350,12 @@ export default [
                         path: 'edit/:id',
                         component: () => import('../views/admin/tareas/Edit.vue'),
                         meta: {
-                            breadCrumb: 'Editar Usuario',
+                            breadCrumb: 'Editar Tarea', // Antes: 'Editar Usuario'
                             linked: false
                         }
                     }
                 ]
             },
-
             //TODO Organizar rutas
             {
                 name: 'roles.index',

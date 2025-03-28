@@ -132,7 +132,7 @@ const isOutsideClicked = (event) => {
 };
 
 </script>
-
+    
 <style lang="scss">
 .bread{
     padding:.1rem;

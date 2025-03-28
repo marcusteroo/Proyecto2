@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\KanbanController;
 use App\Http\Controllers\Api\TableroController; 
 use App\Http\Controllers\Api\FavoritoController;
 use App\Http\Controllers\Api\SubtareaController;
+use App\Http\Controllers\RatingController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -114,4 +115,12 @@ Route::prefix('subtareas')->group(function () {
     Route::delete('/{id}', [SubtareaController::class, 'destroy']);
     Route::get('/tarea/{idTarea}', [SubtareaController::class, 'getSubtareasByTarea']);
     Route::put('/tarea/{idTarea}', [SubtareaController::class, 'updateSubtareas']);
+});
+
+Route::prefix('ratings')->group(function() {
+    Route::get('/', [RatingController::class, 'index']);
+    Route::post('/', [RatingController::class, 'store']);
+    Route::get('/{id}', [RatingController::class, 'show']);
+    Route::put('/{id}', [RatingController::class, 'update']);
+    Route::delete('/{id}', [RatingController::class, 'destroy']);
 });

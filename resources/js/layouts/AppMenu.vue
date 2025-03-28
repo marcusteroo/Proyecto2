@@ -54,8 +54,8 @@ const model = ref([
     {
         label: 'Kanbans',
         items: [
-            { label: 'Kanbans', icon: 'pi pi-fw pi-bookmark', to: '/admin/kanbans', permision:'kanbans-list' },
-            { label: 'Tareas', icon: 'pi pi-fw pi-bookmark', to: '/admin/tareas', permision:'tareas-list' }
+            { label: 'Kanbans', icon: 'pi pi-fw pi-th-large', to: '/admin/kanbans', permision:'kanbans-list' },
+            { label: 'Tareas', icon: 'pi pi-fw pi-check', to: '/admin/tareas', permision:'tareas-list' }
         ]
     }
 ]);
