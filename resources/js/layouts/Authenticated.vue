@@ -46,7 +46,6 @@ import { computed, watch, ref } from 'vue';
 import { useRoute } from "vue-router";
 import Breadcrumb from 'primevue/breadcrumb';
 
-import AppTopbar from './AppTopbar.vue';
 import AppFooter from './AppFooter.vue';
 import AppSidebar from './AppSidebar.vue';
 import { useLayout } from '../composables/layout';

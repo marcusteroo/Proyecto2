@@ -13,6 +13,9 @@ class CreateRatingsTable extends Migration
             $table->unsignedBigInteger('user_id'); // ID del usuario que valora
             $table->tinyInteger('score');          // Puntuación de 1 a 5
             $table->text('comment')->nullable();   // Comentario opcional
+            $table->string('categories')->nullable(); // Categorías seleccionadas
+            $table->string('job_position')->nullable(); // Puesto de trabajo
+            $table->string('company')->nullable();    // Empresa
             $table->timestamps();
 
             // Clave foránea

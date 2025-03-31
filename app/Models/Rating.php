@@ -16,12 +16,27 @@ class Rating extends Model
     protected $fillable = [
         'user_id',
         'score',
-        'comment'
+        'comment',
+        'categories',
+        'job_position',
+        'company'
     ];
 
     // Relación con el usuario
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+    
+    // Convertir las categorías de string a array al obtener el modelo
+    public function getCategoriesAttribute($value)
+    {
+        return $value ? explode(',', $value) : [];
+    }
+    
+    // Convertir las categorías de array a string al guardar
+    public function setCategoriesAttribute($value)
+    {
+        $this->attributes['categories'] = is_array($value) ? implode(',', $value) : $value;
     }
 }

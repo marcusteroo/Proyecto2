@@ -1,353 +1,356 @@
 <template>
-    <div class="settings-container" :class="{ 'dark-theme': preferences.theme === 'dark' }">
-      <h1 class="settings-title">Configuración de la cuenta</h1>
+  <div class="settings-container" :class="{ 'dark-theme': preferences.theme === 'dark' }">
+    <h1 class="settings-title">Configuración de la cuenta</h1>
+    
+    <div class="settings-tabs">
+      <div class="tab-header">
+        <button 
+          v-for="tab in tabs" 
+          :key="tab.id"
+          :class="['tab-button', { active: activeTab === tab.id }]"
+          @click="activeTab = tab.id"
+        >
+          <i :class="tab.icon"></i>
+          {{ tab.label }}
+        </button>
+      </div>
       
-      <div class="settings-tabs">
-        <div class="tab-header">
-          <button 
-            v-for="tab in tabs" 
-            :key="tab.id"
-            :class="['tab-button', { active: activeTab === tab.id }]"
-            @click="activeTab = tab.id"
-          >
-            <i :class="tab.icon"></i>
-            {{ tab.label }}
-          </button>
+      <!-- Tab de Perfil -->
+      <div v-if="activeTab === 'profile'" class="tab-content">
+        <div class="settings-card">
+          <h2>Información personal</h2>
+          <form @submit.prevent="updateProfile" class="settings-form" enctype="multipart/form-data">
+            <!-- Campo para subir imagen de avatar -->
+            <div class="form-group">
+              <label for="avatar">Foto de perfil</label>
+              <input type="file" id="avatar" @change="onFileChange" accept="image/*">
+              <img v-if="previewImage" :src="previewImage">
+            </div>
+            <div class="form-group">
+              <label for="name">Nombre</label>
+              <input 
+                id="name" 
+                v-model="profile.name" 
+                type="text" 
+                class="form-control" 
+                placeholder="Tu nombre"
+              >
+              <div v-if="errors.name" class="input-error">{{ errors.name[0] }}</div>
+            </div>
+            
+            <div class="form-group">
+              <label for="email">Correo electrónico</label>
+              <input 
+                id="email" 
+                v-model="profile.email" 
+                type="email" 
+                class="form-control" 
+                disabled
+                placeholder="Tu correo electrónico"
+              >
+              <small class="input-help">El correo electrónico no puede modificarse</small>
+            </div>
+            
+            <div class="form-actions">
+              <button type="submit" :disabled="isLoading" class="btn-primary">
+                <span v-if="isLoading">Guardando...</span>
+                <span v-else>Actualizar perfil</span>
+              </button>
+            </div>
+          </form>
         </div>
-        
-        <!-- Tab de Perfil -->
-        <div v-if="activeTab === 'profile'" class="tab-content">
-          <div class="settings-card">
-            <h2>Información personal</h2>
-            <form @submit.prevent="updateProfile" class="settings-form">
-              <div class="form-group">
-                <label for="name">Nombre</label>
-                <input 
-                  id="name" 
-                  v-model="profile.name" 
-                  type="text" 
-                  class="form-control" 
-                  placeholder="Tu nombre"
+      </div>
+      
+      <!-- Tab de Contraseña -->
+      <div v-if="activeTab === 'password'" class="tab-content">
+        <div class="settings-card">
+          <h2>Cambiar contraseña</h2>
+          <form @submit.prevent="updatePassword" class="settings-form">
+            <div class="form-group">
+              <label for="current_password">Contraseña actual</label>
+              <input 
+                id="current_password" 
+                v-model="password.current_password" 
+                type="password" 
+                class="form-control" 
+                placeholder="Contraseña actual"
+              >
+              <div v-if="errors.current_password" class="input-error">{{ errors.current_password[0] }}</div>
+            </div>
+            
+            <div class="form-group">
+              <label for="password">Nueva contraseña</label>
+              <input 
+                id="password" 
+                v-model="password.password" 
+                type="password" 
+                class="form-control" 
+                placeholder="Nueva contraseña"
+              >
+              <div v-if="errors.password" class="input-error">{{ errors.password[0] }}</div>
+            </div>
+            
+            <div class="form-group">
+              <label for="password_confirmation">Confirmar nueva contraseña</label>
+              <input 
+                id="password_confirmation" 
+                v-model="password.password_confirmation" 
+                type="password" 
+                class="form-control" 
+                placeholder="Confirmar nueva contraseña"
+              >
+            </div>
+            
+            <div class="form-actions">
+              <button type="submit" :disabled="isLoading" class="btn-primary">
+                <span v-if="isLoading">Actualizando...</span>
+                <span v-else>Cambiar contraseña</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <!-- Tab de Preferencias -->
+      <div v-if="activeTab === 'preferences'" class="tab-content">
+        <div class="settings-card">
+          <h2>Preferencias del sistema</h2>
+          <div class="settings-form">
+            <div class="form-group">
+              <label>Tema de la interfaz</label>
+              <div class="theme-options">
+                <button 
+                  class="theme-option" 
+                  :class="{ active: preferences.theme === 'light' }"
+                  @click="selectTheme('light')"
                 >
-                <div v-if="errors.name" class="input-error">{{ errors.name[0] }}</div>
-              </div>
-              
-              <div class="form-group">
-                <label for="email">Correo electrónico</label>
-                <input 
-                  id="email" 
-                  v-model="profile.email" 
-                  type="email" 
-                  class="form-control" 
-                  disabled
-                  placeholder="Tu correo electrónico"
-                >
-                <small class="input-help">El correo electrónico no puede modificarse</small>
-              </div>
-              
-              <div class="form-actions">
-                <button type="submit" :disabled="isLoading" class="btn-primary">
-                  <span v-if="isLoading" class="spinner"></span>
-                  <span>{{ isLoading ? 'Guardando...' : 'Actualizar perfil' }}</span>
+                  <div class="theme-preview light-preview"></div>
+                  <span>Claro</span>
                 </button>
-              </div>
-            </form>
-          </div>
-        </div>
-        
-        <!-- Tab de Contraseña -->
-        <div v-if="activeTab === 'password'" class="tab-content">
-          <div class="settings-card">
-            <h2>Cambiar contraseña</h2>
-            <form @submit.prevent="updatePassword" class="settings-form">
-              <div class="form-group">
-                <label for="current_password">Contraseña actual</label>
-                <input 
-                  id="current_password" 
-                  v-model="password.current_password" 
-                  type="password" 
-                  class="form-control" 
-                  placeholder="Contraseña actual"
+                <button 
+                  class="theme-option"
+                  :class="{ active: preferences.theme === 'dark' }"
+                  @click="selectTheme('dark')"
                 >
-                <div v-if="errors.current_password" class="input-error">{{ errors.current_password[0] }}</div>
-              </div>
-              
-              <div class="form-group">
-                <label for="password">Nueva contraseña</label>
-                <input 
-                  id="password" 
-                  v-model="password.password" 
-                  type="password" 
-                  class="form-control" 
-                  placeholder="Nueva contraseña"
-                >
-                <div v-if="errors.password" class="input-error">{{ errors.password[0] }}</div>
-              </div>
-              
-              <div class="form-group">
-                <label for="password_confirmation">Confirmar nueva contraseña</label>
-                <input 
-                  id="password_confirmation" 
-                  v-model="password.password_confirmation" 
-                  type="password" 
-                  class="form-control" 
-                  placeholder="Confirmar nueva contraseña"
-                >
-              </div>
-              
-              <div class="form-actions">
-                <button type="submit" :disabled="isLoading" class="btn-primary">
-                  <span v-if="isLoading" class="spinner"></span>
-                  <span>{{ isLoading ? 'Actualizando...' : 'Cambiar contraseña' }}</span>
+                  <div class="theme-preview dark-preview"></div>
+                  <span>Oscuro</span>
                 </button>
-              </div>
-            </form>
-          </div>
-        </div>
-        
-        <!-- Tab de Preferencias -->
-        <div v-if="activeTab === 'preferences'" class="tab-content">
-          <div class="settings-card">
-            <h2>Preferencias del sistema</h2>
-            <div class="settings-form">
-              <div class="form-group">
-                <label>Tema de la interfaz</label>
-                <div class="theme-options">
-                  <button 
-                    class="theme-option" 
-                    :class="{ active: preferences.theme === 'light' }"
-                    @click="selectTheme('light')"
-                  >
-                    <div class="theme-preview light-preview"></div>
-                    <span>Claro</span>
-                  </button>
-                  <button 
-                    class="theme-option"
-                    :class="{ active: preferences.theme === 'dark' }"
-                    @click="selectTheme('dark')"
-                  >
-                    <div class="theme-preview dark-preview"></div>
-                    <span>Oscuro</span>
-                  </button>
-                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref, reactive, onMounted, watch } from 'vue';
-  import { authStore } from '../../../store/auth';
-  import { useToast } from 'primevue/usetoast';
-  import { useLayout } from '../../../composables/layout';
-  import axios from 'axios';
-  
-  // Estado del componente
-  const activeTab = ref('profile');
-  const isLoading = ref(false);
-  const errors = ref({});
-  const auth = authStore();
-  const user = auth.user;
-  const toast = useToast();
-  const { layoutConfig } = useLayout();
-  
-  // Tabs disponibles en configuración (eliminado el tab de notificaciones)
-  const tabs = [
-    { id: 'profile', label: 'Perfil', icon: 'pi pi-user' },
-    { id: 'password', label: 'Contraseña', icon: 'pi pi-lock' },
-    { id: 'preferences', label: 'Preferencias', icon: 'pi pi-cog' }
-  ];
-  
-  // Estado para el formulario de perfil
-  const profile = reactive({
-    name: user?.name || '',
-    email: user?.email || '',
-  });
-  
-  // Estado para el formulario de contraseña
-  const password = reactive({
-    current_password: '',
-    password: '',
-    password_confirmation: '',
-  });
-  
-  // Estado para preferencias del usuario
-  const preferences = reactive({
-    theme: localStorage.getItem('theme') || 'light',
-  });
-  const applyTheme = (theme) => {
-  // Guardar en localStorage
+  </div>
+</template>
+
+<script setup>
+import { ref, reactive, onMounted, watch } from 'vue';
+import { authStore } from '../../../store/auth';
+import { useToast } from 'primevue/usetoast';
+import { useLayout } from '../../../composables/layout';
+import axios from 'axios';
+
+// Estado del componente
+const activeTab = ref('profile');
+const isLoading = ref(false);
+const errors = ref({});
+const auth = authStore();
+const user = auth.user;
+const toast = useToast();
+const { layoutConfig } = useLayout();
+
+// Tabs disponibles en configuración (sin notificaciones)
+const tabs = [
+  { id: 'profile', label: 'Perfil', icon: 'pi pi-user' },
+  { id: 'password', label: 'Contraseña', icon: 'pi pi-lock' },
+  { id: 'preferences', label: 'Preferencias', icon: 'pi pi-cog' }
+];
+
+// Estado para el formulario de perfil
+const profile = reactive({
+  name: user?.name || '',
+  email: user?.email || '',
+  avatar: null,
+  avatar_url: ''
+});
+
+// Estado para el formulario de contraseña
+const password = reactive({
+  current_password: '',
+  password: '',
+  password_confirmation: '',
+});
+
+// Estado para preferencias del usuario
+const preferences = reactive({
+  theme: localStorage.getItem('theme') || 'light',
+});
+
+// Variable para almacenar la vista previa de la imagen
+const previewImage = ref('');
+
+// Función para aplicar el tema seleccionado
+const applyTheme = (theme) => {
   localStorage.setItem('theme', theme);
-  
-  // Remover clases primero para evitar conflictos
   document.documentElement.classList.remove('dark-theme', 'light-theme');
   document.body.classList.remove('dark-theme', 'light-theme');
-  
-  // Aplicar nuevas clases
   document.documentElement.classList.add(theme + '-theme');
   document.body.classList.add(theme + '-theme');
-  
-  // Emitir evento con bubbling para asegurar que todos los componentes lo reciben
   window.dispatchEvent(new CustomEvent('themeChanged', { 
     detail: theme,
     bubbles: true, 
     composed: true
   }));
 };
-  // Observar cambios en el tema y aplicar clase global
-  watch(() => preferences.theme, (newTheme) => {
-    applyTheme(newTheme);
-  });
-  
-  // Cargar datos del usuario al montar el componente
-  onMounted(() => {
-    loadUserData();
-    applyTheme(preferences.theme); // Aplicar tema al cargar
-  });
-  
-  // Función para aplicar el tema seleccionado a toda la aplicación
 
-  
-  // Cargar datos del usuario
-  const loadUserData = async () => {
-    isLoading.value = true;
-    
-    try {
-      // Obtener datos completos del usuario desde el backend
-      const response = await axios.get('/api/user');
-      
-      if (response.data.success) {
-        const userData = response.data.data;
-        
-        // Actualizar datos de perfil
-        profile.name = userData.name || '';
-        profile.email = userData.email || '';
-        
-        // También podemos actualizar el estado global si es necesario
-        auth.user = userData;
+// Observar cambios en el tema y aplicar clase global
+watch(() => preferences.theme, (newTheme) => {
+  applyTheme(newTheme);
+});
+
+// Cargar datos del usuario al montar el componente
+onMounted(() => {
+  loadUserData();
+  applyTheme(preferences.theme);
+});
+
+// Cargar datos del usuario
+const loadUserData = async () => {
+  isLoading.value = true;
+  try {
+    const response = await axios.get('/api/user');
+    if (response.data.success) {
+      const userData = response.data.data;
+      profile.name = userData.name || '';
+      profile.email = userData.email || '';
+      profile.avatar_url = userData.avatar || '';
+      if (profile.avatar_url) {
+        previewImage.value = profile.avatar_url;
       }
-    } catch (error) {
-      console.error('Error al cargar datos del usuario:', error);
-    } finally {
-      isLoading.value = false;
+      auth.user = userData;
     }
-  };
-  
-  // Actualizar perfil
-  const updateProfile = async () => {
-    isLoading.value = true;
-    errors.value = {};
-    
-    try {
-      // Usar la ruta correcta del API
-      const response = await axios.put('/api/user', {
-        name: profile.name,
-        email: profile.email // Incluir el email aunque esté deshabilitado
-      });
-      
-      if (response.data.success) {
-        // Usar el formato de respuesta del ProfileController
-        auth.user = response.data.data;
-        
-        // Usando PrimeVue Toast si está disponible, si no, alert
-        if (toast) {
-          toast.add({ 
-            severity: 'success', 
-            summary: 'Perfil actualizado', 
-            detail: 'Tu información personal ha sido actualizada correctamente', 
-            life: 3000 
-          });
-        } else {
-          alert('Perfil actualizado correctamente');
-        }
-      }
-    } catch (error) {
-      if (error.response?.data?.errors) {
-        errors.value = error.response.data.errors;
-      } else {
-        if (toast) {
-          toast.add({ 
-            severity: 'error', 
-            summary: 'Error', 
-            detail: 'No se pudo actualizar el perfil', 
-            life: 3000 
-          });
-        } else {
-          alert('Error al actualizar el perfil');
-        }
-      }
-    } finally {
-      isLoading.value = false;
+  } catch (error) {
+    console.error('Error al cargar datos del usuario:', error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Manejar el cambio del archivo de imagen
+const onFileChange = (event) => {
+  const file = event.target.files[0];
+  profile.avatar = file;
+  previewImage.value = URL.createObjectURL(file);
+};
+
+// Actualizar perfil (incluye subida de imagen si se selecciona)
+const updateProfile = async () => {
+  isLoading.value = true;
+  errors.value = {};
+  try {
+    const formData = new FormData();
+    formData.append('name', profile.name);
+    formData.append('email', profile.email);
+    if (profile.avatar) {
+      formData.append('avatar', profile.avatar);
     }
-  };
-  
-  // Actualizar contraseña
-  const updatePassword = async () => {
-    isLoading.value = true;
-    errors.value = {};
-    
-    try {
-      const response = await axios.put('/api/password', password);
-      
-      // Limpiar formulario
-      password.current_password = '';
-      password.password = '';
-      password.password_confirmation = '';
-      
-      // Mejorar feedback al usuario
+    const response = await axios.put('/api/user', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    if (response.data.success) {
+      auth.user = response.data.data;
+      profile.avatar_url = response.data.data.avatar;
+      if (profile.avatar_url) {
+        previewImage.value = profile.avatar_url;
+      }
       if (toast) {
         toast.add({ 
           severity: 'success', 
-          summary: 'Contraseña actualizada', 
-          detail: 'Tu contraseña ha sido cambiada correctamente', 
+          summary: 'Perfil actualizado', 
+          detail: 'Tu información personal ha sido actualizada correctamente', 
           life: 3000 
         });
       } else {
-        alert('Contraseña actualizada correctamente');
+        alert('Perfil actualizado correctamente');
       }
-      
-    } catch (error) {
-      if (error.response?.status === 422) {
-        // Errores de validación
-        errors.value = error.response.data.errors;
+    }
+  } catch (error) {
+    if (error.response?.data?.errors) {
+      errors.value = error.response.data.errors;
+    } else {
+      if (toast) {
+        toast.add({ 
+          severity: 'error', 
+          summary: 'Error', 
+          detail: 'No se pudo actualizar el perfil', 
+          life: 3000 
+        });
       } else {
-        if (toast) {
-          toast.add({ 
-            severity: 'error', 
-            summary: 'Error', 
-            detail: error.response?.data?.message || 'No se pudo actualizar la contraseña', 
-            life: 3000 
-          });
-        } else {
-          alert('Error al actualizar la contraseña');
-        }
+        alert('Error al actualizar el perfil');
       }
-    } finally {
-      isLoading.value = false;
     }
-  };
-  
-  // Seleccionar tema
-  const selectTheme = (theme) => {
-    preferences.theme = theme;
-    
-    // Guardar en localStorage y aplicar
-    localStorage.setItem('theme', theme);
-    applyTheme(theme);
-    
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Actualizar contraseña
+const updatePassword = async () => {
+  isLoading.value = true;
+  errors.value = {};
+  try {
+    const response = await axios.put('/api/password', password);
+    // Limpiar el formulario de contraseña
+    password.current_password = '';
+    password.password = '';
+    password.password_confirmation = '';
     if (toast) {
-      toast.add({
-        severity: 'info',
-        summary: 'Tema cambiado',
-        detail: `Has cambiado al tema ${theme === 'dark' ? 'oscuro' : 'claro'}`,
-        life: 2000
+      toast.add({ 
+        severity: 'success', 
+        summary: 'Contraseña actualizada', 
+        detail: 'Tu contraseña ha sido cambiada correctamente', 
+        life: 3000 
       });
+    } else {
+      alert('Contraseña actualizada correctamente');
     }
-  };
-  </script>
+  } catch (error) {
+    if (error.response?.status === 422) {
+      errors.value = error.response.data.errors;
+    } else {
+      if (toast) {
+        toast.add({ 
+          severity: 'error', 
+          summary: 'Error', 
+          detail: error.response?.data?.message || 'No se pudo actualizar la contraseña', 
+          life: 3000 
+        });
+      } else {
+        alert('Error al actualizar la contraseña');
+      }
+    }
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Seleccionar tema
+const selectTheme = (theme) => {
+  preferences.theme = theme;
+  localStorage.setItem('theme', theme);
+  applyTheme(theme);
+  if (toast) {
+    toast.add({
+      severity: 'info',
+      summary: 'Tema cambiado',
+      detail: `Has cambiado al tema ${theme === 'dark' ? 'oscuro' : 'claro'}`,
+      life: 2000
+    });
+  }
+};
+</script>
+
   
   <style scoped>
   .settings-container {

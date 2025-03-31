@@ -18,7 +18,7 @@ use App\Http\Controllers\Api\KanbanController;
 use App\Http\Controllers\Api\TableroController; 
 use App\Http\Controllers\Api\FavoritoController;
 use App\Http\Controllers\Api\SubtareaController;
-use App\Http\Controllers\RatingController;
+use App\Http\Controllers\Api\RatingController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -42,6 +42,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
 
     Route::get('category-list', [CategoryController::class, 'getList']);
     Route::get('/user', [ProfileController::class, 'user']);
+    // El endpoint para actualizar el perfil ahora soporta subida de imágenes mediante multipart/form-data
     Route::put('/user', [ProfileController::class, 'update']);
     Route::post('/workflows/{id}/share', [WorkflowController::class, 'shareWorkflow']);
     Route::get('/workflows/users/potential', [WorkflowController::class, 'getPotentialUsers']);
@@ -97,8 +98,9 @@ Route::post('/check-email', [RegisterController::class, 'checkEmail']);
 Route::apiResource('kanbans', KanbanController::class);
 Route::get('kanban/{id}', [KanbanController::class, 'show']);
 Route::post('kanban', [KanbanController::class, 'store']);
-Route::put('kanban/{id}', [KanbanController::class, 'update']); // ✅ Soporte para PUT
-Route::patch('kanban/{id}', [KanbanController::class, 'update']); // ✅ Soporte para PATCHRoute::delete('kanban/{id}', [KanbanController::class, 'destroy']);
+Route::put('kanban/{id}', [KanbanController::class, 'update']);
+Route::patch('kanban/{id}', [KanbanController::class, 'update']);
+Route::delete('kanban/{id}', [KanbanController::class, 'destroy']);
 Route::get('/kanban', [KanbanController::class, 'getBoards']);
 Route::get('/kanban/{id}/tasks', [KanbanController::class, 'getTasks']);
 
@@ -117,10 +119,12 @@ Route::prefix('subtareas')->group(function () {
     Route::put('/tarea/{idTarea}', [SubtareaController::class, 'updateSubtareas']);
 });
 
-Route::prefix('ratings')->group(function() {
-    Route::get('/', [RatingController::class, 'index']);
-    Route::post('/', [RatingController::class, 'store']);
-    Route::get('/{id}', [RatingController::class, 'show']);
-    Route::put('/{id}', [RatingController::class, 'update']);
-    Route::delete('/{id}', [RatingController::class, 'destroy']);
+Route::group(['middleware' => 'auth:sanctum'], function() {
+    Route::prefix('ratings')->group(function() {
+        Route::get('/', [RatingController::class, 'index']);
+        Route::post('/', [RatingController::class, 'store']);
+        Route::get('/{id}', [RatingController::class, 'show']);
+        Route::put('/{id}', [RatingController::class, 'update']);
+        Route::delete('/{id}', [RatingController::class, 'destroy']);
+    });
 });

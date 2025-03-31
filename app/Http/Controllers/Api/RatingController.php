@@ -1,47 +1,60 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\Rating;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class RatingController extends Controller
 {
-    // Listar todas las valoraciones (opcional, si quieres verlas en el admin)
+    // Listar todas las valoraciones
     public function index()
     {
-        // Ejemplo: traer todas las valoraciones con usuario
-        $ratings = Rating::with('user')->get();
+        $ratings = Rating::with('user:id,name')->get();
         return response()->json($ratings);
     }
 
     // Guardar una valoración
     public function store(Request $request)
     {
-        // Validar datos
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Usuario no autenticado'], 401);
+        }
+
         $validated = $request->validate([
             'score' => 'required|integer|min:1|max:5',
-            'comment' => 'nullable|string|max:500'
+            'comment' => 'nullable|string|max:500',
+            'categories' => 'required|array|min:1|max:2',
+            'categories.*' => 'in:Marketing,Comunicacion,Desarrollo,Customizacion,Startup,Escalabilidad',
+            'job_position' => 'required|string|max:100',
+            'company' => 'required|string|max:100'
         ]);
 
-        // Crear la valoración
+        $user = Auth::user();
+        
         $rating = Rating::create([
-            'user_id' => Auth::id(),     // o $request->user()->id
-            'score'   => $validated['score'],
+            'user_id' => $user->id,
+            'score' => $validated['score'],
             'comment' => $validated['comment'] ?? null,
+            'categories' => $validated['categories'],
+            'job_position' => $validated['job_position'],
+            'company' => $validated['company']
         ]);
 
         return response()->json([
             'message' => '¡Valoración guardada con éxito!',
-            'rating'  => $rating
+            'rating' => $rating,
+            'user_name' => $user->name
         ], 201);
     }
 
     // Mostrar una valoración específica
     public function show($id)
     {
-        $rating = Rating::with('user')->findOrFail($id);
+        $rating = Rating::with('user:id,name')->findOrFail($id);
         return response()->json($rating);
     }
 
@@ -58,14 +71,18 @@ class RatingController extends Controller
         // Validar
         $validated = $request->validate([
             'score' => 'required|integer|min:1|max:5',
-            'comment' => 'nullable|string|max:500'
+            'comment' => 'nullable|string|max:500',
+            'categories' => 'required|array|min:1|max:2',
+            'categories.*' => 'in:Marketing,Comunicacion,Desarrollo,Customizacion,Startup,Escalabilidad',
+            'job_position' => 'required|string|max:100',
+            'company' => 'required|string|max:100'
         ]);
 
         $rating->update($validated);
 
         return response()->json([
             'message' => 'Valoración actualizada',
-            'rating'  => $rating
+            'rating' => $rating
         ]);
     }
 
