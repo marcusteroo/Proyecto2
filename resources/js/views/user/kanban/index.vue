@@ -41,22 +41,11 @@
                   
                   <div class="tarea-meta" v-if="tarea.subtareas && tarea.subtareas.length > 0">
                     <span class="subtareas-count">
-                      <i class="subtareas-icon">☑</i>
+                      <i class="subtareas-icon pi pi-check-square"></i>
                       {{ tarea.subtareas.filter(s => s.estado === 1).length }}/{{ tarea.subtareas.length }}
                     </span>
                   </div>
                 </div>
-
-                <!-- ÍCONO DE EDICIÓN: sin animación, aparece al hacer hover si la tarea no está completada -->
-                <span
-                  v-if="tarea.hover && !tarea.completado"
-                  class="editar-tarea"
-                  @click.stop="editarTarea(tarea)"
-                >
-                  <svg fill="none" viewBox="0 0 16 16" role="presentation" class="edit-icon">
-                    <path stroke="currentcolor" stroke-linejoin="round" stroke-width="1.5" d="M6 1.751H3c-.69 0-1.25.56-1.25 1.25v10c0 .69.56 1.25 1.25 1.25h10c.69 0 1.25-.56 1.25-1.25V10m-.75-5 1.116-1.116a1.25 1.25 0 0 0 0-1.768l-.732-.732a1.25 1.25 0 0 0-1.768 0L11 2.5M13.5 5 9.479 9.021c-.15.15-.336.26-.54.318l-3.189.911.911-3.189a1.25 1.25 0 0 1 .318-.54L11 2.5M13.5 5 11 2.5"></path>
-                  </svg>
-                </span>
               </div>
             </div>
           </template>
@@ -64,18 +53,28 @@
 
         <!-- Añadir nueva tarea a la lista -->
         <div class="add-task-container">
-          <input
-            v-model="nuevasTareas[index]"
-            type="text"
-            class="anadir-tarea"
-            placeholder="+ Añadir tarea"
-            @keydown.enter="agregarTarea(index, nuevasTareas[index], titulos[index])"
-          />
+          <div class="input-field">
+            <input
+              v-model="nuevasTareas[index]"
+              type="text"
+              class="anadir-tarea"
+              placeholder="+ Añadir tarea"
+              maxlength="20"
+              @keydown.enter="agregarTarea(index, nuevasTareas[index], titulos[index])"
+            />
+            <div class="char-counter mini" v-if="nuevasTareas[index].length > 0" 
+                 :class="{ 'near-limit': nuevasTareas[index].length > 15 }">
+              {{ nuevasTareas[index].length }}/20
+            </div>
+          </div>
           <button
             @click="agregarTarea(index, nuevasTareas[index], titulos[index])"
             class="anadir-tarea-btn"
           >
-            +
+          <svg width="20" height="20" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <rect x="40" y="10" width="20" height="80" fill="white"/>
+            <rect x="10" y="40" width="80" height="20" fill="white"/>
+          </svg>
           </button>
         </div>
       </div>
@@ -88,18 +87,33 @@
           <button class="popup-close" @click="popupAbierto = false">✕</button>
         </div>
         <div class="popup-content">
-          <input
-            v-model="tareaEditada.titulo"
-            type="text"
-            placeholder="Título de la tarea"
-            class="popup-input titulo-input"
-          />
-          <input
-            v-model="tareaEditada.descripcion"
-            type="text"
-            placeholder="Descripción"
-            class="popup-input descripcion-input"
-          />
+          <!-- Título con contador de caracteres -->
+          <div class="input-field">
+            <input
+              v-model="tareaEditada.titulo"
+              type="text"
+              placeholder="Título de la tarea"
+              class="popup-input titulo-input"
+              maxlength="20"
+            />
+            <div class="char-counter" :class="{ 'near-limit': tareaEditada.titulo.length > 15 }">
+              {{ tareaEditada.titulo.length }}/20
+            </div>
+          </div>
+          
+          <!-- Descripción con contador de caracteres -->
+          <div class="input-field">
+            <input
+              v-model="tareaEditada.descripcion"
+              type="text"
+              placeholder="Descripción"
+              class="popup-input descripcion-input"
+              maxlength="30"
+            />
+            <div class="char-counter" :class="{ 'near-limit': tareaEditada.descripcion.length > 25 }">
+              {{ tareaEditada.descripcion.length }}/30
+            </div>
+          </div>
 
           <div class="popup-subtareas">
             <h3>Subtareas</h3>
@@ -124,13 +138,19 @@
                     </span>
                   </template>
                   <template v-else>
-                    <input
-                      type="text"
-                      v-model="sub.titulo"
-                      class="subtarea-edit-input"
-                      @blur="sub.editing = false"
-                      @keydown.enter="sub.editing = false"
-                    />
+                    <div class="input-field subtarea-edit-field">
+                      <input
+                        type="text"
+                        v-model="sub.titulo"
+                        class="subtarea-edit-input"
+                        @blur="sub.editing = false"
+                        @keydown.enter="sub.editing = false"
+                        maxlength="15"
+                      />
+                      <div class="char-counter mini" :class="{ 'near-limit': sub.titulo.length > 12 }">
+                        {{ sub.titulo.length }}/15
+                      </div>
+                    </div>
                   </template>
 
                 </label>
@@ -141,14 +161,21 @@
                 </button>
               </li>
             </ul>
+            <!-- Añadir subtarea con limitación -->
             <div class="popup-add-subtarea">
-              <input
-                v-model="nuevaSubtarea"
-                type="text"
-                placeholder="Añadir subtarea"
-                class="popup-input"
-                @keydown.enter="agregarSubtarea"
-              />
+              <div class="input-field subtarea-field">
+                <input
+                  v-model="nuevaSubtarea"
+                  type="text"
+                  placeholder="Añadir subtarea"
+                  class="popup-input"
+                  maxlength="15"
+                  @keydown.enter="agregarSubtarea"
+                />
+                <div class="char-counter" :class="{ 'near-limit': nuevaSubtarea.length > 12 }">
+                  {{ nuevaSubtarea.length }}/15
+                </div>
+              </div>
               <button @click="agregarSubtarea" class="popup-button">
                 Añadir
               </button>
@@ -347,17 +374,15 @@ const actualizarTareaBackend = async () => {
       // Primero actualizar la tarea principal
       await axios.put(`/api/kanban/${tareaEditada.value.id_tarea}`, tareaEditada.value);
       
-      // Luego actualizar subtareas en bloque (se corrige la ruta para actualizar las subtareas)
-      if (tareaEditada.value.subtareas) {
+      // Luego actualizar subtareas en bloque con el formato correcto
+      if (tareaEditada.value.subtareas && tareaEditada.value.subtareas.length > 0) {
         await axios.put(`/api/subtareas/tarea/${tareaEditada.value.id_tarea}`, {
           subtareas: tareaEditada.value.subtareas.map(subtarea => ({
-            id: subtarea.id,
-            texto: subtarea.texto,
-            completado: subtarea.completado
+            id_subtarea: subtarea.id_subtarea,
+            titulo: subtarea.titulo,
+            estado: subtarea.estado
           }))
         });
-
-
       }
 
       // Actualizar en la lista local
@@ -368,9 +393,30 @@ const actualizarTareaBackend = async () => {
           lista[idx] = { ...tareaEditada.value };
         }
       }
+
+      // Mostrar notificación de éxito usando toast (si tienes PrimeVue o un sistema similar)
+      if (window.$toast) {
+        window.$toast.add({
+          severity: 'success',
+          summary: 'Tarea actualizada',
+          detail: 'Los cambios se guardaron correctamente',
+          life: 3000
+        });
+      }
+      
       popupAbierto.value = false;
     } catch (error) {
       console.error('Error al actualizar la tarea:', error);
+      
+      // Mostrar notificación de error
+      if (window.$toast) {
+        window.$toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo actualizar la tarea. Inténtalo de nuevo.',
+          life: 3000
+        });
+      }
     }
   }
 };
@@ -596,6 +642,7 @@ const eliminarSubtarea = async (index) => {
   display: flex;
   align-items: flex-start;
   padding: 12px;
+  position: relative; /* Importante para posicionar absolutamente el icono */
 }
 
 .tarea-completada {
@@ -649,7 +696,7 @@ const eliminarSubtarea = async (index) => {
 
 .tarea-descripcion {
   font-size: 13px;
-  color: var(--text-light);
+  color: #666;
   margin-bottom: 10px;
   line-height: 1.3;
 }
@@ -657,21 +704,32 @@ const eliminarSubtarea = async (index) => {
 .tarea-meta {
   display: flex;
   align-items: center;
-  font-size: 12px;
-  color: var(--text-light);
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.1);
 }
 
 .subtareas-count {
   display: flex;
   align-items: center;
-  gap: 4px;
-  color: var(--text-light);
+  gap: 6px;
+  background-color: rgba(52, 152, 219, 0.1);
+  padding: 4px 8px;
+  border-radius: 12px;
   font-size: 12px;
+  color: var(--primary-dark);
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.subtareas-count:hover {
+  background-color: rgba(52, 152, 219, 0.2);
 }
 
 .subtareas-icon {
   font-style: normal;
   color: var(--primary-dark);
+  font-size: 14px;
 }
 
 .tarea-texto.desplazado {
@@ -680,27 +738,35 @@ const eliminarSubtarea = async (index) => {
 
 .completado {
   text-decoration: line-through;
-  color: var(--text-light);
+  color: #666;
 }
 
 /* Ícono de edición */
 .editar-tarea {
+  position: absolute;
+  top: 8px;
+  right: 8px;
   color: var(--text-light);
+  background-color: rgba(255, 255, 255, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 4px;
   border-radius: 4px;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  z-index: 2;
 }
 
 .editar-tarea:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: var(--primary-color);
+  color: white;
+  transform: scale(1.1);
 }
 
 .edit-icon {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
 }
 
 /* Input y botón de añadir tarea */
@@ -709,15 +775,27 @@ const eliminarSubtarea = async (index) => {
   padding: 12px;
   border-top: 1px solid var(--border-color);
   background-color: rgba(255, 255, 255, 0.5);
+  align-items: flex-start; /* Cambiado a flex-start para alinear con el top del input */
+  gap: 8px; /* Espaciado consistente */
+}
+
+.input-field {
+  position: relative;
+  margin-bottom: 16px;
+  flex: 1; /* Asegura que ocupe todo el espacio disponible */
+  display: flex; /* Nuevo: convertir en flex para mejor control */
+  flex-direction: column; /* Nuevo: organizar verticalmente */
 }
 
 .anadir-tarea {
-  flex: 1;
-  padding: 10px 12px;
+  width: 100%; /* Usa todo el ancho disponible */
+  height: 40px; /* Altura fija para consistencia */
+  padding: 8px 12px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
   font-size: 14px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 0; /* Quitar margen inferior */
 }
 
 .anadir-tarea:focus {
@@ -727,11 +805,10 @@ const eliminarSubtarea = async (index) => {
 }
 
 .anadir-tarea-btn {
-  margin-left: 8px;
-  width: 32px;
-  height: 32px;
+  height: 40px; /* Misma altura que el input */
+  width: 40px; /* Ancho igual a la altura para forma cuadrada */
   border: none;
-  background-color: var(--primary-color);
+  background-color: #3498db!important;
   color: white;
   border-radius: 4px;
   display: flex;
@@ -740,11 +817,15 @@ const eliminarSubtarea = async (index) => {
   cursor: pointer;
   font-size: 20px;
   transition: background-color 0.2s ease, transform 0.2s ease;
+  flex-shrink: 0; /* Evita que el botón se encoja */
+  margin-top: 0; /* Asegura que no haya margen superior */
+  align-self: flex-start; /* Alinea con la parte superior */
 }
 
-.anadir-tarea-btn:hover {
-  background-color: var(--primary-dark);
-  transform: scale(1.05);
+/* Ajuste específico para el contador en la adición de tarea */
+.add-task-container .char-counter.mini {
+  bottom: -16px;
+  right: 5px;
 }
 
 /* Popup overlay */
@@ -789,7 +870,7 @@ const eliminarSubtarea = async (index) => {
 
 /* Header del popup */
 .popup-header {
-  background: linear-gradient(135deg, #0079bf, #005a8e);
+  background-color: #106ebe;
   color: #fff;
   padding: 16px;
   display: flex;
@@ -831,7 +912,7 @@ const eliminarSubtarea = async (index) => {
 .popup-input {
   width: 100%;
   padding: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 22px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 15px;
@@ -936,16 +1017,21 @@ const eliminarSubtarea = async (index) => {
 .popup-add-subtarea {
   display: flex;
   gap: 8px;
+  align-items: center; /* Asegura alineación vertical */
 }
 
-.popup-add-subtarea input {
-  flex: 1;
-  margin-bottom: 0;
+.popup-add-subtarea .popup-input {
+  height: 40px; /* Altura fija para consistencia */
+  padding: 8px 12px;
+  margin-bottom: 22px; /* Espacio para el contador */
 }
 
 .popup-add-subtarea button {
+  height: 40px; /* Misma altura que el input */
   padding: 0 16px;
   white-space: nowrap;
+  margin-bottom: 22px; /* Mismo margen que el input para alineación */
+  flex-shrink: 0; /* Evita que el botón se encoja */
 }
 
 /* Botones generales */
@@ -1041,6 +1127,25 @@ const eliminarSubtarea = async (index) => {
   .tarea-descripcion {
     font-size: 12px;
   }
+
+  .editar-tarea {
+    top: 6px;
+    right: 6px;
+  }
+  
+  .subtareas-count {
+    padding: 3px 6px;
+    font-size: 11px;
+  }
+
+  .anadir-tarea, .anadir-tarea-btn,
+  .popup-add-subtarea .popup-input, .popup-add-subtarea button {
+    height: 36px; /* Ligeramente más pequeño en móviles */
+  }
+  
+  .anadir-tarea-btn {
+    width: 36px;
+  }
 }
 
 /* Estilos para dispositivos muy pequeños */
@@ -1051,11 +1156,83 @@ const eliminarSubtarea = async (index) => {
   
   .add-task-container {
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
   }
   
   .anadir-tarea-btn {
     margin-left: auto;
+    width: 36px;
+    height: 36px;
+    margin-top: -16px; /* Ajuste para compensar el espacio del contador */
+  }
+  
+  /* En dispositivos muy pequeños, mantenemos los botones de subtareas alineados */
+  .popup-add-subtarea {
+    flex-direction: row;
   }
 }
+
+/* Contenedor para input con contador */
+.input-field {
+  position: relative;
+  margin-bottom: 16px;
+  flex: 1; /* Asegura que ocupe todo el espacio disponible */
+  display: flex; /* Nuevo: convertir en flex para mejor control */
+  flex-direction: column; /* Nuevo: organizar verticalmente */
+}
+
+.subtarea-field {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.subtarea-edit-field {
+  position: relative;
+  flex: 1;
+}
+
+/* Contador de caracteres */
+.char-counter {
+  position: absolute;
+  right: 10px;
+  bottom: -18px;
+  font-size: 12px;
+  color: #888;
+  transition: color 0.2s ease;
+}
+
+.char-counter.mini {
+  bottom: -16px;
+  font-size: 10px;
+  right: 5px;
+}
+
+.char-counter.near-limit {
+  color: #e67e22;
+  font-weight: 500;
+}
+
+/* Ajustar márgenes para dar espacio al contador */
+.popup-input {
+  margin-bottom: 22px;
+}
+
+.popup-add-subtarea .popup-input {
+  margin-bottom: 22px;
+}
+
+/* Ajustes para responsividad */
+@media (max-width: 576px) {
+  .char-counter {
+    font-size: 10px;
+    bottom: -16px;
+  }
+  
+  .char-counter.mini {
+    bottom: -14px;
+    font-size: 9px;
+  }
+}
+
+
 </style>

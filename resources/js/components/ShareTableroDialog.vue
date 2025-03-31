@@ -29,8 +29,8 @@
         </div>
       </div>
       <template #footer>
-        <Button label="Cancelar" icon="pi pi-times" class="p-button-text" @click="closeDialog" />
-        <Button label="Compartir" icon="pi pi-share-alt" @click="shareTablero" 
+        <Button label="Cancelar" icon="pi pi-times" class="boton-cancelar"  @click="closeDialog" />
+        <Button label="Compartir" icon="pi pi-share-alt" class="boton-compartir"  @click="shareTablero" 
                 :disabled="!selectedUser || sharing || loading" :loading="sharing" />
       </template>
     </Dialog>
@@ -199,10 +199,29 @@ onMounted(() => {
   color: var(--text-color-secondary);
 }
 
+
 /* Dark theme support */
 :deep(.dark-theme) .permission-option, 
 :deep(body.dark-theme) .permission-option {
   border-color: #383a46;
   background-color: #1e1e2e;
 }
+.boton-cancelar {
+  background-color: #FF4D4F;
+  border: none!important;
+}
+.boton-cancelar:hover {
+  background-color: #FF1A1A!important;
+}
+.boton-compartir {
+  background-color: #106EBE;
+  border: none!important;
+}
+.boton-compartir:hover {
+  background-color: #1067b3!important;
+  border: none!important;
+}
+
+
+
   </style>

@@ -1,12 +1,12 @@
 <template>
     <button 
-      class="favorito-btn" 
-      :class="{ 'is-favorite': isFavorite }"
-      @click.stop="toggleFavorito"
-      :title="isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'"
-    >
-      <i class="pi" :class="isFavorite ? 'pi-star-fill' : 'pi-star'"></i>
-    </button>
+    class="favorito-btn" 
+    :class="[isFavorite ? 'is-favorite' : '', customClass]"
+    @click.stop="toggleFavorito"
+    :title="isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'"
+  >
+    <i class="pi" :class="isFavorite ? 'pi-star-fill' : 'pi-star'"></i>
+  </button>
   </template>
   
   <script setup>
@@ -15,16 +15,20 @@
   import axios from 'axios';
   
   const props = defineProps({
-    tipo: {
-      type: String,
-      required: true,
-      validator: (value) => ['workflow', 'tablero'].includes(value)
-    },
-    itemId: {
-      type: Number,
-      required: true
-    }
-  });
+  tipo: {
+    type: String,
+    required: true,
+    validator: (value) => ['workflow', 'tablero'].includes(value)
+  },
+  itemId: {
+    type: Number,
+    required: true
+  },
+  customClass: {
+    type: String,
+    default: ''
+  }
+});
   
   const emit = defineEmits(['favoriteChanged']);
   const toast = useToast();
@@ -85,7 +89,6 @@
     cursor: pointer;
     width: 32px;
     height: 32px;
-    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -94,16 +97,17 @@
   }
   
   .favorito-btn:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-    color: #f59e0b;
+    background-color: rgba(0, 120, 215, 0.6); /* Actualizado al color azul deseado */
+    color: white; /* Cambiamos el color del icono a blanco para mejor contraste */
   }
   
   .favorito-btn.is-favorite {
-    color: #f59e0b;
+    color: #eeff01!important; /* Color del icono cuando es favorito */
   }
   
   .favorito-btn.is-favorite:hover {
-    color: #d97706;
+    color: white; /* Cambiamos el color del icono a blanco para mejor contraste */
+    background-color: rgba(0, 120, 215, 0.6);
   }
   
   /* Estilo para tema oscuro */
@@ -114,6 +118,7 @@
   
   :deep(.dark-theme) .favorito-btn:hover,
   :deep(body.dark-theme) .favorito-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(0, 120, 215, 0.6);
+    color: white;
   }
   </style>
