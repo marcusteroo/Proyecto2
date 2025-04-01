@@ -92,7 +92,7 @@
         <!-- Header del popup -->
         <div class="popup-header">
           <h3>Configurar Desencadenador</h3>
-          <button class="popup-close" @click="closeTaskPopup"><span class="close-symbol">×</span></button>
+          <button class="popup-close" @click="closeTaskPopup">✕</button>
         </div>
         
         <!-- Body del popup -->
@@ -183,7 +183,7 @@
         <!-- Header del popup -->
         <div class="popup-header">
           <h3>Configurar Email</h3>
-          <button class="popup-close" @click="closeEmailPopup"><span class="close-symbol">×</span></button>
+          <button class="popup-close" @click="closeEmailPopup">✕</button>
         </div>
         
         <!-- Body del popup -->
@@ -257,11 +257,12 @@
 
 <script setup>
 import { ref, reactive, nextTick, watch, onMounted, onUnmounted } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute,useRouter } from "vue-router";
 import draggable from "vuedraggable";
 import axios from "axios";
 import { useToast } from 'primevue/usetoast';
 import { authStore } from "../../../store/auth";
+
 
 // Bloques base
 const availableBlocks = ref([
@@ -274,6 +275,7 @@ const emailConfig = reactive({
   subject: '',
   message: ''
 });
+const router = useRouter();
 const showTaskPopup = ref(false);
 const boards = ref([]);
 const tasks = ref([]);
@@ -445,19 +447,34 @@ const placeBlockCentered = async (block) => {
 const addBlock = (block) => {
   // Si aún no hay bloques, solo se permite "Tarea"
   if (blocks.value.length === 0 && block.name !== "Tarea") {
-    alert("La primera acción debe ser Tarea ya que es el desencadenador.");
+    toast.add({
+      severity: 'warn',
+      summary: 'Acción no permitida',
+      detail: 'La primera acción debe ser Tarea ya que es el desencadenador.',
+      life: 3000
+    });
     return;
   }
 
   // Limita a 3 acciones
   if (blocks.value.length >= 3) {
-    alert("No se pueden agregar más de 3 acciones.");
+    toast.add({
+      severity: 'info',
+      summary: 'Límite alcanzado',
+      detail: 'No se pueden agregar más de 3 acciones.',
+      life: 3000
+    });
     return;
   }
 
   // Evita duplicados
   if (blocks.value.some(b => b.name === block.name)) {
-    alert("Esta acción ya fue agregada.");
+    toast.add({
+      severity: 'warn',
+      summary: 'Duplicado',
+      detail: 'Esta acción ya fue agregada.',
+      life: 3000
+    });
     return;
   }
 
@@ -489,21 +506,36 @@ const onDrop = async (event) => {
   if (draggedBlock) {
     // Verificar si es el primer bloque y no es de tipo Tarea
     if (blocks.value.length === 0 && draggedBlock.name !== "Tarea") {
-      alert("La primera acción debe ser Tarea ya que es el desencadenador.");
+      toast.add({
+        severity: 'warn',
+        summary: 'Acción no permitida',
+        detail: 'La primera acción debe ser Tarea ya que es el desencadenador.',
+        life: 3000
+      });
       draggedBlock = null;
       return;
     }
     
     // Limitar a 3 acciones
     if (blocks.value.length >= 3) {
-      alert("No se pueden agregar más de 3 acciones.");
+      toast.add({
+        severity: 'info',
+        summary: 'Límite alcanzado',
+        detail: 'No se pueden agregar más de 3 acciones.',
+        life: 3000
+      });
       draggedBlock = null;
       return;
     }
     
     // Evitar duplicados
     if (blocks.value.some(b => b.name === draggedBlock.name)) {
-      alert("Esta acción ya fue agregada.");
+      toast.add({
+        severity: 'warn',
+        summary: 'Duplicado',
+        detail: 'Esta acción ya fue agregada.',
+        life: 3000
+      });
       draggedBlock = null;
       return;
     }
@@ -523,7 +555,12 @@ const onDrop = async (event) => {
 };
 const confirmEmailSetup = () => {
   if (!emailConfig.to || !emailConfig.subject || !emailConfig.message) {
-    alert("Por favor, complete todos los campos del email.");
+    toast.add({
+      severity: 'warn',
+      summary: 'Configuración incompleta',
+      detail: 'Por favor, complete todos los campos del email.',
+      life: 3000
+    });
     return;
   }
 
@@ -544,6 +581,14 @@ const confirmEmailSetup = () => {
   
   // Cerrar el popup
   closeEmailPopup();
+  
+  // Mostrar notificación de éxito
+  toast.add({
+    severity: 'success',
+    summary: 'Email configurado',
+    detail: `Se enviará un email a ${emailConfig.to} cuando se active el flujo`,
+    life: 3000
+  });
 };
 // Mostrar popup
 const showPopup = (id) => {
@@ -669,14 +714,24 @@ const saveFlow = async () => {
   try {
     // Verificar que haya bloques
     if (blocks.value.length === 0) {
-      alert('El flujo necesita al menos un desencadenador');
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'El flujo necesita al menos un desencadenador',
+        life: 3000
+      });
       return;
     }
     
     // Verificar que el primer bloque sea de tipo Tarea
     const trigger = blocks.value[0];
     if (trigger.name !== "Tarea" || !trigger.config) {
-      alert('El primer bloque debe ser un desencadenador de tipo Tarea');
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'El primer bloque debe ser un desencadenador de tipo Tarea',
+        life: 3000
+      });
       return;
     }
 
@@ -708,10 +763,26 @@ const saveFlow = async () => {
       });
     }
     
-    alert('Flujo de trabajo guardado exitosamente');
+    // Mostrar mensaje de éxito
+    toast.add({
+      severity: 'success',
+      summary: '¡Guardado con éxito!',
+      detail: 'Tu flujo de trabajo ha sido guardado correctamente',
+      life: 2000
+    });
+    
+    // Redireccionar después de un pequeño retardo para que el usuario vea el mensaje
+    setTimeout(() => {
+      router.push('/app/flows');
+    }, 2000);
   } catch (error) {
     console.error(error);
-    alert('Error al guardar el flujo de trabajo');
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'No se pudo guardar el flujo de trabajo. Inténtalo de nuevo.',
+      life: 3000
+    });
   }
 };
 watch([isMobile, () => blocks.value.length], adjustBlocksPosition);
@@ -1018,7 +1089,7 @@ watch([isMobile, () => blocks.value.length], adjustBlocksPosition);
   justify-content: space-between;
   align-items: center;
   padding: 18px 24px;
-  background: linear-gradient(135deg, #3f359b, #1A00FF);
+  background-color: #106EBE;
   color: white;
   position: relative;
 }
@@ -1030,7 +1101,6 @@ watch([isMobile, () => blocks.value.length], adjustBlocksPosition);
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(to right, #23a6d5, #6f42c1);
 }
 
 .popup-header h3 {
@@ -1038,19 +1108,24 @@ watch([isMobile, () => blocks.value.length], adjustBlocksPosition);
   font-size: 18px;
   font-weight: 600;
 }
-
 .popup-close {
-  background-color: #ff3b30!important;
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  transition: all 0.2s ease;
-  cursor: pointer;
+  background: transparent!important;
+  border: none!important;
+  color: #fff!important;
+  font-size: 22px!important;
+  cursor: pointer!important;
+  width: 30px!important;
+  height: 30px!important;
+  display: flex!important;
+  align-items: center!important;
+  justify-content: center!important;
+  transition: all 0.2s ease!important;
+  outline: none!important;
+  box-shadow: none!important;
+
+}
+.popup-close:hover {
+  background-color: rgba(255, 255, 255, 0.2)!important;
 }
 .close-symbol {
   color: white;
@@ -1059,10 +1134,7 @@ watch([isMobile, () => blocks.value.length], adjustBlocksPosition);
   position: relative;
   font-family: Arial, sans-serif;
 }
-.popup-close:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  transform: rotate(90deg);
-}
+
 
 .popup-body {
   padding: 24px 28px;

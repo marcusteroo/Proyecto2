@@ -478,7 +478,7 @@ const selectTheme = (theme) => {
   }
   
   .btn-primary {
-    background-color: #1A00FF;
+    background-color: #106EBE;
     color: white;
     border: none;
     border-radius: 4px;
@@ -494,7 +494,7 @@ const selectTheme = (theme) => {
   }
   
   .btn-primary:hover {
-    background-color: #4D33FF;
+    background-color: #1067b3;
   }
   
   .btn-primary:disabled {

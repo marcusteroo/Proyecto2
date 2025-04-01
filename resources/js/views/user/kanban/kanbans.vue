@@ -51,10 +51,11 @@
     
     <div class="board-action-btn" @click.stop>
       <FavoritoButton 
-        tipo="tablero" 
-        :itemId="tablero.id_tablero"
-        @favoriteChanged="fetchTableros"
-      />
+  tipo="tablero" 
+  :itemId="tablero.id_tablero"
+  @favoriteChanged="fetchTableros"
+  customClass="kanban-favorito-btn"
+/>
     </div>
     
     <!-- Solo mostrar el botón de compartir si es propietario -->
@@ -93,7 +94,9 @@
               />
               <small v-if="errorMessage" class="error-text">{{ errorMessage }}</small>
             </div>
-            
+            <div class="form-group-texto-aviso">
+              <p class="texto-aviso-tablero">Una vez creado el título no se puede cambiar.</p>
+            </div>
             <div class="form-group">
               <label>Color de fondo</label>
               <div class="background-colors">
@@ -910,13 +913,14 @@
 }
 
 .share-btn:hover {
-  background-color: rgba(0, 120, 215, 0.6);
+  background-color: rgb(24, 199, 24);
 }
 .favorite-icon {
   position: absolute;
   top: 10px;
   right: 10px;
   z-index: 3;
+
 }
 
 .board-actions {
@@ -941,24 +945,25 @@
   font-size: 1rem;
 }
 .favorito-btn {
-  background: transparent;
+  background: rgba(255, 255, 255, 0)!important;
+  border-radius: 4px;
   border: none;
   cursor: pointer;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  width: 32px !important;
+  height: 32px !important;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
   color: #fff; 
+  transition: color 0.2s ease, background-color 0.2s ease;
 }
 
 
 .favorito-btn:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-  color: #f59e0b;
+  color: white;
 }
+
 
 .favorito-btn.is-favorite {
   color: #f59e0b;
@@ -977,4 +982,19 @@
 :deep(body.dark-theme) .favorito-btn:hover {
   background-color: rgba(255, 255, 255, 0.1);
 }
+:deep(.favorito-btn:hover) {
+  background-color: rgba(0, 120, 215, 0.6) !important;
+}
+
+:deep(.favorito-btn.is-favorite:hover) {
+  background-color: rgba(0, 120, 215, 0.6) !important;
+}
+.kanban-favorito-btn:hover {
+  background-color: rgba(0, 120, 215, 0.6) !important;
+}
+.texto-aviso-tablero{
+  color:red;
+  padding-bottom: 10px;
+}
+
   </style>

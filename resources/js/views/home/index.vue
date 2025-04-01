@@ -252,7 +252,7 @@
               </ul>
             </div>
             <div class="card-action">
-              <button class="plan-button">Comenzar ahora</button>
+              <button @click="llevarPaginaRegistro" class="plan-button">Comenzar ahora</button>
             </div>
           </div>
 
@@ -312,7 +312,7 @@
               </ul>
             </div>
             <div class="card-action">
-              <button class="plan-button featured-button">Comenzar ahora</button>
+              <button @click="llevarPaginaRegistro" class="plan-button featured-button">Comenzar ahora</button>
               <p class="guarantee">14 días de prueba gratis</p>
             </div>
           </div>
@@ -364,7 +364,7 @@
               </ul>
             </div>
             <div class="card-action">
-              <button class="plan-button">Comenzar ahora</button>
+              <button @click="llevarPaginaRegistro" class="plan-button">Comenzar ahora</button>
             </div>
           </div>
         </div>
@@ -620,6 +620,9 @@ const price = ref(40);
 const togglePlan = (monthly) => {
   isMonthly.value = monthly;
   price.value = monthly ? 40 : 400; 
+};
+const llevarPaginaRegistro = () => {
+  router.push('/register');
 };
 const testimonials = ref([
   {

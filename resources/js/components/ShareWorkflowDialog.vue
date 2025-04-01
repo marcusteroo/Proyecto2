@@ -34,8 +34,8 @@
         </div>
       </div>
       <template #footer>
-        <Button label="Cancelar" icon="pi pi-times" class="p-button-text" @click="closeDialog" />
-        <Button label="Compartir" icon="pi pi-share-alt" @click="shareWorkflow" 
+        <Button label="Cancelar" icon="pi pi-times" class="boton-cancelar" @click="closeDialog" />
+        <Button label="Compartir" icon="pi pi-share-alt" class="boton-compartir" @click="shareWorkflow" 
                 :disabled="!selectedUser || sharing" :loading="sharing" />
       </template>
     </Dialog>
@@ -214,4 +214,19 @@
     border-color: #1A00FF;
     background-color: rgba(26, 0, 255, 0.15);
   }
+  .boton-cancelar {
+  background-color: #FF4D4F;
+  border: none!important;
+}
+.boton-cancelar:hover {
+  background-color: #FF1A1A!important;
+}
+.boton-compartir {
+  background-color: #106EBE;
+  border: none!important;
+}
+.boton-compartir:hover {
+  background-color: #1067b3!important;
+  border: none!important;
+}
   </style>
