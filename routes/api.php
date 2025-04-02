@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\TableroController;
 use App\Http\Controllers\Api\FavoritoController;
 use App\Http\Controllers\Api\SubtareaController;
 use App\Http\Controllers\Api\RatingController;
+use App\Http\Controllers\Api\PreciosController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -51,7 +52,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('/favoritos', [FavoritoController::class, 'index']);
     Route::post('/favoritos/toggle', [FavoritoController::class, 'toggleFavorito']);
     Route::post('/favoritos/check', [FavoritoController::class, 'isFavorito']);
-
+    Route::apiResource('precios', PreciosController::class);
     Route::get('abilities', function(Request $request) {
         return $request->user()->roles()->with('permissions')
             ->get()
@@ -61,6 +62,13 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
             ->unique()
             ->values()
             ->toArray();
+    });
+    Route::prefix('ratings')->group(function() {
+        Route::get('/', [RatingController::class, 'index']);
+        Route::post('/', [RatingController::class, 'store']);
+        Route::get('/{id}', [RatingController::class, 'show']);
+        Route::put('/{id}', [RatingController::class, 'update']);
+        Route::delete('/{id}', [RatingController::class, 'destroy']);
     });
 });
 
@@ -118,13 +126,4 @@ Route::prefix('subtareas')->group(function () {
     Route::get('/tarea/{idTarea}', [SubtareaController::class, 'getSubtareasByTarea']);
     Route::put('/tarea/{idTarea}', [SubtareaController::class, 'updateSubtareas']);
 });
-
-Route::group(['middleware' => 'auth:sanctum'], function() {
-    Route::prefix('ratings')->group(function() {
-        Route::get('/', [RatingController::class, 'index']);
-        Route::post('/', [RatingController::class, 'store']);
-        Route::get('/{id}', [RatingController::class, 'show']);
-        Route::put('/{id}', [RatingController::class, 'update']);
-        Route::delete('/{id}', [RatingController::class, 'destroy']);
-    });
-});
+Route::get('public/precios', [PreciosController::class, 'getPrecios']);
