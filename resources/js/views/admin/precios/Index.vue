@@ -24,7 +24,6 @@
                         </div>
                     </template>
 
-                    <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
                     <Column field="id" header="ID" :sortable="true" headerStyle="width:5rem"></Column>
                     <Column field="nombre_plan" header="Plan" :sortable="true" headerStyle="min-width:10rem">
                         <template #body="slotProps">
@@ -50,18 +49,6 @@
                             <span class="font-semibold">{{ formatCurrency(slotProps.data.precio_anual) }}</span>
                         </template>
                     </Column>
-                    <Column field="destacado" header="Destacado" :sortable="true" headerStyle="min-width:6rem">
-                        <template #body="slotProps">
-                            <Tag :value="slotProps.data.destacado ? 'Destacado' : 'No destacado'" 
-                                 :severity="slotProps.data.destacado ? 'success' : 'info'" />
-                        </template>
-                    </Column>
-                    <Column field="activo" header="Activo" :sortable="true" headerStyle="min-width:6rem">
-                        <template #body="slotProps">
-                            <Tag :value="slotProps.data.activo ? 'Activo' : 'Inactivo'" 
-                                 :severity="slotProps.data.activo ? 'success' : 'danger'" />
-                        </template>
-                    </Column>
                     <Column headerStyle="min-width:10rem">
                         <template #header>
                             <div class="flex justify-content-center">
@@ -81,176 +68,143 @@
                     </Column>
                 </DataTable>
 
-                <!-- Modal de edición mejorado -->
-                <Dialog v-model:visible="precioDialog" :header="precio.id ? 'Editar Plan: ' + precio.nombre_plan : 'Nuevo Plan'"
-                       :modal="true" :dismissableMask="true" :closable="true" class="p-fluid" :style="{width: '650px'}">
-                    <div class="grid p-fluid">
-                        <div class="col-12">
-                            <Card>
-                                <template #header>
-                                    <div class="flex align-items-center mb-3">
-                                        <i class="pi pi-tag mr-2" style="font-size: 1.5rem"></i>
-                                        <h4 class="m-0">Información General</h4>
+                <!-- Modal de edición -->
+                <Dialog 
+                    v-model:visible="precioDialog" 
+                    :modal="true" 
+                    :closable="true"
+                    :dismissableMask="false"
+                    :style="{width: '650px'}"
+                    class="plan-edit-dialog"
+                    :showHeader="false"
+                >
+                    <!-- Header personalizado -->
+                    <div class="custom-dialog-header">
+                        <div class="dialog-title-section">
+                            <i class="pi pi-tag mr-2"></i>
+                            <h2>{{ precio.id ? `Editar Plan: ${precio.nombre_plan}` : 'Crear Nuevo Plan' }}</h2>
+                        </div>
+                        <Button icon="pi pi-times" class="p-button-rounded p-button-text" @click="hideDialog" />
+                    </div>
+
+                    <div class="plan-edit-container p-fluid">
+                        <!-- Información del plan -->
+                        <div class="plan-info-banner">
+                            <div :class="'plan-icon-large ' + precio.categoria"></div>
+                            <div class="plan-info-details">
+                                <h3 class="plan-name">{{ precio.nombre_plan }}</h3>
+                                <p class="plan-category">{{ getCategoriaName(precio.categoria) }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Sección de precios -->
+                        <div class="edit-section prices-section">
+                            <h3 class="section-title">
+                                <i class="pi pi-money-bill section-icon"></i>
+                                Precios
+                            </h3>
+                            
+                            <div class="grid formgrid">
+                                <div class="field col-12 md:col-6">
+                                    <label for="precio_mensual" class="font-semibold">Precio Mensual</label>
+                                    <div class="p-inputgroup">
+                                        <span class="p-inputgroup-addon">€</span>
+                                        <InputNumber 
+                                            id="precio_mensual" 
+                                            v-model="precio.precio_mensual" 
+                                            mode="decimal" 
+                                            :minFractionDigits="2" 
+                                            :maxFractionDigits="2"
+                                            placeholder="0.00"
+                                            :class="{'p-invalid': submitted && precio.precio_mensual === null}"
+                                        />
                                     </div>
-                                </template>
-                                <template #content>
-                                    <div class="grid formgrid">
-                                        <div class="field col-12 md:col-6">
-                                            <label for="nombre_plan" class="font-bold">Nombre del Plan*</label>
-                                            <InputText id="nombre_plan" v-model="precio.nombre_plan" required 
-                                                      :class="{'p-invalid': submitted && !precio.nombre_plan}"
-                                                      placeholder="Ej: Plan Premium" />
-                                            <small class="p-error" v-if="submitted && !precio.nombre_plan">El nombre del plan es obligatorio</small>
-                                        </div>
-                                        
-                                        <div class="field col-12 md:col-6">
-                                            <label for="categoria" class="font-bold">Categoría*</label>
-                                            <Dropdown id="categoria" v-model="precio.categoria" 
-                                                    :options="categorias" optionLabel="name" optionValue="code" 
-                                                    placeholder="Selecciona una categoría" 
-                                                    :class="{'p-invalid': submitted && !precio.categoria}">
-                                                <template #value="slotProps">
-                                                    <div v-if="slotProps.value" class="flex align-items-center">
-                                                        <Tag :value="getCategoriaName(slotProps.value)" 
-                                                            :severity="getCategoriaSeverity(slotProps.value)" />
-                                                    </div>
-                                                    <span v-else>Selecciona una categoría</span>
-                                                </template>
-                                                <template #option="slotProps">
-                                                    <div class="flex align-items-center">
-                                                        <Tag :value="slotProps.option.name" 
-                                                            :severity="getCategoriaSeverity(slotProps.option.code)" />
-                                                    </div>
-                                                </template>
-                                            </Dropdown>
-                                            <small class="p-error" v-if="submitted && !precio.categoria">La categoría es obligatoria</small>
-                                        </div>
+                                    <small class="p-error" v-if="submitted && precio.precio_mensual === null">El precio mensual es obligatorio</small>
+                                </div>
+                                
+                                <div class="field col-12 md:col-6">
+                                    <label for="precio_anual" class="font-semibold">Precio Anual</label>
+                                    <div class="p-inputgroup">
+                                        <span class="p-inputgroup-addon">€</span>
+                                        <InputNumber 
+                                            id="precio_anual" 
+                                            v-model="precio.precio_anual" 
+                                            mode="decimal" 
+                                            :minFractionDigits="2" 
+                                            :maxFractionDigits="2"
+                                            placeholder="0.00"
+                                            :class="{'p-invalid': submitted && precio.precio_anual === null}"
+                                        />
                                     </div>
-                                    
-                                    <div class="field">
-                                        <label for="descripcion" class="font-bold">Descripción</label>
-                                        <Textarea id="descripcion" v-model="precio.descripcion" rows="3" autoResize
-                                                 placeholder="Breve descripción del plan" />
-                                    </div>
-                                </template>
-                            </Card>
+                                    <small class="p-error" v-if="submitted && precio.precio_anual === null">El precio anual es obligatorio</small>
+                                </div>
+                            </div>
+                            
+                            <div v-if="precio.precio_mensual && precio.precio_anual" class="price-comparison">
+                                <div class="comparison-item">
+                                    <div class="comparison-label">Precio mensual × 12</div>
+                                    <div class="comparison-value">{{ formatCurrency(precio.precio_mensual * 12) }}</div>
+                                </div>
+                                <i class="pi pi-arrow-right comparison-arrow"></i>
+                                <div class="comparison-item">
+                                    <div class="comparison-label">Precio anual</div>
+                                    <div class="comparison-value">{{ formatCurrency(precio.precio_anual) }}</div>
+                                </div>
+                                <i class="pi pi-arrow-right comparison-arrow"></i>
+                                <div class="comparison-item saving">
+                                    <div class="comparison-label">Ahorro anual</div>
+                                    <div class="comparison-value">{{ calcularAhorro }}</div>
+                                </div>
+                            </div>
                         </div>
                         
-                        <div class="col-12 mt-3">
-                            <Card>
-                                <template #header>
-                                    <div class="flex align-items-center mb-3">
-                                        <i class="pi pi-money-bill mr-2" style="font-size: 1.5rem"></i>
-                                        <h4 class="m-0">Precios</h4>
-                                    </div>
-                                </template>
-                                <template #content>
-                                    <div class="grid formgrid">
-                                        <div class="field col-12 md:col-6">
-                                            <label for="precio_mensual" class="font-bold">Precio Mensual*</label>
-                                            <div class="p-inputgroup">
-                                                <span class="p-inputgroup-addon">€</span>
-                                                <InputNumber id="precio_mensual" v-model="precio.precio_mensual"
-                                                           mode="decimal" :minFractionDigits="2" :maxFractionDigits="2"
-                                                           :class="{'p-invalid': submitted && precio.precio_mensual === null}" />
-                                            </div>
-                                            <small class="p-error" v-if="submitted && precio.precio_mensual === null">
-                                                El precio mensual es obligatorio
-                                            </small>
-                                        </div>
-                                        <div class="field col-12 md:col-6">
-                                            <label for="precio_anual" class="font-bold">Precio Anual*</label>
-                                            <div class="p-inputgroup">
-                                                <span class="p-inputgroup-addon">€</span>
-                                                <InputNumber id="precio_anual" v-model="precio.precio_anual"
-                                                           mode="decimal" :minFractionDigits="2" :maxFractionDigits="2"
-                                                           :class="{'p-invalid': submitted && precio.precio_anual === null}" />
-                                            </div>
-                                            <small class="p-error" v-if="submitted && precio.precio_anual === null">
-                                                El precio anual es obligatorio
-                                            </small>
-                                        </div>
-                                    </div>
-                                    <div class="flex align-items-center justify-content-center my-3">
-                                        <span class="text-sm text-600">
-                                            Ahorro anual: <span class="font-bold text-primary">{{ calcularAhorroAnual }}%</span>
+                        <!-- Sección de características -->
+                        <div class="edit-section">
+                            <h3 class="section-title">
+                                <i class="pi pi-check-circle section-icon"></i>
+                                Características del Plan
+                            </h3>
+                            
+                            <p class="mb-3">Edita o actualiza las características que incluye este plan:</p>
+                            
+                            <!-- Lista editable de características -->
+                            <div class="caracteristicas-container">
+                                <div v-for="(caracteristica, index) in caracteristicasArray" :key="index" class="caracteristica-item">
+                                    <div class="p-inputgroup">
+                                        <span class="p-inputgroup-addon">
+                                            <i class="pi pi-check"></i>
                                         </span>
+                                        <InputText v-model="caracteristicasArray[index]" placeholder="Ingrese una característica" />
+                                        <Button icon="pi pi-times" class="p-button-danger" @click="eliminarCaracteristica(index)" />
                                     </div>
-                                </template>
-                            </Card>
-                        </div>
-                        
-                        <div class="col-12 mt-3">
-                            <Card>
-                                <template #header>
-                                    <div class="flex align-items-center mb-3">
-                                        <i class="pi pi-check-circle mr-2" style="font-size: 1.5rem"></i>
-                                        <h4 class="m-0">Características</h4>
-                                    </div>
-                                </template>
-                                <template #content>
-                                    <div class="field">
-                                        <label for="caracteristicas" class="font-bold">Características del Plan</label>
-                                        <small class="block mb-2">Introduce una característica por línea</small>
-                                        <Textarea id="caracteristicas" v-model="caracteristicasText" rows="5" 
-                                                 autoResize placeholder="Ej: 10 usuarios incluidos&#10;Acceso a todas las funciones&#10;Soporte 24/7" />
-                                    </div>
-                                    
-                                    <div class="flex flex-wrap gap-3 mt-3" v-if="caracteristicasPreview.length > 0">
-                                        <Chip v-for="(item, index) in caracteristicasPreview" 
-                                              :key="index" 
-                                              :label="item" 
-                                              icon="pi pi-check" />
-                                    </div>
-                                </template>
-                            </Card>
-                        </div>
-                        
-                        <div class="col-12 mt-3">
-                            <Card>
-                                <template #header>
-                                    <div class="flex align-items-center mb-3">
-                                        <i class="pi pi-cog mr-2" style="font-size: 1.5rem"></i>
-                                        <h4 class="m-0">Configuración</h4>
-                                    </div>
-                                </template>
-                                <template #content>
-                                    <div class="grid formgrid">
-                                        <div class="field-checkbox col-12 md:col-6">
-                                            <div class="flex align-items-center">
-                                                <Checkbox id="destacado" v-model="precio.destacado" :binary="true" />
-                                                <label for="destacado" class="ml-2">
-                                                    <span class="font-medium">Plan Destacado</span>
-                                                    <small class="block text-500">Este plan aparecerá resaltado</small>
-                                                </label>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="field-checkbox col-12 md:col-6">
-                                            <div class="flex align-items-center">
-                                                <Checkbox id="activo" v-model="precio.activo" :binary="true" />
-                                                <label for="activo" class="ml-2">
-                                                    <span class="font-medium">Plan Activo</span>
-                                                    <small class="block text-500">Este plan estará visible</small>
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </template>
-                            </Card>
+                                </div>
+                                
+                                <Button 
+                                    label="Agregar característica" 
+                                    icon="pi pi-plus" 
+                                    class="p-button-outlined mt-2" 
+                                    @click="agregarCaracteristica" 
+                                />
+                            </div>
                         </div>
                     </div>
                     
                     <template #footer>
-                        <div class="flex justify-content-end gap-2">
+                        <div class="dialog-footer">
                             <Button label="Cancelar" icon="pi pi-times" class="p-button-text" @click="hideDialog" />
-                            <Button label="Guardar" icon="pi pi-check" class="p-button-primary" @click="savePrecio" />
+                            <Button 
+                                label="Guardar cambios" 
+                                icon="pi pi-check" 
+                                class="p-button-primary" 
+                                @click="savePrecio"
+                                :loading="saving"
+                            />
                         </div>
                     </template>
                 </Dialog>
                 
                 <!-- Modal para ver detalles del plan -->
-                <Dialog v-model:visible="viewPlanDialog" :header="'Detalles del Plan'" :modal="true" 
+                <Dialog v-model:visible="viewPlanDialog" header="Detalles del Plan" :modal="true" 
                        :dismissableMask="true" :closable="true" :style="{width: '500px'}">
                     <div class="card" v-if="selectedPlan">
                         <div class="flex flex-column md:flex-row gap-3">
@@ -297,20 +251,6 @@
                                         </div>
                                     </li>
                                 </ul>
-                                
-                                <Divider />
-                                
-                                <div class="flex justify-content-between">
-                                    <span class="font-bold">Estado:</span>
-                                    <Tag :value="selectedPlan.activo ? 'Activo' : 'Inactivo'" 
-                                         :severity="selectedPlan.activo ? 'success' : 'danger'" />
-                                </div>
-                                
-                                <div class="flex justify-content-between mt-3">
-                                    <span class="font-bold">Destacado:</span>
-                                    <Tag :value="selectedPlan.destacado ? 'Destacado' : 'No destacado'" 
-                                         :severity="selectedPlan.destacado ? 'success' : 'info'" />
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -328,12 +268,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive, computed, watch } from 'vue';
+import { ref, onMounted, reactive, computed } from 'vue';
 import { useToast } from 'primevue/usetoast';
-import { useRouter } from 'vue-router';
 import axios from 'axios';
 
-// Define FilterMatchMode manualmente
+// Define FilterMatchMode
 const FilterMatchMode = {
     STARTS_WITH: 'startsWith',
     CONTAINS: 'contains',
@@ -347,8 +286,6 @@ const dt = ref();
 const precios = ref([]);
 const precioDialog = ref(false);
 const viewPlanDialog = ref(false);
-const deletePrecioDialog = ref(false);
-const deletePrecios = ref(false);
 const precio = ref({});
 const selectedPlan = ref(null);
 const selectedPrecios = ref(null);
@@ -356,43 +293,23 @@ const submitted = ref(false);
 const filters = reactive({
     'global': { value: null, matchMode: FilterMatchMode.CONTAINS }
 });
+const caracteristicasArray = ref([]);
 const toast = useToast();
-const router = useRouter();
-const caracteristicasText = ref('');
-
+const saving = ref(false);
 const categorias = [
     { name: 'Básico', code: 'basico' },
     { name: 'Premium', code: 'premium' },
     { name: 'Business', code: 'business' }
 ];
 
-const caracteristicasPreview = computed(() => {
-    return caracteristicasText.value
-        .split('\n')
-        .map(item => item.trim())
-        .filter(item => item !== '');
-});
-
-const calcularAhorroAnual = computed(() => {
-    if (!precio.value.precio_mensual || !precio.value.precio_anual) return 0;
+const calcularAhorro = computed(() => {
+    if (!precio.value.precio_mensual || !precio.value.precio_anual) return '0%';
     
     const precioMensualAnual = precio.value.precio_mensual * 12;
     const ahorro = precioMensualAnual - precio.value.precio_anual;
     const porcentajeAhorro = (ahorro / precioMensualAnual) * 100;
     
-    return porcentajeAhorro.toFixed(0);
-});
-
-// Observar cambios en el texto de características para actualizar automáticamente
-watch(caracteristicasText, (newValue) => {
-    if (!precio.value) return;
-    
-    const caracteristicas = newValue
-        .split('\n')
-        .map(item => item.trim())
-        .filter(item => item !== '');
-        
-    precio.value.caracteristicas = caracteristicas;
+    return `${porcentajeAhorro.toFixed(0)}% (${formatCurrency(ahorro)})`;
 });
 
 onMounted(() => {
@@ -424,31 +341,11 @@ const getCategoriaName = (code) => {
 
 const getCategoriaSeverity = (categoria) => {
     switch (categoria) {
-        case 'basico':
-            return 'info';
-        case 'premium':
-            return 'success';
-        case 'business':
-            return 'warning';
-        default:
-            return 'secondary';
+        case 'basico': return 'info';
+        case 'premium': return 'success';
+        case 'business': return 'warning';
+        default: return 'secondary';
     }
-};
-
-const openNew = () => {
-    precio.value = {
-        categoria: null,
-        nombre_plan: '',
-        descripcion: '',
-        precio_mensual: null,
-        precio_anual: null,
-        destacado: false,
-        activo: true,
-        caracteristicas: []
-    };
-    caracteristicasText.value = '';
-    submitted.value = false;
-    precioDialog.value = true;
 };
 
 const hideDialog = () => {
@@ -462,13 +359,10 @@ const savePrecio = async () => {
     if (precio.value.nombre_plan?.trim() && precio.value.categoria && 
         precio.value.precio_mensual !== null && precio.value.precio_anual !== null) {
         try {
-            // Convertir el texto de características a array
-            const caracteristicas = caracteristicasText.value
-                .split('\n')
-                .map(item => item.trim())
-                .filter(item => item !== '');
+            saving.value = true;
             
-            precio.value.caracteristicas = caracteristicas;
+            // Filtrar características vacías
+            precio.value.caracteristicas = caracteristicasArray.value.filter(item => item.trim() !== '');
             
             if (precio.value.id) {
                 await axios.put(`/api/precios/${precio.value.id}`, precio.value);
@@ -483,19 +377,47 @@ const savePrecio = async () => {
             precio.value = {};
         } catch (error) {
             toast.add({ severity: 'error', summary: 'Error', detail: 'Error al guardar el precio', life: 3000 });
+        } finally {
+            saving.value = false;
         }
     }
 };
 
+const agregarCaracteristica = () => {
+    caracteristicasArray.value.push('');
+};
+
+const eliminarCaracteristica = (index) => {
+    caracteristicasArray.value.splice(index, 1);
+};
+
 const editPrecio = (data) => {
-    precio.value = JSON.parse(JSON.stringify(data));
+    // Crear un nuevo objeto para evitar problemas de reactividad
+    precio.value = {
+        id: data.id,
+        categoria: data.categoria || null,
+        nombre_plan: data.nombre_plan || '',
+        descripcion: data.descripcion || '',
+        precio_mensual: data.precio_mensual ? Number(data.precio_mensual) : 0,
+        precio_anual: data.precio_anual ? Number(data.precio_anual) : 0,
+        destacado: Boolean(data.destacado),
+        activo: Boolean(data.activo),
+        caracteristicas: []
+    };
     
-    // Convertir array de características a texto
-    caracteristicasText.value = Array.isArray(data.caracteristicas) 
-        ? data.caracteristicas.join('\n') 
-        : '';
-        
-    precioDialog.value = true;
+    // Inicializar el array de características
+    caracteristicasArray.value = [];
+    if (Array.isArray(data.caracteristicas) && data.caracteristicas.length > 0) {
+        caracteristicasArray.value = [...data.caracteristicas];
+    } else {
+        // Agregar al menos una característica vacía para editar
+        agregarCaracteristica();
+    }
+    
+    // Abrir el diálogo
+    setTimeout(() => {
+        precioDialog.value = true;
+    }, 100);
 };
 
 const viewPlanDetails = (data) => {
@@ -514,57 +436,9 @@ const editSelectedPlan = () => {
         viewPlanDialog.value = false;
     }
 };
-
-const confirmDeletePrecio = (data) => {
-    precio.value = data;
-    deletePrecioDialog.value = true;
-};
-
-const deletePrecio = async () => {
-    try {
-        await axios.delete(`/api/precios/${precio.value.id}`);
-        loadPrecios();
-        toast.add({ severity: 'success', summary: 'Éxito', detail: 'Precio eliminado', life: 3000 });
-        deletePrecioDialog.value = false;
-        precio.value = {};
-    } catch (error) {
-        toast.add({ severity: 'error', summary: 'Error', detail: 'Error al eliminar el precio', life: 3000 });
-    }
-};
-
-const confirmDeleteSelected = () => {
-    deletePrecios.value = true;
-};
-
-const deleteSelectedPrecios = async () => {
-    try {
-        for (let p of selectedPrecios.value) {
-            await axios.delete(`/api/precios/${p.id}`);
-        }
-        
-        loadPrecios();
-        toast.add({ severity: 'success', summary: 'Éxito', detail: 'Precios eliminados', life: 3000 });
-        deletePrecios.value = false;
-        selectedPrecios.value = null;
-    } catch (error) {
-        toast.add({ severity: 'error', summary: 'Error', detail: 'Error al eliminar los precios', life: 3000 });
-    }
-};
-
-const exportCSV = () => {
-    dt.value?.exportCSV();
-};
 </script>
 
 <style scoped>
-.plan-badge {
-    border-radius: 2px;
-    padding: .25em .5rem;
-    font-weight: 700;
-    letter-spacing: .3px;
-    text-transform: uppercase;
-}
-
 .plan-icon {
     width: 24px;
     height: 24px;
@@ -582,26 +456,6 @@ const exportCSV = () => {
 
 .plan-icon.business {
     background-color: #FFA726;
-}
-
-.destacado-true {
-    background: #C8E6C9;
-    color: #256029;
-}
-
-.destacado-false {
-    background: #FEEDAF;
-    color: #8A5340;
-}
-
-.status-true {
-    background: #C8E6C9;
-    color: #256029;
-}
-
-.status-false {
-    background: #FFCDD2;
-    color: #C63737;
 }
 
 .plan-badge-large {
@@ -625,5 +479,195 @@ const exportCSV = () => {
 
 .plan-badge-large.business {
     background-color: #FFA726;
+}
+
+.plan-edit-dialog {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+:deep(.plan-edit-dialog .p-dialog-content) {
+    padding: 0;
+    overflow: hidden;
+}
+
+.custom-dialog-header {
+    background: linear-gradient(135deg, #106EBE 0%, #0078D4 100%);
+    color: white;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dialog-title-section {
+    display: flex;
+    align-items: center;
+}
+
+.dialog-title-section h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.plan-edit-container {
+    padding: 1rem;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.edit-section {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.edit-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+    color: #106EBE;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding-bottom: 0.75rem;
+}
+
+.section-icon {
+    margin-right: 10px;
+    font-size: 1.2rem;
+}
+
+/* Comparador de precios */
+.price-comparison {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(16, 110, 190, 0.05);
+    padding: 1rem;
+    border-radius: 6px;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.comparison-item {
+    text-align: center;
+    padding: 0.5rem 1rem;
+}
+
+.comparison-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.comparison-value {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.comparison-arrow {
+    color: #6c757d;
+    margin: 0 0.5rem;
+}
+
+.saving .comparison-value {
+    color: #2ecc71;
+}
+
+/* Dialog footer */
+.dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+/* Características */
+.caracteristica-item {
+    margin-bottom: 0.7rem;
+}
+
+.caracteristica-item .p-inputgroup {
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+/* Plan info banner */
+.plan-info-banner {
+    background: linear-gradient(to right, rgba(0,0,0,0.03), rgba(0,0,0,0.01));
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.plan-icon-large {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: white;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+}
+
+.plan-icon-large.basico {
+    background: linear-gradient(135deg, #4FACFE 0%, #42A5F5 100%);
+}
+
+.plan-icon-large.premium {
+    background: linear-gradient(135deg, #43E97B 0%, #38F9D7 100%);
+}
+
+.plan-icon-large.business {
+    background: linear-gradient(135deg, #FF9A44 0%, #FFA726 100%);
+}
+
+.plan-info-details {
+    flex-grow: 1;
+}
+
+.plan-name {
+    font-size: 1.4rem;
+    margin: 0 0 0.2rem 0;
+    color: #2c3e50;
+}
+
+.plan-category {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 0.95rem;
+}
+
+.prices-section {
+    background-color: #f1f8ff;
+    border-left: 4px solid #42A5F5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .price-comparison {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .comparison-arrow {
+        transform: rotate(90deg);
+    }
 }
 </style>

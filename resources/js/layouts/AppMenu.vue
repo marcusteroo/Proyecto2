@@ -1,14 +1,12 @@
-
 <template>
     <button class="relative overflow-hidden w-full p-link flex align-items-center p-2 pl-0 text-color hover:surface-200 border-noround">
-
-    <Avatar :image="authStore().user?.avatar" class="mr-3" shape="circle" />
-    <span class="inline-flex flex-column">
+        <Avatar :image="authStore().user?.avatar" class="mr-3" shape="circle" />
+        <span class="inline-flex flex-column">
             <span class="font-bold">{{ authStore().user?.name }}</span>
             <span>
                 <span v-for="rol in authStore().user?.roles" class="text-sm mr-2">{{rol.name}}</span>
             </span>
-    </span>
+        </span>
     </button>
 
     <ul class="layout-menu">
@@ -22,13 +20,14 @@
 <script setup>
 import { ref } from 'vue';
 import AppMenuItem from './AppMenuItem.vue';
-import {useAbility} from '@casl/vue'
+import { useAbility } from '@casl/vue';
 import { authStore } from "../store/auth";
+import useAuth from '../composables/auth'; // Importar el composable de autenticación
 
-const {can} = useAbility();
+const { can } = useAbility();
 const auth = authStore();
-//const user = computed(() => auth.user.value)
-//console.log(auth.user);
+const { logout, processing } = useAuth(); // Obtener la función logout del composable
+
 const model = ref([
     {
         label: 'Home',
@@ -58,6 +57,19 @@ const model = ref([
         items: [
             { label: 'Tableros', icon: 'pi pi-fw pi-th-large', to: '/admin/kanbans', permision:'kanbans-list' },
             { label: 'Tareas', icon: 'pi pi-fw pi-check', to: '/admin/tareas', permision:'tareas-list' }
+        ]
+    },
+    {
+        label: 'Cerrar Sesion',
+        items: [
+            { 
+                label: 'Logout', 
+                icon: 'pi pi-fw pi-sign-out', 
+                command: () => logout(), 
+                disabled: processing,   
+                permision: 'all'
+                
+            }
         ]
     }
 ]);

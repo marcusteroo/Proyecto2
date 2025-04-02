@@ -61,6 +61,15 @@
                   <div class="nav-active-indicator"></div>
                 </router-link>
               </li>
+              <li class="nav-item" :class="{ 'active': route.path.startsWith('/app/rate') }">
+                <router-link to="/app/rate" class="nav-link">
+                  <div class="nav-link-icon">
+                    <i class="pi pi-comment"></i>
+                  </div>
+                  <span class="nav-link-text">Comentarios</span>
+                  <div class="nav-active-indicator"></div>
+                </router-link>
+              </li>
               <li class="nav-item" :class="{ 'active': route.path.startsWith('/app/settings') }">
                 <router-link to="/app/settings" class="nav-link">
                   <div class="nav-link-icon">

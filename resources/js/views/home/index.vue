@@ -1205,7 +1205,6 @@ onMounted(() => {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #3f359b 0%, #6665dd 100%);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.4s ease;
@@ -1213,7 +1212,7 @@ onMounted(() => {
 }
 
 .feature-card:hover {
-  transform: translateY(-10px);
+  transform: translateY(-3px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
@@ -1233,19 +1232,12 @@ onMounted(() => {
   transition: all 0.3s ease;
 }
 
-.feature-card:hover .feature-icon {
-  background: linear-gradient(135deg, #3f359b, #6665dd);
-}
 
 .feature-icon svg {
   width: 32px;
   height: 32px;
   color: #6665dd;
   transition: all 0.3s ease;
-}
-
-.feature-card:hover .feature-icon svg {
-  color: white;
 }
 
 .feature-card h3 {
@@ -1324,7 +1316,7 @@ onMounted(() => {
 }
 
 .stat-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-3px);
   border-color: rgba(255, 255, 255, 0.2);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 }
