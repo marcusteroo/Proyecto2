@@ -6,6 +6,7 @@ const GuestLayout = ()  => import('../layouts/Guest.vue');
 const PostsIndex  = ()  => import('../views/admin/posts/Index.vue');
 const PostsCreate  = ()  => import('../views/admin/posts/Create.vue');
 const PostsEdit  = ()  => import('../views/admin/posts/Edit.vue');
+const PreciosIndex = () => import('../views/admin/precios/Index.vue');
 
 async function requireLogin(to, from, next) {
     const auth = authStore();
@@ -352,6 +353,21 @@ export default [
                         meta: {
                             breadCrumb: 'Editar Tarea', // Antes: 'Editar Usuario'
                             linked: false
+                        }
+                    }
+                ]
+            },
+            {
+                path: '/admin/precios',
+                component: AuthenticatedLayout,
+                beforeEnter: requireLogin,
+                children: [
+                    {
+                        path: '',
+                        name: 'precios.index',
+                        component: PreciosIndex,
+                        meta: {
+                            breadCrumb: 'Precios',
                         }
                     }
                 ]

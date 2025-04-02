@@ -33,7 +33,9 @@ const model = ref([
     {
         label: 'Home',
         permision: 'all',
-        items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/admin', permision: 'all'}]
+        items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/admin', permision: 'all'},
+                {label: 'Precios', icon: 'pi pi-tag', to: '/admin/precios', permision: 'all' }
+        ]
     },
     {
         label: 'Usuarios',
@@ -52,9 +54,9 @@ const model = ref([
         ]
     },
     {
-        label: 'Kanbans',
+        label: 'Tableros',
         items: [
-            { label: 'Kanbans', icon: 'pi pi-fw pi-th-large', to: '/admin/kanbans', permision:'kanbans-list' },
+            { label: 'Tableros', icon: 'pi pi-fw pi-th-large', to: '/admin/kanbans', permision:'kanbans-list' },
             { label: 'Tareas', icon: 'pi pi-fw pi-check', to: '/admin/tareas', permision:'tareas-list' }
         ]
     }

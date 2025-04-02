@@ -216,38 +216,20 @@
           <!-- Plan Básico -->
           <div class="pricing-card">
             <div class="card-header">
-              <div class="plan-name">Básico</div>
+              <div class="plan-name">{{ getPlanPorCategoria('basico')?.nombre_plan || 'Básico' }}</div>
               <div class="plan-price">
-                <span class="price-amount">{{ isMonthly ? '19' : '180' }}<sup>€</sup></span>
-                <span class="price-period">/ {{ isMonthly ? 'mes' : 'año' }}</span>
+                <div class="price-amount" v-if="getPlanPorCategoria('basico')">
+                  {{ isMonthly ? getPlanPorCategoria('basico').precio_mensual : getPlanPorCategoria('basico').precio_anual }}<sup>€</sup>
+                </div>
+                <span class="price-period">{{ isMonthly ? '/mes' : '/año' }}</span>
               </div>
-              <p class="plan-description">Perfecto para empezar a organizarte</p>
+              <p class="plan-description">{{ getPlanPorCategoria('basico')?.descripcion || 'Perfecto para empezar a organizarte' }}</p>
             </div>
             <div class="card-features">
               <ul>
-                <li>
-                  <span class="check-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"></path>
-                    </svg>
-                  </span>
-                  <span>2 automatizaciones</span>
-                </li>
-                <li>
-                  <span class="check-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"></path>
-                    </svg>
-                  </span>
-                  <span>Kanban básico</span>
-                </li>
-                <li>
-                  <span class="check-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"></path>
-                    </svg>
-                  </span>
-                  <span>Soporte por correo</span>
+                <li v-for="(caracteristica, index) in getPlanPorCategoria('basico')?.caracteristicas || []" :key="index">
+                  <span class="check-icon">✓</span>
+                  {{ caracteristica }}
                 </li>
               </ul>
             </div>
@@ -260,54 +242,20 @@
           <div class="pricing-card featured">
             <div class="featured-badge">Más popular</div>
             <div class="card-header">
-              <div class="plan-name">Premium</div>
+              <div class="plan-name">{{ getPlanPorCategoria('premium')?.nombre_plan || 'Premium' }}</div>
               <div class="plan-price">
-                <span class="price-amount">{{ isMonthly ? '40' : '384' }}<sup>€</sup></span>
-                <span class="price-period">/ {{ isMonthly ? 'mes' : 'año' }}</span>
+                <div class="price-amount" v-if="getPlanPorCategoria('premium')">
+                  {{ isMonthly ? getPlanPorCategoria('premium').precio_mensual : getPlanPorCategoria('premium').precio_anual }}<sup>€</sup>
+                </div>
+                <span class="price-period">{{ isMonthly ? '/mes' : '/año' }}</span>
               </div>
-              <p class="plan-description">Ideal para profesionales y equipos</p>
+              <p class="plan-description">{{ getPlanPorCategoria('premium')?.descripcion || 'Ideal para profesionales y equipos' }}</p>
             </div>
             <div class="card-features">
               <ul>
-                <li>
-                  <span class="check-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"></path>
-                    </svg>
-                  </span>
-                  <span><strong>Hasta 4 automatizaciones</strong></span>
-                </li>
-                <li>
-                  <span class="check-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"></path>
-                    </svg>
-                  </span>
-                  <span><strong>Conexión con WhatsApp</strong></span>
-                </li>
-                <li>
-                  <span class="check-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"></path>
-                    </svg>
-                  </span>
-                  <span><strong>Integración con tu Email</strong></span>
-                </li>
-                <li>
-                  <span class="check-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"></path>
-                    </svg>
-                  </span>
-                  <span><strong>Kanban totalmente personalizable</strong></span>
-                </li>
-                <li>
-                  <span class="check-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"></path>
-                    </svg>
-                  </span>
-                  <span>Soporte prioritario</span>
+                <li v-for="(caracteristica, index) in getPlanPorCategoria('premium')?.caracteristicas || []" :key="index">
+                  <span class="check-icon">✓</span>
+                  {{ caracteristica }}
                 </li>
               </ul>
             </div>
@@ -320,46 +268,20 @@
           <!-- Plan Business -->
           <div class="pricing-card">
             <div class="card-header">
-              <div class="plan-name">Business</div>
+              <div class="plan-name">{{ getPlanPorCategoria('business')?.nombre_plan || 'Business' }}</div>
               <div class="plan-price">
-                <span class="price-amount">{{ isMonthly ? '80' : '768' }}<sup>€</sup></span>
-                <span class="price-period">/ {{ isMonthly ? 'mes' : 'año' }}</span>
+                <div class="price-amount" v-if="getPlanPorCategoria('business')">
+                  {{ isMonthly ? getPlanPorCategoria('business').precio_mensual : getPlanPorCategoria('business').precio_anual }}<sup>€</sup>
+                </div>
+                <span class="price-period">{{ isMonthly ? '/mes' : '/año' }}</span>
               </div>
-              <p class="plan-description">Para empresas y equipos grandes</p>
+              <p class="plan-description">{{ getPlanPorCategoria('business')?.descripcion || 'Para empresas y equipos grandes' }}</p>
             </div>
             <div class="card-features">
               <ul>
-                <li>
-                  <span class="check-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"></path>
-                    </svg>
-                  </span>
-                  <span>Automatizaciones ilimitadas</span>
-                </li>
-                <li>
-                  <span class="check-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"></path>
-                    </svg>
-                  </span>
-                  <span>Todas las integraciones disponibles</span>
-                </li>
-                <li>
-                  <span class="check-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"></path>
-                    </svg>
-                  </span>
-                  <span>Kanban personalizado avanzado</span>
-                </li>
-                <li>
-                  <span class="check-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"></path>
-                    </svg>
-                  </span>
-                  <span>Soporte 24/7 dedicado</span>
+                <li v-for="(caracteristica, index) in getPlanPorCategoria('business')?.caracteristicas || []" :key="index">
+                  <span class="check-icon">✓</span>
+                  {{ caracteristica }}
                 </li>
               </ul>
             </div>
@@ -600,30 +522,54 @@ import { ref, onMounted, onBeforeMount } from "vue";
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { useRouter } from "vue-router";
 import { authStore } from "@/store/auth";
+import axios from 'axios'; // Asegúrate de importar axios
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/effect-coverflow';
 import { Navigation, Pagination, EffectCoverflow } from 'swiper/modules';
+
 // Inicializar el router y el store de autenticación
 const router = useRouter();
 const auth = authStore();
-//Esto es para que si el usuario ya esta logeado lo rediriga a la pagina de app
+
+// Esto es para que si el usuario ya esta logeado lo rediriga a la pagina de app
 onBeforeMount(() => {
   if (auth.authenticated) {
     router.push('/app');
   }
 });
+
 const isMonthly = ref(true);
-const price = ref(40); 
+const planes = ref([]); // Añadir esta línea
+
+// Cargar precios de la API
+const cargarPrecios = async () => {
+  try {
+    const response = await axios.get('/api/public/precios');
+    planes.value = response.data;
+  } catch (error) {
+    console.error('Error al cargar los precios:', error);
+  }
+};
+
+// Llamar a la función para cargar los precios
+onMounted(() => {
+  cargarPrecios();
+});
 
 const togglePlan = (monthly) => {
   isMonthly.value = monthly;
-  price.value = monthly ? 40 : 400; 
 };
+
 const llevarPaginaRegistro = () => {
   router.push('/register');
 };
+
+const getPlanPorCategoria = (categoria) => {
+  return planes.value.find(plan => plan.categoria === categoria);
+};
+
 const testimonials = ref([
   {
     nombre: "Elena Martínez",
@@ -2589,38 +2535,6 @@ onMounted(() => {
     font-size: 3rem;
   }
 
-}
-@media (max-width: 992px) {
-  .hero-grid {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
-  
-  .hero-text {
-    max-width: 100%;
-    text-align: center;
-  }
-  
-  .hero-tagline {
-    justify-content: center;
-  }
-  
-  .hero-cta {
-    justify-content: center;
-  }
-  
-  .hero-stats {
-    margin: 0 auto;
-    max-width: 450px;
-  }
-  
-  .floating-element {
-    display: none;
-  }
-  
-  .trusted-by-logos {
-    gap: 30px;
-  }
 }
 @media (max-width: 991px) {
   .testimonials-section {
