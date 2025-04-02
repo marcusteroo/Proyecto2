@@ -58,6 +58,9 @@ import InputIcon from 'primevue/inputicon';
 import MeterGroup from 'primevue/metergroup';
 import Tooltip from 'primevue/tooltip';
 import FloatLabel from 'primevue/floatlabel';
+import Divider from 'primevue/divider';
+import Card from 'primevue/card';
+import Chip from 'primevue/chip';
 /*STYLES */
 import "primeflex/primeflex.css";
 import "primeicons/primeicons.css";
@@ -164,7 +167,9 @@ app.component('Editor', Editor);
 app.component('IconField', IconField);
 app.component('InputIcon', InputIcon);
 app.component('MeterGroup', MeterGroup);
-
+app.component('Divider', Divider);
+app.component('Card', Card);
+app.component('Chip', Chip);
 app.directive('tooltip', Tooltip);
 app.directive('ripple', Ripple);
 app.directive('styleclass', StyleClass);
