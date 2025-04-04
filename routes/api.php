@@ -76,7 +76,7 @@ Route::get('category-list', [CategoryController::class, 'getList']);
 
 Route::get('get-posts', [PostControllerAdvance::class, 'getPosts']);
 Route::get('get-category-posts/{id}', [PostControllerAdvance::class, 'getCategoryByPosts']);
-Route::get('get-post/{id}', [PostControllerAdvance::class, 'getPost']);
+Route::get('/get-post/{id}', [PostControllerAdvance::class, 'getPost']);
 
 Route::get('note', [NoteController::class, 'index'])->name('note.index');
 Route::post('note', [NoteController::class, 'store'])->name('note.store');

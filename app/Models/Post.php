@@ -9,8 +9,6 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-//use Spatie\MediaLibrary\MediaCollections\Models\Media;
-
 class Post extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;
@@ -39,11 +37,9 @@ class Post extends Model implements HasMedia
 
     public function registerMediaConversions(Media $media = null): void
     {
-        if (env('RESIZE_IMAGE') === true) {
-
-            $this->addMediaConversion('resized-image')
-                ->width(env('IMAGE_WIDTH', 300))
-                ->height(env('IMAGE_HEIGHT', 300));
-        }
+        $this->addMediaConversion('resized-image')
+            ->width(env('IMAGE_WIDTH', 300))
+            ->height(env('IMAGE_HEIGHT', 300))
+            ->performOnCollections('images');
     }
 }
