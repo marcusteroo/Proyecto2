@@ -6,13 +6,13 @@
         <div class="card-header bg-transparent">
           <h5 class="float-start">Tareas</h5>
           <router-link
-            v-if="can('tarea-create')"
             :to="{ name: 'tareas.create' }"
             class="btn btn-primary btn-sm float-end"
           >
             Crear Tarea
           </router-link>
         </div>
+
 
         <!-- Cuerpo de la tarjeta -->
         <div class="card-body shadow-sm">

@@ -17,6 +17,30 @@
                             </div>
                         </div>
                         <div class="mb-3">
+                            <label for="surname1" class="form-label">Primer apellido</label>
+                            <input v-model="post.surname1" id="surname1" type="text" class="form-control">
+                            <div class="text-danger mt-1">
+                                {{ errors.surname1 }}
+                            </div>
+                            <div class="text-danger mt-1">
+                                <div v-for="message in validationErrors?.surname1">
+                                    {{ message }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="surname2" class="form-label">Segundo apellido</label>
+                            <input v-model="post.surname2" id="surname2" type="text" class="form-control">
+                            <div class="text-danger mt-1">
+                                {{ errors.surname2 }}
+                            </div>
+                            <div class="text-danger mt-1">
+                                <div v-for="message in validationErrors?.surname2">
+                                    {{ message }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
                             <label for="email" class="form-label">Email</label>
                             <input v-model="post.email" id="email" type="email" class="form-control">
                             <div class="text-danger mt-1">
@@ -87,6 +111,8 @@
         name: 'required',
         email: 'required',
         password: 'required|min:8',
+        surname1: 'required',
+        surname2: ''
     }
     // Create a form context with the validation schema
     const { validate, errors } = useForm({ validationSchema: schema })
@@ -94,12 +120,16 @@
     const { value: name } = useField('name', null, { initialValue: '' });
     const { value: email } = useField('email', null, { initialValue: '' });
     const { value: password } = useField('password', null, { initialValue: '' });
+    const { value: surname1 } = useField('surname1', null, { initialValue: '' });
+    const { value: surname2 } = useField('surname2', null, { initialValue: '' });
     const { value: role_id } = useField('role_id', null, { initialValue: '', label: 'role' });
 
     const post = reactive({
         name,
         email,
         password,
+        surname1,
+        surname2,
         role_id,
     })
     function submitForm() {

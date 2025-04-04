@@ -2,15 +2,15 @@
   <div class="row justify-content-center my-2">
     <div class="col-md-12">
       <div class="card border-0">
-        <!-- Encabezado de la tarjeta -->
+        <!-- Card header for Kanbans (Boards) -->
         <div class="card-header bg-transparent">
-          <h5 class="float-start">Kanbans</h5>
+          <h5 class="float-start">Tableros</h5>
           <router-link
-            v-if="can('kanban-create')"
+           
             :to="{ name: 'kanbans.create' }"
             class="btn btn-primary btn-sm float-end"
           >
-            Create Kanban
+            Crear Tablero
           </router-link>
         </div>
   

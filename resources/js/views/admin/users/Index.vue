@@ -5,6 +5,9 @@
 
                 <div class="card-header bg-transparent ps-0 pe-0">
                     <h5 class="float-start mb-0">Ejercicios</h5>
+                    <router-link :to="{ name: 'users.create' }" class="btn btn-primary btn-sm float-end">
+                        Create User
+                    </router-link>
                 </div>
 
                     <DataTable v-model:filters="filters" :value="users.data" paginator :rows="5"
