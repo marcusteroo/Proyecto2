@@ -2,33 +2,38 @@
 
 namespace App\Http\Resources;
 
-use Exception;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class PostResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
-     */
     public function toArray($request)
     {
-        //if no resize image
-        try {
-            $resized_image = $this->getMedia('*');//[0]->getUrl('resized-image');
-        } catch (Exception $e) {
-            $resized_image="";
-        }
         return [
             'id' => $this->id,
             'title' => $this->title,
-            'categories' => $this->categories,
             'content' => $this->content,
-            'original_image' => count($this->getMedia('*')) > 0 ? $this->getMedia('*')[0]->getUrl() : null,
-            'resized_image' => $resized_image,
-            'created_at' => $this->created_at->toDateString()
+            'user_id' => $this->user_id,
+            'user' => $this->whenLoaded('user'),
+            'categories' => $this->whenLoaded('categories'),
+            'media' => $this->whenLoaded('media', function () {
+                return $this->media->map(function ($media) {
+                    // Añade esta línea para el log
+                    \Log::info('Media URL generated: ' . $media->getUrl());
+                    
+                    return [
+                        'id' => $media->id,
+                        'name' => $media->name,
+                        'file_name' => $media->file_name,
+                        'mime_type' => $media->mime_type,
+                        'original_url' => asset($media->getUrl()),
+                        'thumbnail_url' => $media->hasGeneratedConversion('resized-image') 
+                            ? asset($media->getUrl('resized-image')) 
+                            : asset($media->getUrl()),
+                    ];
+                });
+            }),
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

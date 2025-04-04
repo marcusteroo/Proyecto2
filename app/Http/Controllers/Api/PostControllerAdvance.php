@@ -55,7 +55,6 @@ class PostControllerAdvance extends Controller
 
     public function store(StorePostRequest $request)
     {
-
         $this->authorize('post-create');
 
         $validatedData = $request->validated();
@@ -83,8 +82,6 @@ class PostControllerAdvance extends Controller
         }
     }
 
-
-    //NO edita imagen
     public function update(Post $post, StorePostRequest $request)
     {
         $this->authorize('post-edit');
@@ -114,20 +111,22 @@ class PostControllerAdvance extends Controller
 
     public function getPosts()
     {
-        $posts = Post::with('categories')->with('media')->latest()->paginate();
+        $posts = Post::with('categories', 'user', 'media')->latest()->paginate();
         return PostResource::collection($posts);
-
     }
 
     public function getCategoryByPosts($id)
     {
-        $posts = Post::whereRelation('categories', 'category_id', '=', $id)->paginate();
+        $posts = Post::whereRelation('categories', 'category_id', '=', $id)
+            ->with('categories', 'user', 'media')
+            ->paginate();
 
         return PostResource::collection($posts);
     }
 
     public function getPost($id)
-    {
-        return Post::with('categories', 'user', 'media')->findOrFail($id);
-    }
+{
+    $post = Post::with(['categories', 'user', 'media'])->findOrFail($id);
+    return new PostResource($post);
+}
 }
