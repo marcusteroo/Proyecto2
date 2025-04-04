@@ -4,13 +4,7 @@
       <button class="menu-toggle-btn" @click.stop="toggleMobileMenu($event)">
         <i class="pi pi-bars"></i>
       </button>
-  
-      <!-- Logotipo para móvil -->
-      <div class="mobile-logo">
-        <router-link to="/" class="logo-link">
-          <img src="/images/LogoKanFlow.svg" alt="KanFlow" class="logo-image" />
-        </router-link>
-      </div>
+
   
       <!-- Espacio medio -->
       <div class="topbar-spacer"></div>
@@ -21,7 +15,16 @@
         <div class="profile-menu">
           <button class="profile-button" @click.stop="toggleProfileMenu($event)">
             <span class="user-welcome">Hola, {{ authStore().user.name }}</span>
-            <div class="user-avatar">{{ getUserInitials() }}</div>
+            <!-- Avatar personalizado, mostrando imagen si existe -->
+            <div class="user-avatar" v-if="!userAvatarUrl">{{ getUserInitials() }}</div>
+            <div class="user-avatar" v-else>
+              <img 
+                :src="normalizeUrl(userAvatarUrl)" 
+                alt="Avatar" 
+                class="avatar-image"
+                @error="handleAvatarError" 
+              />
+            </div>
             <i class="pi pi-chevron-down chevron-icon" :class="{'rotate': profileMenuOpen}"></i>
           </button>
           
@@ -40,98 +43,185 @@
         </div>
       </div>
     </header>
-  </template>
+</template>
   
-  <script setup>
-  import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-  import { useLayout } from '../composables/layout';
-  import useAuth from "@/composables/auth";
-  import { useRouter } from "vue-router";
-  import { authStore } from "../store/auth";
+<script setup>
+import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue';
+import { useLayout } from '../composables/layout';
+import useAuth from "@/composables/auth";
+import { useRouter } from "vue-router";
+import { authStore } from "../store/auth";
   
-  const router = useRouter();
-  const { processing, logout } = useAuth();
-  const { layoutState } = useLayout();
+const router = useRouter();
+const { processing, logout } = useAuth();
+const { layoutState } = useLayout();
+const auth = authStore();
   
-  const topbarMenuActive = ref(false);
-  const profileMenuOpen = ref(false);
+const topbarMenuActive = ref(false);
+const profileMenuOpen = ref(false);
+const userAvatar = ref('');
+const userAvatarUrl = ref('');
+
+/**
+ * Función para obtener la URL de la conversión (thumbnail) a partir de la URL original
+ */
+const getThumbnailUrl = (originalUrl) => {
+  if (!originalUrl) return '';
   
-  // Función para obtener iniciales de usuario para avatar
-  const getUserInitials = () => {
-    const name = authStore().user.name || '';
-    const parts = name.split(' ');
+  // Si ya es una URL de conversión, devolverla tal cual
+  if (originalUrl.includes('/conversions/')) {
+    return originalUrl;
+  }
+  
+  // Intentar construir la ruta a la conversión
+  try {
+    // Ejemplo: URL original = http://127.0.0.1:8000/storage/4/file.jpg
+    // URL conversión = http://127.0.0.1:8000/storage/4/conversions/thumbnail.jpg
     
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    } else if (name.length > 0) {
-      return name[0].toUpperCase();
-    } else {
-      return 'U';
-    }
-  };
-  
-  // Toggle menú móvil
-  const toggleMobileMenu = (event) => {
-    console.log("Toggling mobile menu");
-    event.stopPropagation();
-    layoutState.staticMenuMobileActive.value = !layoutState.staticMenuMobileActive.value;
-  };
-  
-  // Toggle menú de usuario
-  const toggleProfileMenu = (event) => {
-    event.stopPropagation();
-    profileMenuOpen.value = !profileMenuOpen.value;
+    // Separar la URL por "/"
+    const parts = originalUrl.split('/');
     
-    // Solo agregar el listener cuando el menú está abierto
-    if (profileMenuOpen.value) {
-      // Pequeño retraso para evitar que el mismo clic que abre el menú lo cierre
-      setTimeout(() => {
-        document.addEventListener('click', handleOutsideClick);
-      }, 10);
-    } else {
-      document.removeEventListener('click', handleOutsideClick);
+    // Encontrar el índice del ID de media (que suele ser un número)
+    // Esto depende de tu estructura de URL
+    let mediaIdIndex = -1;
+    for (let i = parts.length - 2; i >= 0; i--) {
+      if (!isNaN(parts[i])) {
+        mediaIdIndex = i;
+        break;
+      }
     }
-  };
+    
+    if (mediaIdIndex === -1) return originalUrl;
+    
+    // Reconstruir la URL hasta el ID de media
+    const basePath = parts.slice(0, mediaIdIndex + 1).join('/');
+    
+    // Agregar la ruta de conversión
+    return `${basePath}/conversions/thumbnail.jpg`;
+    
+  } catch (error) {
+    console.error('Error al generar URL de thumbnail:', error);
+    return originalUrl;
+  }
+};
+
+// Observar cambios en el usuario para actualizar el avatar
+watch(() => auth.user, (newUser) => {
+  if (newUser && newUser.avatar) {
+    userAvatar.value = newUser.avatar;
+    
+    // Intentar usar la URL de la conversión de thumbnail si está disponible
+    if (newUser.avatar_thumbnail) {
+      userAvatarUrl.value = newUser.avatar_thumbnail;
+    } else {
+      // Si no hay thumbnail específico, intentar derivarlo de la URL principal
+      userAvatarUrl.value = getThumbnailUrl(newUser.avatar);
+    }
+    
+    // Asegurar que la URL comienza con la URL base correcta
+    if (userAvatarUrl.value && userAvatarUrl.value.startsWith('/')) {
+      userAvatarUrl.value = `${window.location.origin}${userAvatarUrl.value}`;
+    } else if (userAvatarUrl.value && !userAvatarUrl.value.startsWith('http')) {
+      userAvatarUrl.value = `${window.location.origin}/${userAvatarUrl.value}`;
+    }
+    
+    console.log('Avatar URL en AppTopbar:', userAvatarUrl.value);
+  } else {
+    userAvatar.value = '';
+    userAvatarUrl.value = '';
+  }
+}, { immediate: true, deep: true });
+
+// Función para obtener iniciales de usuario para avatar
+const getUserInitials = () => {
+  const name = authStore().user.name || '';
+  const parts = name.split(' ');
   
-  // Cerrar menú de perfil
-  const closeProfileMenu = () => {
-    profileMenuOpen.value = false;
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+  
+  return name.substring(0, 2).toUpperCase();
+};
+  
+// Cargar avatar al iniciar
+onMounted(() => {
+  if (auth.user && auth.user.avatar) {
+    userAvatar.value = auth.user.avatar;
+  }
+});
+  
+// Toggle menú móvil
+const toggleMobileMenu = (event) => {
+  event.preventDefault();
+  layoutState.sidebarVisible = !layoutState.sidebarVisible;
+  topbarMenuActive.value = false;
+};
+  
+// Toggle menú de usuario
+const toggleProfileMenu = (event) => {
+  event.preventDefault();
+  profileMenuOpen.value = !profileMenuOpen.value;
+  
+  if (profileMenuOpen.value) {
+    document.addEventListener('click', handleOutsideClick);
+  } else {
     document.removeEventListener('click', handleOutsideClick);
-  };
+  }
+};
   
-  // Función para logout
-  const handleLogout = () => {
+// Cerrar menú de perfil
+const closeProfileMenu = () => {
+  profileMenuOpen.value = false;
+  document.removeEventListener('click', handleOutsideClick);
+};
+  
+// Función para logout
+const handleLogout = () => {
+  logout().then(() => {
+    router.push('/login');
+  });
+};
+  
+const topbarMenuClasses = computed(() => {
+  return {
+    'topbar-menu-active': topbarMenuActive.value
+  };
+});
+  
+// Cerrar menú al hacer click fuera
+const handleOutsideClick = (event) => {
+  if (profileMenuOpen.value && !event.target.closest('.profile-menu')) {
     closeProfileMenu();
-    logout();
-  };
+  }
+};
   
-  const topbarMenuClasses = computed(() => {
-    return {
-      'topbar-menu-active': topbarMenuActive.value
-    };
+// No es necesario añadir el listener al montar, lo hacemos solo cuando se abre el menú
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleOutsideClick);
+});
+
+// Añadir función de normalización de URL
+const normalizeUrl = (url) => {
+  if (!url) return '';
+  
+  // Eliminar dobles barras excepto después del protocolo
+  let normalizedUrl = url.replace(/(https?:\/\/)|(\/\/+)/g, (match, protocol) => {
+    return protocol || '/';
   });
   
-  // Cerrar menú al hacer click fuera
-  const handleOutsideClick = (event) => {
-    const profileButton = document.querySelector('.profile-button');
-    const dropdownMenu = document.querySelector('.dropdown-menu');
-    
-    // Si el clic no fue en el botón ni en el menú, cerrar el menú
-    if (profileButton && dropdownMenu && 
-        !profileButton.contains(event.target) && 
-        !dropdownMenu.contains(event.target)) {
-      profileMenuOpen.value = false;
-      document.removeEventListener('click', handleOutsideClick);
-    }
-  };
+  console.log('URL normalizada en AppTopbar:', normalizedUrl);
+  return normalizedUrl;
+};
+
+// Función para manejar errores de carga
+const handleAvatarError = (e) => {
+  console.error('Error al cargar avatar en AppTopbar:', e.target.src);
+  userAvatarUrl.value = ''; // Mostrar iniciales en su lugar
+};
+</script>
   
-  // No es necesario añadir el listener al montar, lo hacemos solo cuando se abre el menú
-  onBeforeUnmount(() => {
-    document.removeEventListener('click', handleOutsideClick);
-  });
-  </script>
-  
-  <style lang="scss">
+<style lang="scss">
   .app-topbar {
     height: 64px;
     background-color: white;
@@ -230,6 +320,13 @@
     font-weight: bold;
     font-size: 14px;
     margin-right: 8px;
+    overflow: hidden; /* Para que las imágenes no se salgan del círculo */
+  }
+  
+  .avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
   
   .chevron-icon {
@@ -390,4 +487,4 @@
     background-color: #383a46;
   }
   
-  </style>
+</style>
