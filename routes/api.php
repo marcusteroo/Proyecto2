@@ -127,3 +127,5 @@ Route::prefix('subtareas')->group(function () {
     Route::put('/tarea/{idTarea}', [SubtareaController::class, 'updateSubtareas']);
 });
 Route::get('public/precios', [PreciosController::class, 'getPrecios']);
+Route::post('/user/avatar', [ProfileController::class, 'updateAvatar'])->middleware('auth:sanctum');
+Route::delete('/user/avatar', [ProfileController::class, 'removeAvatar'])->middleware('auth:sanctum');

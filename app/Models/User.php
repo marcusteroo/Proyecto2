@@ -57,20 +57,19 @@ class User extends Authenticatable implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('images/users')
-            ->useFallbackUrl('/images/placeholder.jpg')
-            ->useFallbackPath(public_path('/images/placeholder.jpg'));
+        $this->addMediaCollection('avatars')
+             ->singleFile()
+             ->useFallbackUrl('/images/placeholder.jpg');
     }
 
     public function registerMediaConversions(Media $media = null): void
     {
-        if (env('RESIZE_IMAGE') === true) {
-
-            $this->addMediaConversion('resized-image')
-                ->width(env('IMAGE_WIDTH', 300))
-                ->height(env('IMAGE_HEIGHT', 300));
-        }
-    }
+        $this->addMediaConversion('thumbnail')
+            ->width(150)
+            ->height(150)
+            ->sharpen(10)
+            ->nonQueued();
+    }   
     public function workflows()
     {
         return $this->belongsToMany(Workflow::class, 'usuarios_workflows', 'user_id', 'workflow_id')
@@ -107,4 +106,5 @@ public function tablerosFavoritos()
             ->where('favorable_type', Tablero::class)
             ->withTimestamps();
 }
+
 }

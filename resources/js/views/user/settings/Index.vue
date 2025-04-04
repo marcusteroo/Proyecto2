@@ -21,11 +21,50 @@
           <h2>Información personal</h2>
           <form @submit.prevent="updateProfile" class="settings-form" enctype="multipart/form-data">
             <!-- Campo para subir imagen de avatar -->
-            <div class="form-group">
-              <label for="avatar">Foto de perfil</label>
-              <input type="file" id="avatar" @change="onFileChange" accept="image/*">
-              <img v-if="previewImage" :src="previewImage">
+            <div class="form-group avatar-upload">
+              <label for="avatar" class="label-foto">Foto de perfil</label>
+              <div class="avatar-container">
+                <div class="current-avatar" :class="{ 'has-avatar': !!previewImage || !!profile.avatar_url }">
+                  <div v-if="debugMode" class="debug-info">
+                    <small>URL: {{ previewImage || profile.avatar_url }}</small>
+                  </div>
+                  <img 
+                    v-if="previewImage || profile.avatar_url" 
+                    :src="previewImage || normalizeUrl(profile.avatar_url)" 
+                    alt="Avatar de usuario"
+                    class="avatar-image" 
+                    @error="handleImageError"
+                  />
+                  <div v-else class="avatar-placeholder">
+                    <i class="pi pi-user"></i>
+                  </div>
+                </div>
+                <div class="avatar-actions">
+                  <label for="avatar" class="avatar-upload-btn">
+                    <i class="pi pi-camera"></i>
+                    <span class="color-texto-cambiar-foto">Cambiar foto</span>
+                  </label>
+                  <button 
+                    v-if="previewImage || profile.avatar_url" 
+                    type="button" 
+                    class="avatar-remove-btn"
+                    @click="removeAvatar"
+                  >
+                    <i class="pi pi-trash"></i>
+                    <span>Eliminar</span>
+                  </button>
+                </div>
+                <input 
+                  type="file" 
+                  id="avatar" 
+                  ref="avatarInput"
+                  @change="onFileChange" 
+                  accept="image/*" 
+                  class="hidden-input"
+                />
+              </div>
             </div>
+            
             <div class="form-group">
               <label for="name">Nombre</label>
               <input 
@@ -53,6 +92,7 @@
             
             <div class="form-actions">
               <button type="submit" :disabled="isLoading" class="btn-primary">
+                <span v-if="isLoading" class="spinner"></span>
                 <span v-if="isLoading">Guardando...</span>
                 <span v-else>Actualizar perfil</span>
               </button>
@@ -159,8 +199,9 @@ const auth = authStore();
 const user = auth.user;
 const toast = useToast();
 const { layoutConfig } = useLayout();
+const avatarInput = ref(null);
 
-// Tabs disponibles en configuración (sin notificaciones)
+// Tabs disponibles en configuración
 const tabs = [
   { id: 'profile', label: 'Perfil', icon: 'pi pi-user' },
   { id: 'password', label: 'Contraseña', icon: 'pi pi-lock' },
@@ -172,7 +213,8 @@ const profile = reactive({
   name: user?.name || '',
   email: user?.email || '',
   avatar: null,
-  avatar_url: ''
+  avatar_url: '',
+  media: []
 });
 
 // Estado para el formulario de contraseña
@@ -190,6 +232,9 @@ const preferences = reactive({
 // Variable para almacenar la vista previa de la imagen
 const previewImage = ref('');
 
+// Añadir variable de debug
+const debugMode = ref(true); // Activa el modo de depuración
+
 // Función para aplicar el tema seleccionado
 const applyTheme = (theme) => {
   localStorage.setItem('theme', theme);
@@ -198,8 +243,6 @@ const applyTheme = (theme) => {
   document.documentElement.classList.add(theme + '-theme');
   document.body.classList.add(theme + '-theme');
   window.dispatchEvent(new CustomEvent('themeChanged', { 
-    detail: theme,
-    bubbles: true, 
     composed: true
   }));
 };
@@ -215,6 +258,21 @@ onMounted(() => {
   applyTheme(preferences.theme);
 });
 
+// Añadir función para normalizar URLs
+const normalizeUrl = (url) => {
+  if (!url) return '';
+  
+  // Eliminar dobles barras excepto después del protocolo
+  let normalizedUrl = url.replace(/(https?:\/\/)|(\/\/+)/g, (match, protocol) => {
+    return protocol || '/';
+  });
+  
+  console.log('URL original:', url);
+  console.log('URL normalizada:', normalizedUrl);
+  
+  return normalizedUrl;
+};
+
 // Cargar datos del usuario
 const loadUserData = async () => {
   isLoading.value = true;
@@ -222,16 +280,43 @@ const loadUserData = async () => {
     const response = await axios.get('/api/user');
     if (response.data.success) {
       const userData = response.data.data;
+      
       profile.name = userData.name || '';
       profile.email = userData.email || '';
-      profile.avatar_url = userData.avatar || '';
-      if (profile.avatar_url) {
-        previewImage.value = profile.avatar_url;
+      profile.media = userData.media || [];
+      
+      // Si hay avatar de Spatie, usarlo
+      if (userData.avatar) {
+        // Usar preferentemente thumbnail si existe
+        profile.avatar_url = userData.avatar_thumbnail || userData.avatar;
+        console.log('Avatar URL cargada:', profile.avatar_url);
+        
+        // Intentar verificar si la URL es accesible
+        fetch(profile.avatar_url, { method: 'HEAD' })
+          .then(response => {
+            console.log(`URL ${profile.avatar_url} accesible:`, response.ok, response.status);
+          })
+          .catch(error => {
+            console.error(`Error verificando URL ${profile.avatar_url}:`, error);
+          });
+        
+        previewImage.value = '';
+      } else {
+        profile.avatar_url = '';
       }
+      
       auth.user = userData;
     }
   } catch (error) {
     console.error('Error al cargar datos del usuario:', error);
+    if (toast) {
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No se pudieron cargar los datos del usuario',
+        life: 3000
+      });
+    }
   } finally {
     isLoading.value = false;
   }
@@ -240,55 +325,195 @@ const loadUserData = async () => {
 // Manejar el cambio del archivo de imagen
 const onFileChange = (event) => {
   const file = event.target.files[0];
-  profile.avatar = file;
-  previewImage.value = URL.createObjectURL(file);
+  if (file) {
+    // Validar el tipo de archivo
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast.add({
+        severity: 'error',
+        summary: 'Formato no válido',
+        detail: 'El archivo debe ser una imagen (JPG, PNG, GIF, WEBP)',
+        life: 3000
+      });
+      if (avatarInput.value) {
+        avatarInput.value.value = ''; // Limpiar el input
+      }
+      return;
+    }
+    
+    // Validar el tamaño (máximo 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.add({
+        severity: 'error',
+        summary: 'Archivo demasiado grande',
+        detail: 'La imagen no debe superar los 2MB',
+        life: 3000
+      });
+      if (avatarInput.value) {
+        avatarInput.value.value = ''; // Limpiar el input
+      }
+      return;
+    }
+    
+    console.log('Archivo seleccionado:', file.name, 'tipo:', file.type, 'tamaño:', file.size);
+    profile.avatar = file;
+    previewImage.value = URL.createObjectURL(file);
+  }
 };
 
-// Actualizar perfil (incluye subida de imagen si se selecciona)
+// Eliminar avatar desde el servidor
+const removeAvatarFromServer = async () => {
+  isLoading.value = true;
+  try {
+    const response = await axios.delete('/api/user/avatar');
+    
+    if (response.data.success) {
+      // Actualizar UI
+      profile.avatar = null;
+      profile.avatar_url = '';
+      previewImage.value = '';
+      
+      // Actualizar el usuario en el store
+      if (response.data.data) {
+        auth.user = response.data.data;
+      }
+      
+      toast.add({
+        severity: 'success',
+        summary: 'Avatar eliminado',
+        detail: 'Tu imagen de perfil ha sido eliminada',
+        life: 3000
+      });
+    }
+  } catch (error) {
+    console.error('Error al eliminar avatar:', error);
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'No se pudo eliminar la imagen de perfil',
+      life: 3000
+    });
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Eliminar avatar
+const removeAvatar = () => {
+  profile.avatar = null;
+  previewImage.value = '';
+  
+  if (profile.avatar_url) {
+    // Si hay un avatar en el servidor, eliminarlo
+    removeAvatarFromServer();
+  } else {
+    profile.avatar_url = '';
+  }
+  
+  if (avatarInput.value) {
+    avatarInput.value.value = '';
+  }
+};
+
+// Subir avatar al servidor
+const uploadAvatar = async () => {
+  if (!profile.avatar) return;
+  
+  try {
+    console.log("Subiendo avatar con método específico");
+    
+    const formData = new FormData();
+    formData.append('avatar', profile.avatar);
+    
+    const response = await axios.post('/api/user/avatar', formData, {
+      headers: { 
+        'Content-Type': 'multipart/form-data',
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (response.data.success || response.status === 200) {
+      console.log("Avatar actualizado correctamente");
+      
+      // Limpiar el input de archivo
+      if (avatarInput.value) {
+        avatarInput.value.value = '';
+      }
+      
+      // La URL del nuevo avatar se obtendrá al recargar los datos del usuario
+      profile.avatar = null;
+    }
+  } catch (error) {
+    console.error('Error al subir avatar:', error);
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error.response?.data?.message || 'No se pudo actualizar la imagen de perfil',
+      life: 3000
+    });
+    throw error; // Re-lanzar para que el método que llamó sepa que hubo un error
+  }
+};
+
+// Actualizar perfil
 const updateProfile = async () => {
   isLoading.value = true;
   errors.value = {};
+  
   try {
-    const formData = new FormData();
-    formData.append('name', profile.name);
-    formData.append('email', profile.email);
-    if (profile.avatar) {
-      formData.append('avatar', profile.avatar);
-    }
-    const response = await axios.put('/api/user', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+    // Primero guardamos la información básica del perfil (sin avatar)
+    const profileData = {
+      name: profile.name
+    };
+    
+    // Verificar qué contiene formData
+    console.log('Enviando datos:', {
+      name: profile.name,
+      email: profile.email,
+      hasAvatar: !!profile.avatar,
+      removeAvatar: !profile.avatar && !profile.avatar_url && previewImage.value === ''
     });
-    if (response.data.success) {
-      auth.user = response.data.data;
-      profile.avatar_url = response.data.data.avatar;
-      if (profile.avatar_url) {
-        previewImage.value = profile.avatar_url;
-      }
-      if (toast) {
-        toast.add({ 
-          severity: 'success', 
-          summary: 'Perfil actualizado', 
-          detail: 'Tu información personal ha sido actualizada correctamente', 
-          life: 3000 
-        });
-      } else {
-        alert('Perfil actualizado correctamente');
-      }
+    
+    // Actualizar datos del perfil
+    const profileResponse = await axios.put('/api/user', profileData);
+    
+    // Si hay avatar para subir, hacerlo en una solicitud separada
+    if (profile.avatar) {
+      console.log("Avatar a subir:", {
+        name: profile.avatar.name,
+        type: profile.avatar.type,
+        size: profile.avatar.size
+      });
+      
+      await uploadAvatar();
+    } 
+    // Si se quiere eliminar el avatar
+    else if (!profile.avatar_url && previewImage.value === '') {
+      // Ya tenemos un método para esto: removeAvatarFromServer();
     }
+    
+    // Recargar datos del usuario
+    await loadUserData();
+    
+    // Mostrar mensaje de éxito
+    toast.add({ 
+      severity: 'success', 
+      summary: 'Perfil actualizado', 
+      detail: 'Tu información personal ha sido actualizada correctamente', 
+      life: 3000 
+    });
+    
   } catch (error) {
+    console.error('Error completo:', error);
     if (error.response?.data?.errors) {
       errors.value = error.response.data.errors;
     } else {
-      if (toast) {
-        toast.add({ 
-          severity: 'error', 
-          summary: 'Error', 
-          detail: 'No se pudo actualizar el perfil', 
-          life: 3000 
-        });
-      } else {
-        alert('Error al actualizar el perfil');
-      }
+      toast.add({ 
+        severity: 'error', 
+        summary: 'Error', 
+        detail: error.response?.data?.message || 'No se pudo actualizar el perfil', 
+        life: 3000 
+      });
     }
   } finally {
     isLoading.value = false;
@@ -347,6 +572,23 @@ const selectTheme = (theme) => {
       detail: `Has cambiado al tema ${theme === 'dark' ? 'oscuro' : 'claro'}`,
       life: 2000
     });
+  }
+};
+
+// Mejorar el manejo de errores en la carga de imagen
+const handleImageError = (e) => {
+  console.error('Error al cargar imagen de avatar:', e);
+  console.error('URL que falló:', e.target.src);
+  
+  // Mostrar un tooltip con el error
+  e.target.setAttribute('data-error', `No se pudo cargar: ${e.target.src}`);
+  e.target.style.display = 'none';
+  
+  // Intentar con otra URL si es posible
+  if (profile.avatar_url && profile.avatar_url !== e.target.src && e.target.src === profile.avatar_thumbnail) {
+    console.log('Intentando con URL alternativa:', profile.avatar_url);
+    e.target.src = profile.avatar_url;
+    e.target.style.display = '';
   }
 };
 </script>
@@ -635,5 +877,129 @@ const selectTheme = (theme) => {
       border-bottom: 1px solid #e1e4e8;
       border-left: 3px solid #1A00FF;
     }
+    .avatar-container{
+      align-items: center;
+    }
   }
+  
+  /* Nuevos estilos para el avatar */
+.avatar-upload {
+  margin-bottom: 30px;
+}
+
+.avatar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  
+}
+
+.current-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #f0f2f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #d1d5da;
+}
+
+.dark-theme .current-avatar {
+  background-color: #2d2d3a;
+  border-color: #383a46;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-placeholder i {
+  font-size: 48px;
+  color: #a0a0a0;
+}
+
+.dark-theme .avatar-placeholder i {
+  color: #6c6c7a;
+}
+
+.avatar-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.hidden-input {
+  display: none;
+}
+
+.avatar-upload-btn, .avatar-remove-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.avatar-upload-btn {
+  background-color: #106EBE;
+  color: white;
+  border: none;
+}
+
+.avatar-upload-btn:hover {
+  background-color: #0e5ea7;
+}
+
+.avatar-remove-btn {
+  background-color: transparent;
+  color: #d73a49;
+  border: 1px solid #d73a49;
+}
+
+.avatar-remove-btn:hover {
+  background-color: rgba(215, 58, 73, 0.1);
+}
+
+.dark-theme .avatar-remove-btn {
+  color: #ff6b6b;
+  border-color: #ff6b6b;
+}
+
+.dark-theme .avatar-remove-btn:hover {
+  background-color: rgba(255, 107, 107, 0.1);
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.label-foto{
+  padding-bottom: 10px;
+}
+.color-texto-cambiar-foto, .pi-camera{
+  color: white;
+}
   </style>
