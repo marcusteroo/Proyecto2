@@ -70,41 +70,115 @@ class User extends Authenticatable implements HasMedia
             ->sharpen(10)
             ->nonQueued();
     }   
+    
+    /**
+     * Todos los workflows a los que el usuario tiene acceso
+     */
     public function workflows()
     {
         return $this->belongsToMany(Workflow::class, 'usuarios_workflows', 'user_id', 'workflow_id')
                 ->withPivot('rol', 'fecha_compartido')
                 ->withTimestamps();
     }
+    
+    /**
+     * Workflows que el usuario posee (rol propietario)
+     */
     public function ownedWorkflows()
-{
-    return $this->workflows()->wherePivot('rol', 'propietario');
-}
-public function sharedWorkflows()
-{
-    return $this->workflows()->wherePivot('rol', '!=', 'propietario');
-}
-public function tablerosCompartidos()
-{
-    return $this->belongsToMany(Tablero::class, 'usuarios_tableros', 'user_id', 'tablero_id')
+    {
+        return $this->workflows()->wherePivot('rol', 'propietario');
+    }
+    
+    /**
+     * Workflows compartidos con el usuario (no es propietario)
+     */
+    public function sharedWorkflows()
+    {
+        return $this->workflows()->wherePivot('rol', '!=', 'propietario');
+    }
+    
+    /**
+     * Tableros compartidos con este usuario
+     */
+    public function tablerosCompartidos()
+    {
+        return $this->belongsToMany(Tablero::class, 'usuarios_tableros', 'user_id', 'tablero_id')
                 ->withPivot('fecha_compartido')
                 ->withTimestamps();
-}
-public function favoritos()
-{
-    return $this->hasMany(Favorito::class);
-}
-public function workflowsFavoritos()
-{
-    return $this->belongsToMany(Workflow::class, 'favoritos', 'user_id', 'favorable_id')
+    }
+    
+    /**
+     * Todos los favoritos del usuario
+     */
+    public function favoritos()
+    {
+        return $this->hasMany(Favorito::class);
+    }
+    
+    /**
+     * Workflows marcados como favoritos
+     */
+    public function workflowsFavoritos()
+    {
+        return $this->belongsToMany(Workflow::class, 'favoritos', 'user_id', 'favorable_id')
             ->where('favorable_type', Workflow::class)
             ->withTimestamps();
-}
-public function tablerosFavoritos()
-{
-    return $this->belongsToMany(Tablero::class, 'favoritos', 'user_id', 'favorable_id')
+    }
+    
+    /**
+     * Tableros marcados como favoritos
+     */
+    public function tablerosFavoritos()
+    {
+        return $this->belongsToMany(Tablero::class, 'favoritos', 'user_id', 'favorable_id')
             ->where('favorable_type', Tablero::class)
             ->withTimestamps();
-}
-
+    }
+    
+    /**
+     * Método para compartir un workflow con otro usuario
+     * 
+     * @param int $workflowId ID del workflow a compartir
+     * @param int|array $userIds ID o array de IDs de usuarios
+     * @param string $rol Rol a asignar (propietario, editor, espectador)
+     * @return void
+     */
+    public function compartirWorkflow($workflowId, $userIds, $rol = 'espectador')
+    {
+        $workflow = Workflow::findOrFail($workflowId);
+        
+        if (!$workflow->isOwnedBy($this->id)) {
+            throw new \Exception('No tienes permisos para compartir este workflow');
+        }
+        
+        if (!is_array($userIds)) {
+            $userIds = [$userIds => ['rol' => $rol]];
+        } else {
+            $usersWithRoles = [];
+            foreach ($userIds as $userId) {
+                $usersWithRoles[$userId] = ['rol' => $rol];
+            }
+            $userIds = $usersWithRoles;
+        }
+        
+        $workflow->users()->attach($userIds);
+    }
+    
+    /**
+     * Método para compartir un tablero con otro usuario
+     * 
+     * @param int $tableroId ID del tablero a compartir
+     * @param int|array $userIds ID o array de IDs de usuarios
+     * @return void
+     */
+    public function compartirTablero($tableroId, $userIds)
+    {
+        $tablero = Tablero::findOrFail($tableroId);
+        
+        if (!$tablero->isOwnedBy($this->id)) {
+            throw new \Exception('No tienes permisos para compartir este tablero');
+        }
+        
+        $tablero->usuariosCompartidos()->attach($userIds);
+    }
 }
