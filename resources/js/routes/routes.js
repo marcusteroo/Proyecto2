@@ -392,17 +392,10 @@ export default [
                 meta: { breadCrumb: 'Role Edit' }
             },
             {
-                name: 'authors',
-                path: 'authors',
-                meta: { breadCrumb: 'Autores'},
-                children: [
-                    {
-                        name: 'authors.index',
-                        path: '',
-                        component: () => import('../views/admin/authors/Index.vue'),
-                        meta: { breadCrumb: 'Listado' }
-                    }
-                ]
+                name: 'ratings.admin',
+                path: 'ratings',
+                component: () => import('../views/admin/ratings/Index.vue'),
+                meta: { breadCrumb: 'Reseñas Destacadas' }
             },
 
         ]

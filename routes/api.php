@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\FavoritoController;
 use App\Http\Controllers\Api\SubtareaController;
 use App\Http\Controllers\Api\RatingController;
 use App\Http\Controllers\Api\PreciosController;
+use App\Http\Controllers\Api\FeaturedRatingController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -70,6 +71,9 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
         Route::put('/{id}', [RatingController::class, 'update']);
         Route::delete('/{id}', [RatingController::class, 'destroy']);
     });
+    Route::get('/admin/ratings', [FeaturedRatingController::class, 'index']);
+    Route::patch('/admin/ratings/{id}/featured', [FeaturedRatingController::class, 'updateFeaturedStatus']);
+    Route::post('/admin/ratings/order', [FeaturedRatingController::class, 'updateOrder']);
 });
 
 Route::get('category-list', [CategoryController::class, 'getList']);
@@ -129,3 +133,4 @@ Route::prefix('subtareas')->group(function () {
 Route::get('public/precios', [PreciosController::class, 'getPrecios']);
 Route::post('/user/avatar', [ProfileController::class, 'updateAvatar'])->middleware('auth:sanctum');
 Route::delete('/user/avatar', [ProfileController::class, 'removeAvatar'])->middleware('auth:sanctum');
+Route::get('/public/featured-ratings', [FeaturedRatingController::class, 'getFeaturedForHome']);

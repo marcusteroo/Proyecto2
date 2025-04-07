@@ -570,8 +570,20 @@ const getPlanPorCategoria = (categoria) => {
   return planes.value.find(plan => plan.categoria === categoria);
 };
 
-const testimonials = ref([
-  {
+const testimonials = ref([]);
+
+// Cargar las reseñas destacadas
+const cargarReseñasDestacadas = async () => {
+  try {
+    const response = await axios.get('/api/public/featured-ratings');
+    if (response.data.success) {
+      testimonials.value = response.data.data;
+    }
+  } catch (error) {
+    console.error('Error al cargar reseñas destacadas:', error);
+    // Usar datos de fallback si hay un error
+    testimonials.value = [
+    {
     nombre: "Elena Martínez",
     position: "Directora de Proyectos",
     company: "TechFlow Solutions",
@@ -631,7 +643,28 @@ const testimonials = ref([
     verified: true,
     tags: ["Freelance", "Gestión de tiempo"]
   }
-]);
+      // ... los otros 5 testimonios originales como fallback ...
+    ];
+  }
+};
+
+// Llamar a la función durante el montaje del componente
+onMounted(() => {
+  cargarPrecios();
+  cargarReseñasDestacadas(); // Añadir esta línea
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('fade-in-up');
+      }
+    });
+  }, { threshold: 0.1 });
+
+  [infoSection.value, pricingSection.value, aboutSection.value].forEach(section => {
+    if (section) observer.observe(section);
+  });
+});
 
 
 const infoSection = ref(null);

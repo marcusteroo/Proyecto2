@@ -9,34 +9,35 @@ class Rating extends Model
 {
     use HasFactory;
 
-    // Nombre de la tabla (opcional si sigue la convención)
-    protected $table = 'ratings';
-
-    // Campos que se pueden asignar de forma masiva
     protected $fillable = [
         'user_id',
         'score',
         'comment',
         'categories',
         'job_position',
-        'company'
+        'company',
+        'featured',
+        'featured_order',
+        'photo_path',
+        'tags',
+        'verified'
     ];
 
-    // Relación con el usuario
+    protected $casts = [
+        'featured' => 'boolean',
+        'verified' => 'boolean',
+        'tags' => 'array'
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
     }
     
-    // Convertir las categorías de string a array al obtener el modelo
-    public function getCategoriesAttribute($value)
+    public function scopeFeatured($query)
     {
-        return $value ? explode(',', $value) : [];
-    }
-    
-    // Convertir las categorías de array a string al guardar
-    public function setCategoriesAttribute($value)
-    {
-        $this->attributes['categories'] = is_array($value) ? implode(',', $value) : $value;
+        return $query->where('featured', true)
+                    ->orderBy('featured_order')
+                    ->limit(6);
     }
 }
