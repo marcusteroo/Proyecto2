@@ -295,20 +295,18 @@ const loadUserData = async () => {
       
       // Si hay avatar de Spatie, usarlo
       if (userData.avatar) {
-        // Limpiar URL antes de asignarla
+        // Limpiar URL antes de asignarla y asegurar que es absoluta
         const avatarUrl = userData.avatar_thumbnail || userData.avatar;
-        profile.avatar_url = getValidUrl(avatarUrl);
+        const cleanUrl = getValidUrl(avatarUrl);
         
-        console.log('Avatar URL limpia cargada:', profile.avatar_url);
-        
-        // Intentar verificar si la URL es accesible
-        fetch(profile.avatar_url, { method: 'HEAD' })
-          .then(response => {
-            console.log(`URL ${profile.avatar_url} accesible:`, response.ok, response.status);
-          })
-          .catch(error => {
-            console.error(`Error verificando URL ${profile.avatar_url}:`, error);
-          });
+        // Solo asignar si es una URL válida
+        if (cleanUrl && (cleanUrl.startsWith('http') || cleanUrl.startsWith('/'))) {
+          profile.avatar_url = cleanUrl;
+          console.log('Avatar URL final:', profile.avatar_url);
+        } else {
+          console.warn('URL de avatar descartada por ser inválida:', cleanUrl);
+          profile.avatar_url = '';
+        }
         
         previewImage.value = '';
       } else {
@@ -430,7 +428,7 @@ const uploadAvatar = async () => {
   if (!profile.avatar) return;
   
   try {
-    console.log("Subiendo avatar con método específico");
+    console.log("Subiendo avatar");
     
     const formData = new FormData();
     formData.append('avatar', profile.avatar);
@@ -442,40 +440,48 @@ const uploadAvatar = async () => {
       }
     });
     
-    if (response.data.success || response.status === 200) {
-      console.log("Avatar actualizado correctamente");
+    if (response.data.success) {
+      // Actualiza la UI y el store
+      if (response.data.data) {
+        auth.user = response.data.data;
+        
+        // Forzar actualización de la imagen con un timestamp para evitar caché
+        if (auth.user.avatar) {
+          const timestamp = new Date().getTime();
+          auth.user.avatar = auth.user.avatar.includes('?') 
+            ? auth.user.avatar.split('?')[0] + '?t=' + timestamp
+            : auth.user.avatar + '?t=' + timestamp;
+        }
+      }
       
-      // Limpiar el input de archivo
+      // Mostrar mensaje de éxito
+      toast.add({
+        severity: 'success',
+        summary: 'Avatar actualizado',
+        detail: 'Tu imagen de perfil ha sido actualizada',
+        life: 3000
+      });
+      
+      // Limpiar el input
+      profile.avatar = null;
       if (avatarInput.value) {
         avatarInput.value.value = '';
       }
       
-      // Importante: Actualizar el store de autenticación con los nuevos datos
-      if (response.data.data) {
-        auth.user = response.data.data;
-      }
-      
-      // Limpiar la vista previa y recargar datos del usuario del servidor
-      profile.avatar = null;
+      // Actualizar previsualizacion
       previewImage.value = '';
       
-      // Forzar la recarga de los datos del usuario desde el servidor
+      // Recargar datos del usuario
       await loadUserData();
-      
-      // Agregar parámetro para forzar recarga del navegador (evitar caché)
-      if (profile.avatar_url) {
-        profile.avatar_url = `${profile.avatar_url}?t=${new Date().getTime()}`;
-      }
     }
   } catch (error) {
-    console.error('Error al subir avatar:', error);
+    console.error('Error completo:', error);
     toast.add({
       severity: 'error',
       summary: 'Error',
-      detail: error.response?.data?.message || 'No se pudo actualizar la imagen de perfil',
+      detail: error.response?.data?.message || 'No se pudo actualizar la imagen',
       life: 3000
     });
-    throw error;
   }
 };
 
@@ -603,19 +609,42 @@ const selectTheme = (theme) => {
 const handleImageError = (e) => {
   console.error('Error al cargar imagen de avatar:', e);
   
-  // Mostrar placeholder directamente sin reintentos
-  e.target.style.display = 'none';
-  
-  // Mostrar avatar placeholder
-  const parent = e.target.parentNode;
-  if (!parent.querySelector('.avatar-placeholder')) {
-    const placeholder = document.createElement('div');
-    placeholder.className = 'avatar-placeholder';
-    const icon = document.createElement('i');
-    icon.className = 'pi pi-user';
-    placeholder.appendChild(icon);
-    parent.appendChild(placeholder);
+  try {
+    // Intentar cargar la versión original en lugar del thumbnail
+    if (e.target && profile.avatar_url) {
+      // Extraer la ruta base sin /conversions/
+      const originalPath = profile.avatar_url.replace('/conversions/elena-thumbnail.jpg', '/elena.jpg')
+                                          .replace('/conversions/', '/');
+      
+      // Si no es el primer intento
+      if (!e.target.dataset.tried) {
+        e.target.dataset.tried = "true";
+        e.target.src = originalPath;
+        return; // Intentar con la imagen original
+      }
+    }
+    
+    // Si llegamos aquí, no se pudo cargar ni la miniatura ni la original
+    if (e.target) {
+      e.target.style.display = 'none';
+      
+      // Mostrar avatar placeholder
+      const parent = e.target.parentNode;
+      if (parent && !parent.querySelector('.avatar-placeholder')) {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'avatar-placeholder';
+        const icon = document.createElement('i');
+        icon.className = 'pi pi-user';
+        placeholder.appendChild(icon);
+        parent.appendChild(placeholder);
+      }
+    }
+  } catch (error) {
+    console.error('Error al manejar el error de imagen:', error);
   }
+  
+  // Limpiar URL de avatar para forzar el uso del placeholder en el futuro
+  profile.avatar_url = '';
 };
 </script>
 

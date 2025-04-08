@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\SubtareaController;
 use App\Http\Controllers\Api\RatingController;
 use App\Http\Controllers\Api\PreciosController;
 use App\Http\Controllers\Api\FeaturedRatingController;
+use App\Http\Controllers\Api\AdminStatsController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -134,3 +135,4 @@ Route::get('public/precios', [PreciosController::class, 'getPrecios']);
 Route::post('/user/avatar', [ProfileController::class, 'updateAvatar'])->middleware('auth:sanctum');
 Route::delete('/user/avatar', [ProfileController::class, 'removeAvatar'])->middleware('auth:sanctum');
 Route::get('/public/featured-ratings', [FeaturedRatingController::class, 'getFeaturedForHome']);
+Route::get('/admin/stats', [AdminStatsController::class, 'index']);

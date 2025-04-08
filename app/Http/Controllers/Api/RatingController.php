@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+
 class RatingController extends Controller
 {
     // Listar todas las valoraciones
@@ -16,11 +17,14 @@ class RatingController extends Controller
         $ratings = Rating::with('user:id,name')->get();
         return response()->json($ratings);
     }
+    
+    // Función auxiliar para normalizar URLs
     private function normalizeUrl($url) {
         // Elimina barras duplicadas exceptuando aquellas que siguen a http: o https:
         return preg_replace('/([^:])\/+/', '$1/', $url);
     }
-    // Guardar una valoración
+    
+    // Guardar una valoración (crear o actualizar)
     public function store(Request $request)
     {
         $request->validate([
@@ -33,12 +37,19 @@ class RatingController extends Controller
 
         $user = Auth::user();
         
-        // Crear la reseña
-        $rating = new Rating();
-        $rating->user_id = $user->id;
+        // Buscar si el usuario ya tiene una reseña
+        $rating = Rating::where('user_id', $user->id)->first();
+        
+        // Si no existe, crear una nueva; si existe, actualizarla
+        if (!$rating) {
+            $rating = new Rating();
+            $rating->user_id = $user->id;
+        }
+        
+        // Actualizar los campos
         $rating->score = $request->score;
         $rating->comment = $request->comment;
-        $rating->categories = $request->categories; // Ya viene como string
+        $rating->categories = $request->categories;
         $rating->job_position = $request->job_position;
         $rating->company = $request->company;
         
@@ -55,20 +66,18 @@ class RatingController extends Controller
                     $rating->photo_path = $this->normalizeUrl($media->getUrl());
                 } else {
                     Log::info('Usuario sin avatar ni media');
-                    // Usar avatar por defecto
                     $rating->photo_path = '/images/testimonials/placeholder.webp';
                 }
             } catch (\Exception $e) {
                 Log::error('Error al obtener avatar de media: ' . $e->getMessage());
-                // Usar avatar por defecto en caso de error
                 $rating->photo_path = '/images/testimonials/placeholder.webp';
             }
         }
         
-        // Guardar la reseña con la información de la foto
+        // Guardar la reseña con la información actualizada
         $rating->save();
         
-        Log::info('Rating creado', [
+        Log::info('Rating creado/actualizado', [
             'user_id' => $user->id,
             'photo_path' => $rating->photo_path
         ]);
@@ -76,8 +85,8 @@ class RatingController extends Controller
         return response()->json([
             'success' => true,
             'data' => $rating,
-            'message' => 'Valoración creada correctamente'
-        ], 201);
+            'message' => $rating->wasRecentlyCreated ? 'Valoración creada correctamente' : 'Valoración actualizada correctamente'
+        ], $rating->wasRecentlyCreated ? 201 : 200);
     }
 
     // Mostrar una valoración específica

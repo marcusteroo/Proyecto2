@@ -56,7 +56,8 @@ const model = ref([
         label: 'Tableros',
         items: [
             { label: 'Tableros', icon: 'pi pi-fw pi-th-large', to: '/admin/kanbans', permision:'kanbans-list' },
-            { label: 'Tareas', icon: 'pi pi-fw pi-check', to: '/admin/tareas', permision:'tareas-list' }
+            { label: 'Tareas', icon: 'pi pi-fw pi-check', to: '/admin/tareas', permision:'tareas-list' },
+            { label: 'Reseñas', icon: 'pi pi-fw pi-star', to: '/admin/ratings', permision:'all' }
         ]
     },
     {

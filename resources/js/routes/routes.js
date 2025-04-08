@@ -70,7 +70,7 @@ export default [
             },
             {
                 path: 'posts',
-                name: 'public-posts.index',
+                name: 'public-pos ts.index',
                 component: () => import('../views/posts/index.vue'),
             },
             {
