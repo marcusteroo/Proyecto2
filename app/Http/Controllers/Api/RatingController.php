@@ -7,6 +7,7 @@ use App\Models\Rating;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class RatingController extends Controller
 {
@@ -16,39 +17,76 @@ class RatingController extends Controller
         $ratings = Rating::with('user:id,name')->get();
         return response()->json($ratings);
     }
-
-    // Guardar una valoración
+    
+    // Función auxiliar para normalizar URLs
+    private function normalizeUrl($url) {
+        // Elimina barras duplicadas exceptuando aquellas que siguen a http: o https:
+        return preg_replace('/([^:])\/+/', '$1/', $url);
+    }
+    
+    // Guardar una valoración (crear o actualizar)
     public function store(Request $request)
     {
-        if (!Auth::check()) {
-            return response()->json(['error' => 'Usuario no autenticado'], 401);
-        }
-
-        $validated = $request->validate([
-            'score' => 'required|integer|min:1|max:5',
-            'comment' => 'nullable|string|max:500',
-            'categories' => 'required|array|min:1|max:2',
-            'categories.*' => 'in:Marketing,Comunicacion,Desarrollo,Customizacion,Startup,Escalabilidad',
-            'job_position' => 'required|string|max:100',
-            'company' => 'required|string|max:100'
+        $request->validate([
+            'score' => 'required|integer|between:1,5',
+            'comment' => 'required|string',
+            'categories' => 'required|string', // Esperamos un string separado por comas
+            'job_position' => 'required|string',
+            'company' => 'required|string',
         ]);
 
         $user = Auth::user();
         
-        $rating = Rating::create([
+        // Buscar si el usuario ya tiene una reseña
+        $rating = Rating::where('user_id', $user->id)->first();
+        
+        // Si no existe, crear una nueva; si existe, actualizarla
+        if (!$rating) {
+            $rating = new Rating();
+            $rating->user_id = $user->id;
+        }
+        
+        // Actualizar los campos
+        $rating->score = $request->score;
+        $rating->comment = $request->comment;
+        $rating->categories = $request->categories;
+        $rating->job_position = $request->job_position;
+        $rating->company = $request->company;
+        
+        // Obtener la foto de perfil del usuario
+        if ($user->avatar) {
+            Log::info('Usuario tiene avatar: ' . $user->avatar);
+            $rating->photo_path = $this->normalizeUrl($user->avatar);
+        } else {
+            // Intentar obtener avatar de media library si existe
+            try {
+                $media = $user->getFirstMedia('avatars');
+                if ($media) {
+                    Log::info('Usuario tiene media: ' . $media->getUrl());
+                    $rating->photo_path = $this->normalizeUrl($media->getUrl());
+                } else {
+                    Log::info('Usuario sin avatar ni media');
+                    $rating->photo_path = '/images/testimonials/placeholder.webp';
+                }
+            } catch (\Exception $e) {
+                Log::error('Error al obtener avatar de media: ' . $e->getMessage());
+                $rating->photo_path = '/images/testimonials/placeholder.webp';
+            }
+        }
+        
+        // Guardar la reseña con la información actualizada
+        $rating->save();
+        
+        Log::info('Rating creado/actualizado', [
             'user_id' => $user->id,
-            'score' => $validated['score'],
-            'comment' => $validated['comment'] ?? null,
-            'categories' => $validated['categories'],
-            'job_position' => $validated['job_position'],
-            'company' => $validated['company']
+            'photo_path' => $rating->photo_path
         ]);
 
         return response()->json([
-            'message' => '¡Valoración guardada con éxito!',
-            'rating' => $rating,
-            'user_name' => $user->name
-        ], 201);
+            'success' => true,
+            'data' => $rating,
+            'message' => $rating->wasRecentlyCreated ? 'Valoración creada correctamente' : 'Valoración actualizada correctamente'
+        ], $rating->wasRecentlyCreated ? 201 : 200);
     }
 
     // Mostrar una valoración específica

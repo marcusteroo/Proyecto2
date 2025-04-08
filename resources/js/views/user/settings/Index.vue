@@ -30,7 +30,7 @@
                   </div>
                   <img 
                     v-if="previewImage || profile.avatar_url" 
-                    :src="previewImage || normalizeUrl(profile.avatar_url)" 
+                    :src="previewImage || getValidUrl(profile.avatar_url)" 
                     alt="Avatar de usuario"
                     class="avatar-image" 
                     @error="handleImageError"
@@ -233,7 +233,7 @@ const preferences = reactive({
 const previewImage = ref('');
 
 // Añadir variable de debug
-const debugMode = ref(true); // Activa el modo de depuración
+const debugMode = ref(false); // Desactiva el modo de depuración
 
 // Función para aplicar el tema seleccionado
 const applyTheme = (theme) => {
@@ -258,20 +258,28 @@ onMounted(() => {
   applyTheme(preferences.theme);
 });
 
-// Añadir función para normalizar URLs
-const normalizeUrl = (url) => {
+// Agrega esta función para mejorar el manejo de URLs
+const getValidUrl = (url) => {
   if (!url) return '';
   
-  // Eliminar dobles barras excepto después del protocolo
-  let normalizedUrl = url.replace(/(https?:\/\/)|(\/\/+)/g, (match, protocol) => {
-    return protocol || '/';
-  });
+  // Primero corregir el protocolo si está mal formado (http:/ en vez de http://)
+  let cleanUrl = url.replace(/http:\/([^\/])/, 'http://$1');
   
-  console.log('URL original:', url);
-  console.log('URL normalizada:', normalizedUrl);
+  // Eliminar dominios duplicados (este es el problema principal)
+  if (cleanUrl.includes('127.0.0.1:8000/127.0.0.1:8000')) {
+    cleanUrl = cleanUrl.replace('127.0.0.1:8000/127.0.0.1:8000', '127.0.0.1:8000');
+  }
   
-  return normalizedUrl;
+  // Si la URL comienza con / pero no con // (no es una URL relativa al protocolo)
+  if (cleanUrl.startsWith('/') && !cleanUrl.startsWith('//')) {
+    cleanUrl = window.location.origin + cleanUrl;
+  }
+  
+  return cleanUrl;
 };
+
+// Reemplaza la función normalizeUrl existente con esta
+const normalizeUrl = getValidUrl;
 
 // Cargar datos del usuario
 const loadUserData = async () => {
@@ -287,18 +295,18 @@ const loadUserData = async () => {
       
       // Si hay avatar de Spatie, usarlo
       if (userData.avatar) {
-        // Usar preferentemente thumbnail si existe
-        profile.avatar_url = userData.avatar_thumbnail || userData.avatar;
-        console.log('Avatar URL cargada:', profile.avatar_url);
+        // Limpiar URL antes de asignarla y asegurar que es absoluta
+        const avatarUrl = userData.avatar_thumbnail || userData.avatar;
+        const cleanUrl = getValidUrl(avatarUrl);
         
-        // Intentar verificar si la URL es accesible
-        fetch(profile.avatar_url, { method: 'HEAD' })
-          .then(response => {
-            console.log(`URL ${profile.avatar_url} accesible:`, response.ok, response.status);
-          })
-          .catch(error => {
-            console.error(`Error verificando URL ${profile.avatar_url}:`, error);
-          });
+        // Solo asignar si es una URL válida
+        if (cleanUrl && (cleanUrl.startsWith('http') || cleanUrl.startsWith('/'))) {
+          profile.avatar_url = cleanUrl;
+          console.log('Avatar URL final:', profile.avatar_url);
+        } else {
+          console.warn('URL de avatar descartada por ser inválida:', cleanUrl);
+          profile.avatar_url = '';
+        }
         
         previewImage.value = '';
       } else {
@@ -420,7 +428,7 @@ const uploadAvatar = async () => {
   if (!profile.avatar) return;
   
   try {
-    console.log("Subiendo avatar con método específico");
+    console.log("Subiendo avatar");
     
     const formData = new FormData();
     formData.append('avatar', profile.avatar);
@@ -432,26 +440,48 @@ const uploadAvatar = async () => {
       }
     });
     
-    if (response.data.success || response.status === 200) {
-      console.log("Avatar actualizado correctamente");
+    if (response.data.success) {
+      // Actualiza la UI y el store
+      if (response.data.data) {
+        auth.user = response.data.data;
+        
+        // Forzar actualización de la imagen con un timestamp para evitar caché
+        if (auth.user.avatar) {
+          const timestamp = new Date().getTime();
+          auth.user.avatar = auth.user.avatar.includes('?') 
+            ? auth.user.avatar.split('?')[0] + '?t=' + timestamp
+            : auth.user.avatar + '?t=' + timestamp;
+        }
+      }
       
-      // Limpiar el input de archivo
+      // Mostrar mensaje de éxito
+      toast.add({
+        severity: 'success',
+        summary: 'Avatar actualizado',
+        detail: 'Tu imagen de perfil ha sido actualizada',
+        life: 3000
+      });
+      
+      // Limpiar el input
+      profile.avatar = null;
       if (avatarInput.value) {
         avatarInput.value.value = '';
       }
       
-      // La URL del nuevo avatar se obtendrá al recargar los datos del usuario
-      profile.avatar = null;
+      // Actualizar previsualizacion
+      previewImage.value = '';
+      
+      // Recargar datos del usuario
+      await loadUserData();
     }
   } catch (error) {
-    console.error('Error al subir avatar:', error);
+    console.error('Error completo:', error);
     toast.add({
       severity: 'error',
       summary: 'Error',
-      detail: error.response?.data?.message || 'No se pudo actualizar la imagen de perfil',
+      detail: error.response?.data?.message || 'No se pudo actualizar la imagen',
       life: 3000
     });
-    throw error; // Re-lanzar para que el método que llamó sepa que hubo un error
   }
 };
 
@@ -578,18 +608,43 @@ const selectTheme = (theme) => {
 // Mejorar el manejo de errores en la carga de imagen
 const handleImageError = (e) => {
   console.error('Error al cargar imagen de avatar:', e);
-  console.error('URL que falló:', e.target.src);
   
-  // Mostrar un tooltip con el error
-  e.target.setAttribute('data-error', `No se pudo cargar: ${e.target.src}`);
-  e.target.style.display = 'none';
-  
-  // Intentar con otra URL si es posible
-  if (profile.avatar_url && profile.avatar_url !== e.target.src && e.target.src === profile.avatar_thumbnail) {
-    console.log('Intentando con URL alternativa:', profile.avatar_url);
-    e.target.src = profile.avatar_url;
-    e.target.style.display = '';
+  try {
+    // Intentar cargar la versión original en lugar del thumbnail
+    if (e.target && profile.avatar_url) {
+      // Extraer la ruta base sin /conversions/
+      const originalPath = profile.avatar_url.replace('/conversions/elena-thumbnail.jpg', '/elena.jpg')
+                                          .replace('/conversions/', '/');
+      
+      // Si no es el primer intento
+      if (!e.target.dataset.tried) {
+        e.target.dataset.tried = "true";
+        e.target.src = originalPath;
+        return; // Intentar con la imagen original
+      }
+    }
+    
+    // Si llegamos aquí, no se pudo cargar ni la miniatura ni la original
+    if (e.target) {
+      e.target.style.display = 'none';
+      
+      // Mostrar avatar placeholder
+      const parent = e.target.parentNode;
+      if (parent && !parent.querySelector('.avatar-placeholder')) {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'avatar-placeholder';
+        const icon = document.createElement('i');
+        icon.className = 'pi pi-user';
+        placeholder.appendChild(icon);
+        parent.appendChild(placeholder);
+      }
+    }
+  } catch (error) {
+    console.error('Error al manejar el error de imagen:', error);
   }
+  
+  // Limpiar URL de avatar para forzar el uso del placeholder en el futuro
+  profile.avatar_url = '';
 };
 </script>
 

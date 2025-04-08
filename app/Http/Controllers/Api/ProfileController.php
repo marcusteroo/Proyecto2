@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Rating; // Añadir este import
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -188,31 +189,33 @@ class ProfileController extends Controller
             ]);
 
             $user = Auth::user();
-
-            // Limpiar colección de media existente
+            
+            // Limpiar colección de avatares existente
             $user->clearMediaCollection('avatars');
             
-            // Agregar nueva imagen
+            // Añadir el nuevo avatar
             $media = $user->addMediaFromRequest('avatar')
-                    ->usingName('avatar-'.$user->id)
+                    ->usingName('avatar-' . $user->id)
                     ->toMediaCollection('avatars');
-
-            // Recuperar el usuario actualizado con su avatar
-            $updatedUser = User::with('media')->find($user->id);
+            
+            // Obtener la URL del avatar actualizado
+            $avatarUrl = $media->getFullUrl();
+            
+            // Actualizar las reseñas del usuario con la nueva foto
+            $normalizedUrl = preg_replace('/([^:])\/+/', '$1/', $avatarUrl);
+            
+            Rating::where('user_id', $user->id)->update([
+                'photo_path' => $normalizedUrl
+            ]);
             
             return response()->json([
                 'success' => true,
-                'data' => $this->getUserWithAvatar($updatedUser),
+                'data' => $this->getUserWithAvatar($user),
                 'message' => 'Avatar actualizado correctamente'
             ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false, 
-                'message' => 'Error de validación', 
-                'errors' => $e->errors()
-            ], 422);
+                
         } catch (\Exception $e) {
-            \Log::error('Error al subir avatar', [
+            \Log::error('Error al actualizar avatar', [
                 'user_id' => Auth::id(),
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
@@ -220,15 +223,21 @@ class ProfileController extends Controller
             
             return response()->json([
                 'success' => false,
-                'message' => 'Error al subir el avatar: ' . $e->getMessage()
+                'message' => 'Error al actualizar el avatar: ' . $e->getMessage()
             ], 500);
         }
     }
+
     public function removeAvatar()
     {
         try {
             $user = Auth::user();
             $user->clearMediaCollection('avatars');
+            
+            // Actualizar las reseñas del usuario para usar el placeholder
+            Rating::where('user_id', $user->id)->update([
+                'photo_path' => '/images/testimonials/placeholder.webp'
+            ]);
             
             return response()->json([
                 'success' => true,

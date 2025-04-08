@@ -250,156 +250,150 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import axios from 'axios';
+import { ref, reactive } from 'vue';
+import { useToast } from 'primevue/usetoast';
 
-export default {
-  name: 'RatePage',
-  data() {
-    return {
-      score: 5,
-      comment: '',
-      selectedCategories: [],
-      jobPosition: '',
-      company: '',
-      termsAccepted: false,
-      loading: false,
-      errors: [],
-      successMessage: '',
-      submitted: false,
-      showTerms: false,
-      availableCategories: [
-        'Marketing', 
-        'Comunicacion', 
-        'Desarrollo', 
-        'Customizacion', 
-        'Startup', 
-        'Escalabilidad'
-      ]
-    }
-  },
-  methods: {
-    toggleCategory(category) {
-      if (this.selectedCategories.includes(category)) {
-        this.selectedCategories = this.selectedCategories.filter(c => c !== category);
-      } else if (this.selectedCategories.length < 2) {
-        this.selectedCategories.push(category);
-      }
-    },
-    
-    getCategoryIcon(category) {
-      const icons = {
-        'Marketing': 'pi-megaphone',
-        'Comunicacion': 'pi-comments',
-        'Desarrollo': 'pi-code',
-        'Customizacion': 'pi-sliders-h',
-        'Startup': 'pi-chart-line',
-        'Escalabilidad': 'pi-sitemap'
-      };
-      return icons[category] || 'pi-tag';
-    },
-    
-    getCategoryDescription(category) {
-      const descriptions = {
-        'Marketing': 'Estrategias y visibilidad',
-        'Comunicacion': 'Interacción y mensajería',
-        'Desarrollo': 'Código y estructura técnica',
-        'Customizacion': 'Personalización y adaptabilidad',
-        'Startup': 'Soluciones para emprendedores',
-        'Escalabilidad': 'Crecimiento y rendimiento'
-      };
-      return descriptions[category] || '';
-    },
-    
-    getRatingText() {
-      const texts = [
-        'Muy insatisfecho',
-        'Insatisfecho',
-        'Neutral',
-        'Satisfecho',
-        'Muy satisfecho'
-      ];
-      return texts[this.score - 1];
-    },
-    
-    getRatingClass() {
-      if (this.score <= 2) return 'rating-low';
-      if (this.score === 3) return 'rating-medium';
-      return 'rating-high';
-    },
-    
-    acceptTerms() {
-      this.termsAccepted = true;
-      this.showTerms = false;
-    },
-    
-    async submitRating() {
-      this.submitted = true;
-      
-      if (!this.validateForm()) {
-        return;
-      }
-      
-      this.loading = true;
-      this.errors = [];
-      
-      try {
-        const response = await axios.post('/api/ratings', {
-          score: this.score,
-          comment: this.comment,
-          categories: this.selectedCategories,
-          job_position: this.jobPosition,
-          company: this.company
-        });
-        
-        this.successMessage = response.data.message || '¡Gracias por compartir tu opinión! Tu valoración nos ayudará a seguir mejorando.';
-        this.resetForm();
-      } catch (error) {
-        console.error('Error completo:', error);
-        
-        if (error.response) {
-          if (error.response.data.errors) {
-            this.errors = Object.values(error.response.data.errors).flat();
-          } else if (error.response.data.error) {
-            this.errors.push(error.response.data.error);
-          } else if (error.response.data.message) {
-            this.errors.push(error.response.data.message);
-          } else {
-            this.errors.push('Error al enviar la valoración (Código: ' + error.response.status + ')');
-          }
-        } else if (error.request) {
-          this.errors.push('No se recibió respuesta del servidor');
-        } else {
-          this.errors.push('Error de configuración: ' + error.message);
-        }
-      } finally {
-        this.loading = false;
-      }
-    },
-    
-    validateForm() {
-      let isValid = true;
-      
-      if (!this.jobPosition) isValid = false;
-      if (!this.company) isValid = false;
-      if (!this.comment) isValid = false;
-      if (this.selectedCategories.length === 0) isValid = false;
-      if (!this.termsAccepted) isValid = false;
-      
-      return isValid;
-    },
-    
-    resetForm() {
-      this.score = 5;
-      this.comment = '';
-      this.selectedCategories = [];
-      this.jobPosition = '';
-      this.company = '';
-      this.termsAccepted = false;
-      this.submitted = false;
-    }
+const toast = useToast();
+
+// Declarar todas las variables reactivas
+const score = ref(5);
+const comment = ref('');
+const selectedCategories = ref([]);
+const jobPosition = ref('');
+const company = ref('');
+const termsAccepted = ref(false);
+const loading = ref(false);
+const errors = ref([]);
+const successMessage = ref('');
+const submitted = ref(false);
+const showTerms = ref(false);
+
+// Lista de categorías disponibles
+const availableCategories = [
+  'Marketing', 
+  'Comunicacion', 
+  'Desarrollo', 
+  'Customizacion', 
+  'Startup', 
+  'Escalabilidad'
+];
+
+const submitRating = async () => {
+  submitted.value = true;
+  
+  if (!validateForm()) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Por favor, completa todos los campos requeridos',
+      life: 3000
+    });
+    return;
   }
-}
+  
+  loading.value = true;
+  
+  try {
+    const response = await axios.post('/api/ratings', {
+      score: score.value,
+      comment: comment.value,
+      categories: selectedCategories.value.join(','), // Convertir el array a string separado por comas
+      job_position: jobPosition.value,
+      company: company.value
+    });
+    
+    if (response.data.success) {
+      successMessage.value = 'Tu valoración ha sido enviada. ¡Gracias por tu feedback!';
+      resetForm();
+    }
+  } catch (error) {
+    console.error('Error al enviar valoración:', error);
+    errors.value = error.response?.data?.message 
+      ? [error.response.data.message] 
+      : ['Ocurrió un error al enviar la valoración'];
+  } finally {
+    loading.value = false;
+  }
+};
+
+const toggleCategory = (category) => {
+  const index = selectedCategories.value.indexOf(category);
+  if (index > -1) {
+    selectedCategories.value.splice(index, 1); // Eliminar si ya existe
+  } else if (selectedCategories.value.length < 2) {
+    selectedCategories.value.push(category); // Añadir si no existe y hay menos de 2
+  }
+};
+
+const getCategoryIcon = (category) => {
+  const icons = {
+    'Marketing': 'pi-megaphone',
+    'Comunicacion': 'pi-comments',
+    'Desarrollo': 'pi-code',
+    'Customizacion': 'pi-sliders-h',
+    'Startup': 'pi-chart-line',
+    'Escalabilidad': 'pi-sitemap'
+  };
+  return icons[category] || 'pi-tag';
+};
+
+const getCategoryDescription = (category) => {
+  const descriptions = {
+    'Marketing': 'Estrategias y visibilidad',
+    'Comunicacion': 'Interacción y mensajería',
+    'Desarrollo': 'Código y estructura técnica',
+    'Customizacion': 'Personalización y adaptabilidad',
+    'Startup': 'Soluciones para emprendedores',
+    'Escalabilidad': 'Crecimiento y rendimiento'
+  };
+  return descriptions[category] || '';
+};
+
+const getRatingText = () => {
+  const texts = [
+    'Muy insatisfecho',
+    'Insatisfecho',
+    'Neutral',
+    'Satisfecho',
+    'Muy satisfecho'
+  ];
+  return texts[score.value - 1];
+};
+
+const getRatingClass = () => {
+  if (score.value <= 2) return 'rating-low';
+  if (score.value === 3) return 'rating-medium';
+  return 'rating-high';
+};
+
+const acceptTerms = () => {
+  termsAccepted.value = true;
+  showTerms.value = false;
+};
+
+const validateForm = () => {
+  let isValid = true;
+  
+  if (!jobPosition.value) isValid = false;
+  if (!company.value) isValid = false;
+  if (!comment.value) isValid = false;
+  if (selectedCategories.value.length === 0) isValid = false;
+  if (!termsAccepted.value) isValid = false;
+  
+  return isValid;
+};
+
+const resetForm = () => {
+  score.value = 5;
+  comment.value = '';
+  selectedCategories.value = [];
+  jobPosition.value = '';
+  company.value = '';
+  termsAccepted.value = false;
+  submitted.value = false;
+};
 </script>
 
 <style scoped>

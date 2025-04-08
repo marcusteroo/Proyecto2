@@ -19,10 +19,11 @@
             <div class="user-avatar" v-if="!userAvatarUrl">{{ getUserInitials() }}</div>
             <div class="user-avatar" v-else>
               <img 
-                :src="normalizeUrl(userAvatarUrl)" 
+                :src="getValidUrl(userAvatarUrl)" 
                 alt="Avatar" 
                 class="avatar-image"
-                @error="handleAvatarError" 
+                @error="handleAvatarError"
+                data-attempts="0"
               />
             </div>
             <i class="pi pi-chevron-down chevron-icon" :class="{'rotate': profileMenuOpen}"></i>
@@ -105,27 +106,56 @@ const getThumbnailUrl = (originalUrl) => {
   }
 };
 
-// Observar cambios en el usuario para actualizar el avatar
+// Mejora la función para detectar y corregir URLs mal formadas
+const getValidUrl = (url) => {
+  if (!url) return '';
+  
+  // Primero corregir el protocolo si está mal formado (http:/ en vez de http://)
+  let cleanUrl = url.replace(/http:\/([^\/])/, 'http://$1');
+  
+  // Eliminar dominios duplicados
+  if (cleanUrl.includes('127.0.0.1:8000/127.0.0.1:8000')) {
+    cleanUrl = cleanUrl.replace('127.0.0.1:8000/127.0.0.1:8000', '127.0.0.1:8000');
+  }
+  
+  return cleanUrl;
+};
+
+// También simplificamos el manejador de errores
+const handleAvatarError = (e) => {
+  // Mostrar iniciales en lugar del avatar
+  e.target.style.display = 'none';
+  userAvatarUrl.value = '';
+  const parent = e.target.parentNode;
+  parent.textContent = getUserInitials();
+};
+
+// Usa esta función para normalizar URLs
+const normalizeUrl = getValidUrl;
+
+// Manejador de errores simplificado y más robusto
+
+
+// Función auxiliar para extraer el ID de media de una URL
+const extractMediaId = (url) => {
+  if (!url) return null;
+  
+  // Intentar extraer un número de la URL que podría ser el ID de media
+  const matches = url.match(/\/storage\/(\d+)\//);
+  return matches ? matches[1] : null;
+};
+
+// Actualiza el observador para auth.user
 watch(() => auth.user, (newUser) => {
   if (newUser && newUser.avatar) {
-    userAvatar.value = newUser.avatar;
+    // Usar solo URLs directas, sin conversiones que podrían fallar
+    const avatarUrl = newUser.avatar;
     
-    // Intentar usar la URL de la conversión de thumbnail si está disponible
-    if (newUser.avatar_thumbnail) {
-      userAvatarUrl.value = newUser.avatar_thumbnail;
-    } else {
-      // Si no hay thumbnail específico, intentar derivarlo de la URL principal
-      userAvatarUrl.value = getThumbnailUrl(newUser.avatar);
-    }
+    // Limpiar URL antes de usarla
+    const cleanAvatarUrl = getValidUrl(avatarUrl);
     
-    // Asegurar que la URL comienza con la URL base correcta
-    if (userAvatarUrl.value && userAvatarUrl.value.startsWith('/')) {
-      userAvatarUrl.value = `${window.location.origin}${userAvatarUrl.value}`;
-    } else if (userAvatarUrl.value && !userAvatarUrl.value.startsWith('http')) {
-      userAvatarUrl.value = `${window.location.origin}/${userAvatarUrl.value}`;
-    }
-    
-    console.log('Avatar URL en AppTopbar:', userAvatarUrl.value);
+    userAvatar.value = cleanAvatarUrl;
+    userAvatarUrl.value = cleanAvatarUrl;
   } else {
     userAvatar.value = '';
     userAvatarUrl.value = '';
@@ -147,7 +177,12 @@ const getUserInitials = () => {
 // Cargar avatar al iniciar
 onMounted(() => {
   if (auth.user && auth.user.avatar) {
-    userAvatar.value = auth.user.avatar;
+    // Asegurarse de usar una URL válida desde el principio
+    const validUrl = getValidUrl(auth.user.avatar);
+    if (validUrl) {
+      userAvatar.value = validUrl;
+      userAvatarUrl.value = validUrl;
+    }
   }
 });
   
@@ -201,24 +236,6 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', handleOutsideClick);
 });
 
-// Añadir función de normalización de URL
-const normalizeUrl = (url) => {
-  if (!url) return '';
-  
-  // Eliminar dobles barras excepto después del protocolo
-  let normalizedUrl = url.replace(/(https?:\/\/)|(\/\/+)/g, (match, protocol) => {
-    return protocol || '/';
-  });
-  
-  console.log('URL normalizada en AppTopbar:', normalizedUrl);
-  return normalizedUrl;
-};
-
-// Función para manejar errores de carga
-const handleAvatarError = (e) => {
-  console.error('Error al cargar avatar en AppTopbar:', e.target.src);
-  userAvatarUrl.value = ''; // Mostrar iniciales en su lugar
-};
 </script>
   
 <style lang="scss">
