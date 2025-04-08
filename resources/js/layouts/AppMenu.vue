@@ -45,18 +45,17 @@ const model = ref([
         ]
     },
     {
-        label: 'Posts',
-        items: [
-            { label: 'Posts', icon: 'pi pi-fw pi-id-card', to: '/admin/posts', permision: 'post-list' },
-            { label: 'Categorias', icon: 'pi pi-fw pi-id-card', to: '/admin/categories', permision: 'category-list' }
-
-        ]
-    },
-    {
         label: 'Tableros',
         items: [
             { label: 'Tableros', icon: 'pi pi-fw pi-th-large', to: '/admin/kanbans', permision:'kanbans-list' },
             { label: 'Tareas', icon: 'pi pi-fw pi-check', to: '/admin/tareas', permision:'tareas-list' }
+        ]
+    }, 
+    {
+        label: 'Workflows',
+        items: [
+            { label: 'Workflows', icon: 'pi pi-fw pi-sitemap', to: '/admin/workflows', permision:'all' },
+            { label: 'Actions', icon: 'pi pi-fw pi-bolt', to: '/admin/actions', permision:'all' }
         ]
     },
     {

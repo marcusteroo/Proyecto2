@@ -307,15 +307,6 @@ export default [
                         meta: { breadCrumb: 'Kanbans' } // Antes: 'Usuarios'
                     },
                     {
-                        name: 'kanbans.create',
-                        path: 'create',
-                        component: () => import('../views/admin/kanbans/Create.vue'),
-                        meta: {
-                            breadCrumb: 'Crear Kanban',  // Antes: 'Crear Usuario'
-                            linked: false
-                        }
-                    },
-                    {
                         name: 'kanbans.edit',
                         path: 'edit/:id',
                         component: () => import('../views/admin/kanbans/Edit.vue'),
@@ -352,6 +343,59 @@ export default [
                         component: () => import('../views/admin/tareas/Edit.vue'),
                         meta: {
                             breadCrumb: 'Editar Tarea', // Antes: 'Editar Usuario'
+                            linked: false
+                        }
+                    }
+                ]
+            },
+            {
+                name: 'workflows',
+                path: 'workflows',
+                meta: { breadCrumb: 'Workflows' },
+                children: [
+                    {
+                        name: 'workflows.index',
+                        path: '',
+                        component: () => import('../views/admin/workflows/Index.vue'),
+                        meta: { breadCrumb: 'Workflows' } // Antes: 'Usuarios'
+                    },
+                    {
+                        name: 'workflows.edit',
+                        path: 'edit/:id',
+                        component: () => import('../views/admin/workflows/Edit.vue'),
+                        meta: {
+                            breadCrumb: 'Editar Workflow', // Antes: 'Editar Usuario'
+                            linked: false
+                        }
+                    }
+                ]
+            },
+            {
+                name: 'actions',
+                path: 'actions',
+                meta: { breadCrumb: 'Actions' },
+                children: [
+                    {
+                        name: 'actions.index',
+                        path: '',
+                        component: () => import('../views/admin/actions/Index.vue'),
+                        meta: { breadCrumb: 'Actions' } // Antes: 'Usuarios'
+                    },
+                    {
+                        name: 'actions.create',
+                        path: 'create',
+                        component: () => import('../views/admin/actions/Create.vue'),
+                        meta: {
+                            breadCrumb: 'Crear Action',   // Antes: 'Crear Usuario'
+                            linked: false
+                        }
+                    },
+                    {
+                        name: 'actions.edit',
+                        path: 'edit/:id',
+                        component: () => import('../views/admin/actions/Edit.vue'),
+                        meta: {
+                            breadCrumb: 'Editar Action', // Antes: 'Editar Usuario'
                             linked: false
                         }
                     }

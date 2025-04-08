@@ -2,152 +2,92 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Notifications\UserResetPasswordNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
-use Spatie\MediaLibrary\HasMedia;
-use Spatie\MediaLibrary\InteractsWithMedia;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
-class User extends Authenticatable implements HasMedia
+class Workflow extends Model
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles, InteractsWithMedia;
+    use HasFactory;
 
+    protected $primaryKey = 'id_workflow';
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'surname1',
-        'surname2'
+        'nombre', 
+        'descripcion', 
+        'status', 
+        'id_creador',
+        'trigger_type',
+        'trigger_params'
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
+     * Los usuarios que tienen acceso a este workflow
      */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'usuarios_workflows', 'workflow_id', 'user_id')
+                    ->withPivot('rol', 'fecha_compartido')
+                    ->withTimestamps();
+    }
 
     /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
+     * El propietario del workflow
      */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
-
-    public function sendPasswordResetNotification($token)
+    public function owner()
     {
-        $this->notify(new UserResetPasswordNotification($token));
+        return $this->users()->wherePivot('rol', 'propietario')->first();
     }
-
-    public function assignaments()
+    
+    /**
+     * Determina si un usuario es propietario del workflow
+     */
+    public function isOwnedBy($userId)
     {
-        return $this->hasMany(UserAssignment::class,'user_id');
+        return $this->id_creador == $userId;
     }
 
-
-    public function registerMediaCollections(): void
+    public function favoritos(): MorphMany
     {
-        $this->addMediaCollection('avatars')
-             ->singleFile()
-             ->useFallbackUrl('/images/placeholder.jpg');
+        return $this->morphMany(Favorito::class, 'favorable');
     }
 
-    public function registerMediaConversions(Media $media = null): void
+    public function esFavoritoDe($userId)
     {
-        $this->addMediaConversion('thumbnail')
-            ->width(150)
-            ->height(150)
-            ->sharpen(10)
-            ->nonQueued();
-    }   
-    
-    /**
-     * Todos los workflows a los que el usuario tiene acceso
-     */
-    public function workflows()
-    {
-        return $this->belongsToMany(Workflow::class, 'usuarios_workflows', 'user_id', 'workflow_id')
-                ->withPivot('rol', 'fecha_compartido')
-                ->withTimestamps();
+        return $this->favoritos()->where('user_id', $userId)->exists();
     }
-    
-    /**
-     * Workflows que el usuario posee (rol propietario)
-     */
-    public function ownedWorkflows()
+
+    public function actions()
     {
-        return $this->workflows()->wherePivot('rol', 'propietario');
+        return $this->hasMany(WorkflowAction::class, 'id_workflow', 'id_workflow');
     }
-    
+
     /**
-     * Workflows compartidos con el usuario (no es propietario)
+     * Usuarios con rol propietario
      */
-    public function sharedWorkflows()
+    public function propietarios()
     {
-        return $this->workflows()->wherePivot('rol', '!=', 'propietario');
+        return $this->users()->wherePivot('rol', 'propietario');
     }
-    
+
     /**
-     * Tableros compartidos con este usuario
+     * Usuarios con roles diferentes a propietario
      */
-    public function tablerosCompartidos()
+    public function usuariosCompartidos()
     {
-        return $this->belongsToMany(Tablero::class, 'usuarios_tableros', 'user_id', 'tablero_id')
-                ->withPivot('fecha_compartido')
-                ->withTimestamps();
+        return $this->users()->wherePivot('rol', '!=', 'propietario');
     }
-    
-    /**
-     * Todos los favoritos del usuario
-     */
-    public function favoritos()
-    {
-        return $this->hasMany(Favorito::class);
-    }
-    
-    /**
-     * Workflows marcados como favoritos
-     */
-    public function workflowsFavoritos()
-    {
-        return $this->belongsToMany(Workflow::class, 'favoritos', 'user_id', 'favorable_id')
-            ->where('favorable_type', Workflow::class)
-            ->withTimestamps();
-    }
-    
-    /**
-     * Tableros marcados como favoritos
-     */
-    public function tablerosFavoritos()
-    {
-        return $this->belongsToMany(Tablero::class, 'favoritos', 'user_id', 'favorable_id')
-            ->where('favorable_type', Tablero::class)
-            ->withTimestamps();
-    }
-    
+
     /**
      * Método para compartir un workflow con otro usuario
      * 
-     * @param int $workflowId ID del workflow a compartir
+     * @param int $userId ID del usuario que comparte
      * @param int|array $userIds ID o array de IDs de usuarios
      * @param string $rol Rol a asignar (propietario, editor, espectador)
      * @return void
      */
-    public function compartirWorkflow($workflowId, $userIds, $rol = 'espectador')
+    public function compartirCon($userId, $userIds, $rol = 'espectador')
     {
-        $workflow = Workflow::findOrFail($workflowId);
-        
-        if (!$workflow->isOwnedBy($this->id)) {
+        if (!$this->isOwnedBy($userId)) {
             throw new \Exception('No tienes permisos para compartir este workflow');
         }
         
@@ -161,24 +101,14 @@ class User extends Authenticatable implements HasMedia
             $userIds = $usersWithRoles;
         }
         
-        $workflow->users()->attach($userIds);
+        $this->users()->attach($userIds);
     }
-    
+
     /**
-     * Método para compartir un tablero con otro usuario
-     * 
-     * @param int $tableroId ID del tablero a compartir
-     * @param int|array $userIds ID o array de IDs de usuarios
-     * @return void
+     * Obtener tableros relacionados con este workflow
      */
-    public function compartirTablero($tableroId, $userIds)
+    public function tableros()
     {
-        $tablero = Tablero::findOrFail($tableroId);
-        
-        if (!$tablero->isOwnedBy($this->id)) {
-            throw new \Exception('No tienes permisos para compartir este tablero');
-        }
-        
-        $tablero->usuariosCompartidos()->attach($userIds);
+        return $this->hasMany(Tablero::class, 'workflow_id', 'id_workflow');
     }
 }
