@@ -42,7 +42,7 @@
                   <div class="tarea-meta" v-if="tarea.subtareas && tarea.subtareas.length > 0">
                     <span class="subtareas-count">
                       <i class="subtareas-icon pi pi-check-square"></i>
-                      {{ tarea.subtareas.filter(s => s.estado === 1).length }}/{{ tarea.subtareas.length }}
+                      {{ getCompletedSubtasksCount(tarea) }}/{{ getSubtasksCount(tarea) }}
                     </span>
                   </div>
                 </div>
@@ -229,7 +229,16 @@ const titulos = ['Sin Empezar', 'En Curso', 'Finalizadas', 'Stopper'];
 // Variables para nuevas tareas y edición
 const nuevasTareas = ref(['', '', '', '']);
 const popupAbierto = ref(false);
-const tareaEditada = ref(null);
+const tareaEditada = ref({
+  id_tarea: null,
+  titulo: '',
+  descripcion: '',
+  estado: '',
+  id_tablero: null,
+  subtareas: [], 
+  completado: false,
+  hover: false
+});
 const nuevaSubtarea = ref('');
 
 onMounted(async () => {
@@ -246,13 +255,12 @@ onMounted(async () => {
     // Usar Promise.all para cargar tareas y subtareas de manera concurrente
     const tareasConSubtareas = await Promise.all(kanbans.map(async (kanban) => {
       try {
-        // Se corrige la ruta para obtener las subtareas de la tarea
         const subtaskResponse = await axios.get(`/api/subtareas/tarea/${kanban.id_tarea}`);
-        const subtareas = subtaskResponse.data;
+        const subtareas = subtaskResponse.data || []; // Garantizar que siempre sea un array
 
         return {
           ...kanban,
-          subtareas: subtareas || [],
+          subtareas: Array.isArray(subtareas) ? subtareas : [], // Validación adicional
           completado: kanban.completado || false,
           hover: false
         };
@@ -323,6 +331,16 @@ const onTaskAdded = async (event, toColumnIndex) => {
     }
   }
 };
+const getCompletedSubtasksCount = (tarea) => {
+  if (!tarea.subtareas || !Array.isArray(tarea.subtareas)) return 0;
+  return tarea.subtareas.filter(s => s.estado === 1).length;
+};
+
+// Obtener conteo total de subtareas de forma segura
+const getSubtasksCount = (tarea) => {
+  if (!tarea.subtareas || !Array.isArray(tarea.subtareas)) return 0;
+  return tarea.subtareas.length;
+};
 // Función para agregar tarea (crea la tarea en el backend y la agrega a la lista local)
 const agregarTarea = async (index, nuevaTarea, estado) => {
   if (nuevaTarea.trim()) {
@@ -357,7 +375,9 @@ const agregarTarea = async (index, nuevaTarea, estado) => {
 const editarTarea = (tarea) => {
   tareaEditada.value = {
     ...tarea,
-    subtareas: tarea.subtareas ? [...tarea.subtareas] : []
+    titulo: tarea.titulo || '',
+    descripcion: tarea.descripcion || '', 
+    subtareas: Array.isArray(tarea.subtareas) ? [...tarea.subtareas] : [],
   };
   popupAbierto.value = true;
 };
