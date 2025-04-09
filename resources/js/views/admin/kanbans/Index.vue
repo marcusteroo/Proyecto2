@@ -5,13 +5,6 @@
         <!-- Card header for Kanbans (Boards) -->
         <div class="card-header bg-transparent">
           <h5 class="float-start">Tableros</h5>
-          <router-link
-           
-            :to="{ name: 'kanbans.create' }"
-            class="btn btn-primary btn-sm float-end"
-          >
-            Crear Tablero
-          </router-link>
         </div>
   
         <!-- Cuerpo de la tarjeta -->
