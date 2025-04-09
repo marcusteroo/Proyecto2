@@ -174,4 +174,10 @@ public function getPotentialUsers()
                 
         return response()->json($users);
     }
+public function getAllWorkflows()
+{
+    $workflows = Workflow::all();
+    
+    return response()->json($workflows);
+}
 }

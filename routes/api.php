@@ -105,7 +105,8 @@ Route::put('/workflows/{id}', [WorkflowController::class, 'update']);
 Route::put('/workflow-actions/{id}', [WorkflowActionController::class, 'update']);
 Route::get('/workflows/{id}', [WorkflowController::class, 'show']);
 Route::get('/workflows-action/{id}', [WorkflowController::class, 'getActions']);
-
+Route::get('/admin/all-workflows', [WorkflowController::class, 'getAllWorkflows']);
+Route::get('/workflows/{id}/edit', [WorkflowController::class, 'edit'])->name('workflows.edit');
 Route::post('/check-email', [RegisterController::class, 'checkEmail']);
 
 Route::apiResource('kanbans', KanbanController::class);

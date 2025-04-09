@@ -28,21 +28,6 @@
               </div>
             </div>
 
-            <!-- Campo Estado -->
-            <div class="mb-3">
-              <label for="tarea-estado" class="form-label">Estado</label>
-              <select v-model="editedTarea.estado" id="tarea-estado" class="form-control">
-                <option value="pendiente">Pendiente</option>
-                <option value="en_progreso">En Progreso</option>
-                <option value="completada">Completada</option>
-              </select>
-              <div class="text-danger mt-1" v-if="validationErrors.estado">
-                <div v-for="(msg, index) in validationErrors.estado" :key="index">
-                  {{ msg }}
-                </div>
-              </div>
-            </div>
-
             <!-- Botón de actualización -->
             <div class="mt-4">
               <button :disabled="isLoading" class="btn btn-primary">
@@ -104,7 +89,6 @@ async function submitForm() {
     await axios.put(`/api/kanban/${route.params.id}`, {
       titulo: editedTarea.value.titulo,
       descripcion: editedTarea.value.descripcion,
-      estado: editedTarea.value.estado
     })
 
     router.push({ name: 'tareas.index' }) // Redirigir tras actualizar
