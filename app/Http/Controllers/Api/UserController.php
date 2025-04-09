@@ -127,30 +127,60 @@ class UserController extends Controller
         return response()->noContent();
     }
     public function updatePassword(Request $request)
-{
-    $request->validate([
-        'current_password' => 'required',
-        'password' => 'required|string|min:8|confirmed',
-    ]);
-    
-    $user = auth()->user();
-    
-    if (!Hash::check($request->current_password, $user->password)) {
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/'
+            ],
+        ], [
+            'password.regex' => 'La contraseña debe contener al menos una letra mayúscula y un número.',
+        ]);
+        
+        $user = auth()->user();
+        
+        // Verificar si la contraseña actual es correcta
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'errors' => [
+                    'current_password' => ['La contraseña actual es incorrecta.']
+                ]
+            ], 422);
+        }
+        
+        // Verificar si la nueva contraseña es igual a la actual
+        if (Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'errors' => [
+                    'password' => ['La nueva contraseña debe ser diferente a la contraseña actual.']
+                ]
+            ], 422);
+        }
+        
+        $user->password = Hash::make($request->password);
+        $user->save();
+        
         return response()->json([
-            'errors' => [
-                'current_password' => ['La contraseña actual es incorrecta.']
-            ]
-        ], 422);
+            'success' => true,
+            'message' => 'Contraseña actualizada correctamente'
+        ]);
     }
-    
-    $user->password = Hash::make($request->password);
-    $user->save();
-    
-    return response()->json([
-        'success' => true,
-        'message' => 'Contraseña actualizada correctamente'
-    ]);
-}
+
+    public function getUserTasks($id)
+    {
+        $tasks = Task::where('user_id', $id)->get();
+        return response()->json($tasks);
+    }
+
+    public function getUserById($id)
+    {
+        $user = User::find($id);
+        return response()->json($user);
+    }
 public function getPotentialShareUsers()
 {
     $users = User::select('id', 'name', 'email')
