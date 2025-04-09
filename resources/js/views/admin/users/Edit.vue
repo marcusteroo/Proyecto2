@@ -7,48 +7,17 @@
                   <div class="account-settings">
                       <div class="user-profile">
                           <div class="user-avatar">
-                              <!--                                <img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="Maxwell Admin">-->
-
-                              <!-- :fileLimit=1  -->
-                              <FileUpload
-                                  name="picture"
-                                  url="/api/users/updateimg"
-                                  @before-upload="onBeforeUpload"
-                                  @upload="onTemplatedUpload($event)"
-                                  accept="image/*"
-                                  :maxFileSize="1500000"
-                                  @select="onSelectedFiles"
-                                  pt:content:class="fu-content"
-                                  pt:buttonbar:class="fu-header"
-                                  pt:root:class="fu"
-                                  class="fu"
-                                  >
-
-                                  <template #header="{ chooseCallback, uploadCallback, clearCallback, files, uploadedFiles }">
-                                      <div class="flex flex-wrap justify-content-between align-items-center flex-1 gap-2">
-                                          <div class="flex gap-2">
-                                              <Button @click="chooseCallback()" icon="pi pi-images" rounded outlined></Button>
-                                              <Button @click="uploadEvent(uploadCallback, uploadedFiles)" icon="pi pi-cloud-upload" rounded outlined severity="success" :disabled="!files || files.length === 0"></Button>
-                                              <Button @click="clearCallback()" icon="pi pi-times" rounded outlined severity="danger" :disabled="!files || files.length === 0"></Button>
-                                          </div>
-                                          <p class="mt-4 mb-0">Drag and drop files to here to upload.</p>
-                                      </div>
-                                  </template>
-
-                                  <template #content="{ files, uploadedFiles, removeUploadedFileCallback, removeFileCallback }">
-                                      <img v-if=" files.length > 0" v-for="(file, index) of files" :key="file.name + file.type + file.size" role="presentation" :alt="file.name" :src="file.objectURL" class="object-fit-cover w-100 h-100 img-profile" />
-                                      <div v-else>
-                                          <img v-if="uploadedFiles.length > 0" :key="uploadedFiles[uploadedFiles.length-1].name + uploadedFiles[uploadedFiles.length-1].type + uploadedFiles[uploadedFiles.length-1].size" role="presentation" :alt="uploadedFiles[uploadedFiles.length-1].name" :src="uploadedFiles[uploadedFiles.length-1].objectURL" class="object-fit-cover w-100 h-100 img-profile" />
-                                      </div>
-                                  </template>
-
-                                  <template #empty>
-                                      <img v-if="user.avatar" :src=user.avatar alt="Avatar" class="object-fit-cover w-100 h-100 img-profile">
-                                      <img v-if="!user.avatar" src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="Avatar Default" class="object-fit-cover w-100 h-100 img-profile">
-                                  </template>
-                              </FileUpload>
-
-
+                              <div class="user-image-container">
+                                  <img v-if="getUserImageUrl()" 
+                                      :src="getUserImageUrl()" 
+                                      alt="Imagen de perfil"
+                                      class="object-fit-cover w-100 h-100 img-profile">
+                                  <!-- Imagen por defecto si no hay ninguna configurada -->
+                                  <img v-else 
+                                      src="/images/default-avatar.png" 
+                                      alt="Avatar por defecto" 
+                                      class="object-fit-cover w-100 h-100 img-profile">
+                              </div>
                           </div>
 
                           <h5 class="user-name">{{ user.name }}</h5>
@@ -294,7 +263,25 @@ const deleteUserDBView = async (id) => {
       })
 }
 
-
+const getUserImageUrl = () => {
+  // Si el usuario tiene un avatar en media library (usuarios creados por ellos mismos)
+  if (user.avatar && (user.avatar.startsWith('http') || user.avatar.startsWith('/'))) {
+    return user.avatar;
+  }
+  
+  // Si el usuario tiene una imagen en testimonials (usuarios creados por seed)
+  if (user.image && user.image.startsWith('testimonials/')) {
+    return `/images/${user.image}`;
+  }
+  
+  // Para usuarios que tienen solo nombre de archivo en image
+  if (user.image) {
+    return `/images/testimonials/${user.image}`;
+  }
+  
+  // Si no hay imagen, devolver undefined para que se use la imagen por defecto
+  return undefined;
+};
 const onTemplatedUpload = (event) => {
   // console.log('onTemplatedUpload');
   // console.log(event);
@@ -350,4 +337,19 @@ const formatSize = (bytes) => {
 label {
   margin-bottom: 0.3rem;
 }
+.user-image-container {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin: 0 auto;
+  border: 3px solid #f0f0f0;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.img-profile {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}   
 </style>

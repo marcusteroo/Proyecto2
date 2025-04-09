@@ -401,21 +401,6 @@ export default [
                     }
                 ]
             },
-            {
-                path: '/admin/precios',
-                component: AuthenticatedLayout,
-                beforeEnter: requireLogin,
-                children: [
-                    {
-                        path: '',
-                        name: 'precios.index',
-                        component: PreciosIndex,
-                        meta: {
-                            breadCrumb: 'Precios',
-                        }
-                    }
-                ]
-            },
             //TODO Organizar rutas
             {
                 name: 'roles.index',
@@ -441,6 +426,13 @@ export default [
                 component: () => import('../views/admin/ratings/Index.vue'),
                 meta: { breadCrumb: 'Reseñas Destacadas' }
             },
+            {
+                name: 'precios.index',
+                path: 'precios',
+                component: () => import('../views/admin/precios/Index.vue'),
+                meta: { breadCrumb: 'Precios' }
+
+            }
 
         ]
     },

@@ -171,13 +171,22 @@
                   class="popup-input"
                   maxlength="15"
                   @keydown.enter="agregarSubtarea"
+                  :disabled="isSubtaskInputLocked"
+                  :class="{ 'input-locked': isSubtaskInputLocked }"
                 />
                 <div class="char-counter" :class="{ 'near-limit': nuevaSubtarea.length > 12 }">
                   {{ nuevaSubtarea.length }}/15
                 </div>
               </div>
-              <button @click="agregarSubtarea" class="popup-button">
-                Añadir
+              <button 
+                @click="agregarSubtarea" 
+                class="popup-button"
+                :disabled="isSubtaskInputLocked"
+              >
+                <span v-if="isSubtaskInputLocked">
+                  <i class="pi pi-spin pi-spinner"></i>
+                </span>
+                <span v-else>Añadir</span>
               </button>
             </div>
           </div>
@@ -218,7 +227,7 @@ const enCurso = ref([]);
 const finalizadas = ref([]);
 const stopper = ref([]);
 const kanbanTitle = ref('Mi Tablero Kanban');
-
+const isSubtaskInputLocked = ref(false);
 // Lista de listas (columnas) y títulos
 const listas = ref([]);
 onMounted(() => {
@@ -246,7 +255,6 @@ onMounted(async () => {
     const tableroResponse = await axios.get(`/api/tableros/${id_tablero}`);
     const tableroInfo = tableroResponse.data;
     
-    document.title = tableroInfo.nombre || 'Tablero Kanban';
     kanbanTitle.value = tableroInfo.nombre || 'Mi Tablero Kanban';
 
     const response = await axios.get(`/api/kanban/${id_tablero}/tasks`);
@@ -444,26 +452,38 @@ const actualizarTareaBackend = async () => {
 
 // Agrega una subtarea a la tarea en edición
 const agregarSubtarea = async () => {
-  if (nuevaSubtarea.value.trim() && tareaEditada.value) {
-    try {
-      // Al crear la subtarea, le damos un estado = 0 por defecto
-      const response = await axios.post('/api/subtareas', {
-        titulo: nuevaSubtarea.value.trim(),
-        estado: 0,
-        id_tarea: tareaEditada.value.id_tarea
-      });
+  // Si el campo está bloqueado o vacío, no hacer nada
+  if (isSubtaskInputLocked.value || !nuevaSubtarea.value.trim()) return;
+  
+  // Bloquear el input inmediatamente
+  isSubtaskInputLocked.value = true;
+  
+  try {
+    // Al crear la subtarea, le damos un estado = 0 por defecto
+    const response = await axios.post('/api/subtareas', {
+      titulo: nuevaSubtarea.value.trim(),
+      estado: 0,
+      id_tarea: tareaEditada.value.id_tarea
+    });
 
-      const nuevaSubtareaConId = {
-        id_subtarea: response.data.id_subtarea, // <-- en el controller devolvemos id_subtarea
-        titulo: nuevaSubtarea.value.trim(),
-        estado: 0
-      };
+    const nuevaSubtareaConId = {
+      id_subtarea: response.data.id_subtarea,
+      titulo: nuevaSubtarea.value.trim(),
+      estado: 0
+    };
 
-      tareaEditada.value.subtareas.push(nuevaSubtareaConId);
-      nuevaSubtarea.value = '';
-    } catch (error) {
-      console.error('Error al agregar subtarea:', error);
-    }
+    // Añadir la subtarea a la lista
+    tareaEditada.value.subtareas.push(nuevaSubtareaConId);
+    
+    // Limpiar el campo después de añadir
+    nuevaSubtarea.value = '';
+  } catch (error) {
+    console.error('Error al agregar subtarea:', error);
+  } finally {
+    // Mantener el input bloqueado por 1 segundo
+    setTimeout(() => {
+      isSubtaskInputLocked.value = false;
+    }, 1000);
   }
 };
 
@@ -1252,6 +1272,17 @@ const eliminarSubtarea = async (index) => {
     bottom: -14px;
     font-size: 9px;
   }
+}
+.input-locked {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background-color: #f9f9f9;
+}
+
+.popup-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
 }
 
 

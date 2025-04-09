@@ -606,11 +606,13 @@ const resetForm = () => {
   font-weight: 700;
   line-height: 1;
   margin-bottom: 0.25rem;
+  color: white;
 }
 
 .rating-badge .rating-text {
   font-size: 0.8rem;
   font-weight: 500;
+  color: white;
 }
 
 .rating-badge.rating-low {
@@ -683,12 +685,13 @@ const resetForm = () => {
   font-size: 1rem;
   color: var(--dark-text);
   margin-bottom: 0.2rem;
+  color: black;
 }
 
 .category-description {
   display: block;
   font-size: 0.85rem;
-  color: var(--light-text);
+  color: black;
 }
 
 .selection-indicator {
@@ -1189,5 +1192,165 @@ textarea {
   .submit-btn {
     width: 100%;
   }
+}
+:deep(.dark-theme) .rating-container,
+:deep(html.dark-theme) .rating-container,
+:deep(body.dark-theme) .rating-container {
+  background-color: #1e1e2e;
+}
+
+:deep(.dark-theme) .rating-card,
+:deep(html.dark-theme) .rating-card,
+:deep(body.dark-theme) .rating-card {
+  background-color: #292a36;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+:deep(.dark-theme) .rating-header,
+:deep(html.dark-theme) .rating-header,
+:deep(body.dark-theme) .rating-header {
+  color: #e4e6eb;
+}
+
+:deep(.dark-theme) .rating-subtitle,
+:deep(html.dark-theme) .rating-subtitle,
+:deep(body.dark-theme) .rating-subtitle {
+  color: #adb5bd;
+}
+
+:deep(.dark-theme) .rating-title h2,
+:deep(html.dark-theme) .rating-title h2,
+:deep(body.dark-theme) .rating-title h2 {
+  color: #e4e6eb;
+}
+
+:deep(.dark-theme) .form-section,
+:deep(html.dark-theme) .form-section,
+:deep(body.dark-theme) .form-section {
+  background-color: #24252d;
+}
+
+:deep(.dark-theme) .form-label,
+:deep(html.dark-theme) .form-label,
+:deep(body.dark-theme) .form-label {
+  color: #e4e6eb;
+}
+
+:deep(.dark-theme) .section-description,
+:deep(html.dark-theme) .section-description,
+:deep(body.dark-theme) .section-description {
+  color: #adb5bd;
+}
+
+:deep(.dark-theme) .category-card,
+:deep(html.dark-theme) .category-card,
+:deep(body.dark-theme) .category-card {
+  background-color: #383a46;
+  border-color: #4d4f5c;
+}
+
+:deep(.dark-theme) .category-name,
+:deep(html.dark-theme) .category-name,
+:deep(body.dark-theme) .category-name {
+  color: #e4e6eb;
+}
+
+:deep(.dark-theme) .category-description,
+:deep(html.dark-theme) .category-description,
+:deep(body.dark-theme) .category-description {
+  color: #adb5bd;
+}
+
+:deep(.dark-theme) .input-with-icon,
+:deep(html.dark-theme) .input-with-icon,
+:deep(body.dark-theme) .input-with-icon {
+  background-color: #383a46;
+  border-color: #4d4f5c;
+}
+
+:deep(.dark-theme) .input-with-icon input,
+:deep(.dark-theme) .input-with-icon textarea,
+:deep(html.dark-theme) .input-with-icon input,
+:deep(html.dark-theme) .input-with-icon textarea,
+:deep(body.dark-theme) .input-with-icon input,
+:deep(body.dark-theme) .input-with-icon textarea {
+  color: #e4e6eb;
+}
+
+:deep(.dark-theme) .input-with-icon i,
+:deep(html.dark-theme) .input-with-icon i,
+:deep(body.dark-theme) .input-with-icon i {
+  color: #adb5bd;
+}
+
+:deep(.dark-theme) .terms-panel,
+:deep(html.dark-theme) .terms-panel,
+:deep(body.dark-theme) .terms-panel {
+  background-color: rgba(63, 81, 181, 0.08);
+}
+
+:deep(.dark-theme) .checkbox-container label,
+:deep(html.dark-theme) .checkbox-container label,
+:deep(body.dark-theme) .checkbox-container label {
+  color: #e4e6eb;
+}
+
+:deep(.dark-theme) .terms-modal,
+:deep(html.dark-theme) .terms-modal,
+:deep(body.dark-theme) .terms-modal {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+:deep(.dark-theme) .terms-content,
+:deep(html.dark-theme) .terms-content,
+:deep(body.dark-theme) .terms-content {
+  background-color: #292a36;
+  color: #e4e6eb;
+}
+
+:deep(.dark-theme) .terms-header,
+:deep(html.dark-theme) .terms-header,
+:deep(body.dark-theme) .terms-header {
+  border-color: #4d4f5c;
+}
+
+:deep(.dark-theme) .terms-header h3,
+:deep(html.dark-theme) .terms-header h3,
+:deep(body.dark-theme) .terms-header h3 {
+  color: #e4e6eb;
+}
+
+:deep(.dark-theme) .terms-body,
+:deep(html.dark-theme) .terms-body,
+:deep(body.dark-theme) .terms-body {
+  color: #adb5bd;
+}
+
+:deep(.dark-theme) .terms-footer,
+:deep(html.dark-theme) .terms-footer,
+:deep(body.dark-theme) .terms-footer {
+  border-color: #4d4f5c;
+}
+
+:deep(.dark-theme) .tag,
+:deep(html.dark-theme) .tag,
+:deep(body.dark-theme) .tag {
+  background-color: #383a46;
+  color: #e4e6eb;
+}
+
+:deep(.dark-theme) .message-content,
+:deep(html.dark-theme) .message-content,
+:deep(body.dark-theme) .message-content {
+  background-color: #292a36;
+}
+
+:deep(.dark-theme) .message-content p,
+:deep(.dark-theme) .message-content ul,
+:deep(html.dark-theme) .message-content p,
+:deep(html.dark-theme) .message-content ul,
+:deep(body.dark-theme) .message-content p,
+:deep(body.dark-theme) .message-content ul {
+  color: #e4e6eb;
 }
 </style>
