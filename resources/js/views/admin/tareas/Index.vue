@@ -5,12 +5,6 @@
         <!-- Encabezado de la tarjeta -->
         <div class="card-header bg-transparent">
           <h5 class="float-start">Tareas</h5>
-          <router-link
-            :to="{ name: 'tareas.create' }"
-            class="btn btn-primary btn-sm float-end"
-          >
-            Crear Tarea
-          </router-link>
         </div>
 
 

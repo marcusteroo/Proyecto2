@@ -27,21 +27,7 @@
                 </div>
               </div>
             </div>
-
-            <!-- Campo Trigger Type (simplificado) -->
-            <div class="mb-3">
-              <label for="trigger-type" class="form-label">Tipo de Trigger</label>
-              <select v-model="editedWorkflow.trigger.type" id="trigger-type" class="form-control">
-                <option value="manual">Manual</option>
-                <option value="scheduled">Programado</option>
-                <option value="event">Evento</option>
-              </select>
-              <div class="text-danger mt-1" v-if="validationErrors['trigger.type']">
-                <div v-for="(msg, index) in validationErrors['trigger.type']" :key="index">
-                  {{ msg }}
-                </div>
-              </div>
-            </div>
+            
 
             <!-- Botón de actualización -->
             <div class="mt-4">
