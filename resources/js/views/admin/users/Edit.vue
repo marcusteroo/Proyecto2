@@ -7,17 +7,12 @@
                   <div class="account-settings">
                       <div class="user-profile">
                           <div class="user-avatar">
-                              <div class="user-image-container">
-                                  <img v-if="getUserImageUrl()" 
-                                      :src="getUserImageUrl()" 
-                                      alt="Imagen de perfil"
-                                      class="object-fit-cover w-100 h-100 img-profile">
-                                  <!-- Imagen por defecto si no hay ninguna configurada -->
-                                  <img v-else 
-                                      src="/images/default-avatar.png" 
-                                      alt="Avatar por defecto" 
-                                      class="object-fit-cover w-100 h-100 img-profile">
-                              </div>
+                            <div class="user-image-container">
+                              <img :src="getUserImageUrl()" 
+                                  alt="Imagen de perfil"
+                                  class="object-fit-cover w-100 h-100 img-profile"
+                                  @error="handleImageError">
+                            </div>
                           </div>
 
                           <h5 class="user-name">{{ user.name }}</h5>
@@ -264,23 +259,146 @@ const deleteUserDBView = async (id) => {
 }
 
 const getUserImageUrl = () => {
-  // Si el usuario tiene un avatar en media library (usuarios creados por ellos mismos)
-  if (user.avatar && (user.avatar.startsWith('http') || user.avatar.startsWith('/'))) {
-    return user.avatar;
+  try {
+    // 1. Verificar si es uno de los usuarios testimoniales predefinidos
+    const testimonialUsers = [
+      'elena.martinez@example.com',
+      'carlos.rodriguez@example.com',
+      'laura.gomez@example.com',
+      'miguel.angel@example.com',
+      'sofia.herrera@example.com',
+      'javier.torres@example.com'
+    ];
+    
+    if (user.email && testimonialUsers.includes(user.email.toLowerCase())) {
+      // Mapeo de emails a nombres de archivos
+      const emailToImage = {
+        'elena.martinez@example.com': '/images/testimonials/elena.webp',
+        'carlos.rodriguez@example.com': '/images/testimonials/carlos.webp',
+        'laura.gomez@example.com': '/images/testimonials/laura.webp',
+        'miguel.angel@example.com': '/images/testimonials/miguel.webp',
+        'sofia.herrera@example.com': '/images/testimonials/sofia.webp',
+        'javier.torres@example.com': '/images/testimonials/javier.webp'
+      };
+      
+      return emailToImage[user.email.toLowerCase()];
+    }
+    
+    // 2. Si el usuario tiene un objeto media o información de media
+    if (user.media && Array.isArray(user.media) && user.media.length > 0) {
+      const media = user.media[0];
+      if (media.original_url) return media.original_url;
+      if (media.url) return media.url;
+    }
+    
+    // 3. Si tiene un avatar en la colección de Media Library (usuarios normales)
+    if (user.avatar) {
+      // Tratar diferentes formatos de URL
+      if (typeof user.avatar === 'string') {
+        // Determinar si es una ruta de storage o una URL completa
+        if (user.avatar.includes('/storage/')) {
+          return user.avatar; // Ya tiene el formato correcto
+        } else if (user.avatar.startsWith('/')) {
+          // Asegurarse de que apunta a /storage/ si viene de MediaLibrary
+          if (user.avatar.includes('/app/public/')) {
+            return user.avatar.replace('/app/public/', '/storage/');
+          }
+          return user.avatar;
+        } else if (user.avatar.startsWith('http')) {
+          return user.avatar;
+        } else {
+          // Si es una ruta relativa sin barra al inicio
+          return `/${user.avatar}`;
+        }
+      }
+    }
+    
+    // 4. NUEVA LÓGICA: Probar directamente con el ID del usuario
+    if (user.id) {
+      // Intentar acceder a la imagen en la carpeta del usuario por ID
+      // Como no conocemos el nombre del archivo, pero sabemos que debe estar en la carpeta con el ID del usuario
+      return `/storage/${user.id}/avatar-${user.id}`; // Intenta con nombre probable
+    }
+    
+    // 5. Si tiene una imagen definida en photo_path (otra ruta específica)
+    if (user.photo_path) {
+      return user.photo_path;
+    }
+    
+    // 6. Si tiene una imagen definida en image
+    if (user.image) {
+      if (user.image.startsWith('testimonials/')) {
+        return `/images/${user.image}`;
+      }
+      return `/images/testimonials/${user.image}`;
+    }
+
+    console.log('Usando imagen por defecto para:', user.email);
+    
+    // 7. Imagen por defecto si no hay nada más
+    return '/images/default-avatar.png';
+  } catch (error) {
+    console.error('Error al generar URL de imagen:', error);
+    return '/images/default-avatar.png';
+  }
+};
+const handleImageError = async (e) => {
+  const currentSrc = e.target.src;
+  console.error('Error al cargar la imagen de perfil:', currentSrc);
+  
+  // Si ya intentamos demasiadas veces, usar imagen por defecto
+  if (e.target.dataset.retryCount >= 3) {
+    console.log('Demasiados intentos, usando imagen por defecto');
+    e.target.src = '/images/default-avatar.png';
+    return;
   }
   
-  // Si el usuario tiene una imagen en testimonials (usuarios creados por seed)
-  if (user.image && user.image.startsWith('testimonials/')) {
-    return `/images/${user.image}`;
+  // Inicializar contador de intentos
+  e.target.dataset.retryCount = parseInt(e.target.dataset.retryCount || '0') + 1;
+  
+  // Para el primer intento, consultar al backend por el archivo real
+  if (parseInt(e.target.dataset.retryCount) === 1 && user.id) {
+    try {
+      // Solicitar al backend la lista de archivos en la carpeta del usuario
+      const response = await axios.get(`/api/user/${user.id}/media-files`);
+      
+      if (response.data && response.data.avatar_url) {
+        // Corregir la URL si tiene doble barra
+        let fixedUrl = response.data.avatar_url.replace('//', '/');
+        // Pero mantener http:// o https://
+        fixedUrl = fixedUrl.replace('http:/', 'http://').replace('https:/', 'https://');
+        
+        console.log('Imagen encontrada en el servidor (URL corregida):', fixedUrl);
+        e.target.src = fixedUrl;
+        return;
+      }
+    } catch (error) {
+      console.error('Error al consultar archivos de usuario:', error);
+    }
   }
   
-  // Para usuarios que tienen solo nombre de archivo en image
-  if (user.image) {
-    return `/images/testimonials/${user.image}`;
+  // Si el servidor no devolvió ninguna URL específica, intentar solo con el ID del usuario
+  if (user.id) {
+    const baseUrl = `/storage/${user.id}/`;
+    
+    try {
+      // Hacer una solicitud para obtener la lista real de archivos en el directorio
+      const filesResponse = await axios.get(`/api/user/${user.id}/list-files`);
+      
+      if (filesResponse.data && filesResponse.data.files && filesResponse.data.files.length > 0) {
+        // Usar el primer archivo de imagen encontrado
+        const imageFile = filesResponse.data.files[0];
+        console.log(`Usando archivo encontrado en directorio: ${baseUrl}${imageFile}`);
+        e.target.src = `${baseUrl}${imageFile}`;
+        return;
+      }
+    } catch (listError) {
+      console.error('Error al listar archivos del usuario:', listError);
+    }
   }
   
-  // Si no hay imagen, devolver undefined para que se use la imagen por defecto
-  return undefined;
+  // Si nada funciona, usar imagen por defecto
+  e.target.src = '/images/default-avatar.png';
 };
 const onTemplatedUpload = (event) => {
   // console.log('onTemplatedUpload');

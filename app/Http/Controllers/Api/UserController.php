@@ -189,6 +189,94 @@ public function getPotentialShareUsers()
             
     return response()->json($users);
 }
+public function getUserMediaFiles($id)
+{
+    try {
+        $user = User::findOrFail($id);
+        
+        // 1. Verificar si el usuario tiene un avatar en Media Library
+        $mediaItem = $user->getFirstMedia('avatars');
+        if ($mediaItem) {
+            return response()->json([
+                'success' => true,
+                'avatar_url' => $mediaItem->getUrl()
+            ]);
+        }
+        
+        // 2. Si no tiene en Media Library, buscar físicamente en el directorio
+        $storagePath = storage_path("app/public/{$id}");
+        
+        if (file_exists($storagePath) && is_dir($storagePath)) {
+            $files = scandir($storagePath);
+            // Filtrar archivos ocultos y directorios
+            $imageFiles = array_filter($files, function($file) use ($storagePath) {
+                $extension = pathinfo($file, PATHINFO_EXTENSION);
+                return !in_array($file, ['.', '..']) && 
+                       !is_dir($storagePath . '/' . $file) && 
+                       in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+            });
+            
+            if (!empty($imageFiles)) {
+                // Tomar el primer archivo de imagen encontrado
+                $firstImage = reset($imageFiles);
+                $avatarUrl = "/storage/{$id}/{$firstImage}";
+                
+                return response()->json([
+                    'success' => true,
+                    'avatar_url' => $avatarUrl
+                ]);
+            }
+        }
+        
+        // 3. Si no se encuentra ninguna imagen
+        return response()->json([
+            'success' => false,
+            'message' => 'No avatar found for this user'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error retrieving user media files',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+public function listUserFiles($id)
+{
+    try {
+        $storagePath = storage_path("app/public/{$id}");
+        
+        if (!file_exists($storagePath) || !is_dir($storagePath)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No directory found for this user',
+                'files' => []
+            ]);
+        }
+        
+        $files = scandir($storagePath);
+        // Filtrar archivos relevantes (eliminar . y .. y obtener solo imágenes)
+        $imageFiles = array_filter($files, function($file) use ($storagePath) {
+            $extension = pathinfo($file, PATHINFO_EXTENSION);
+            return !in_array($file, ['.', '..']) && 
+                   !is_dir($storagePath . '/' . $file) && 
+                   in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+        });
+        
+        return response()->json([
+            'success' => true,
+            'files' => array_values($imageFiles) // Usar array_values para resetear índices
+        ]);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error listing user files',
+            'error' => $e->getMessage(),
+            'files' => []
+        ], 500);
+    }
+}
 
 
 }
