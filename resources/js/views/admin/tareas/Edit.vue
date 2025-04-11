@@ -28,6 +28,12 @@
               </div>
             </div>
 
+            <!-- Nota: Los campos 'estado' e 'id_tablero' no se muestran en el formulario, pero se envían al servidor -->
+            <!-- Puedes incluirlos como inputs ocultos si es necesario
+            <input type="hidden" v-model="editedTarea.estado" />
+            <input type="hidden" v-model="editedTarea.id_tablero" />
+            -->
+
             <!-- Botón de actualización -->
             <div class="mt-4">
               <button :disabled="isLoading" class="btn btn-primary">
@@ -47,11 +53,13 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 
-// Estado reactivo para la tarea
+// Estado reactivo para la tarea que editaremos
 const editedTarea = ref({
+  id_tarea: null,
   titulo: '',
   descripcion: '',
-  estado: ''
+  estado: '',
+  id_tablero: null,
 })
 
 const isLoading = ref(false)
@@ -60,18 +68,22 @@ const validationErrors = ref({})
 const route = useRoute()
 const router = useRouter()
 
-// Cargar datos de la tarea al montar
+// Al montar el componente, buscamos los datos de la tarea para precargar el formulario
 onMounted(async () => {
   try {
     isLoading.value = true
     const response = await axios.get(`/api/kanban/${route.params.id}`)
-    
+
+    // Verificamos si la respuesta viene encapsulada en "tarea" o directamente en data
     const tarea = response.data.tarea || response.data
-    
+
+    // Asignamos todos los campos necesarios que luego enviamos en el PUT
     editedTarea.value = {
+      id_tarea: tarea.id_tarea,
       titulo: tarea.titulo || '',
       descripcion: tarea.descripcion || '',
-      estado: tarea.estado || 'pendiente'
+      estado: tarea.estado || 'pendiente',
+      id_tablero: tarea.id_tablero || null
     }
   } catch (err) {
     console.error("Error al obtener la Tarea:", err)
@@ -86,12 +98,16 @@ async function submitForm() {
     isLoading.value = true
     validationErrors.value = {}
 
+    // Enviamos todos los campos que el backend espera
     await axios.put(`/api/kanban/${route.params.id}`, {
+      id_tarea: editedTarea.value.id_tarea,
       titulo: editedTarea.value.titulo,
       descripcion: editedTarea.value.descripcion,
+      estado: editedTarea.value.estado,
+      id_tablero: editedTarea.value.id_tablero,
     })
 
-    router.push({ name: 'tareas.index' }) // Redirigir tras actualizar
+    router.push({ name: 'tareas.index' })
   } catch (error) {
     if (error.response && error.response.status === 422) {
       validationErrors.value = error.response.data.errors

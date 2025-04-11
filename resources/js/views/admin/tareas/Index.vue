@@ -2,13 +2,10 @@
   <div class="row justify-content-center my-2">
     <div class="col-md-12">
       <div class="card border-0">
-        <!-- Encabezado de la tarjeta -->
         <div class="card-header bg-transparent">
           <h5 class="float-start">Tareas</h5>
         </div>
 
-
-        <!-- Cuerpo de la tarjeta -->
         <div class="card-body shadow-sm">
           <!-- Barra de búsqueda -->
           <div class="mb-3">
@@ -44,12 +41,14 @@
                   <td>{{ tarea.created_at }}</td>
                   <td>{{ tarea.updated_at }}</td>
                   <td>
+                    <!-- Enlace a la edición -->
                     <router-link
                       :to="{ name: 'tareas.edit', params: { id: tarea.id_tarea } }"
                       class="badge bg-primary"
                     >
                       Editar
                     </router-link>
+                    <!-- Enlace para eliminar -->
                     <a
                       href="#"
                       @click.prevent="deleteTarea(tarea.id_tarea)"
@@ -64,9 +63,8 @@
           </div>
         </div>
 
-        <!-- Pie de la tarjeta -->
         <div class="card-footer">
-          <!-- Controles de paginación u otra info -->
+          <!-- Paginación u otra info -->
         </div>
       </div>
     </div>
@@ -75,19 +73,15 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { useAbility } from "@casl/vue";
-import useTareas from "@/composables/tareas";
+import useTareas from "@/composables/tareas"; // Ejemplo de tu composable o servicio
 
 // Obtenemos el composable que gestiona las tareas
 const { tareas, getTareas, deleteTarea } = useTareas();
 
-// Obtenemos la función de permisos
-const { can } = useAbility();
-
 // Variable para búsqueda global
 const search_global = ref("");
 
-// Al montar el componente, obtenemos las tareas y las mostramos en la consola
+// Al montar, cargamos las tareas
 onMounted(async () => {
   await getTareas();
   console.log("Datos de la tabla:", tareas.value);

@@ -329,15 +329,6 @@ export default [
                         meta: { breadCrumb: 'Tareas' } // Antes: 'Usuarios'
                     },
                     {
-                        name: 'tareas.create',
-                        path: 'create',
-                        component: () => import('../views/admin/tareas/Create.vue'),
-                        meta: {
-                            breadCrumb: 'Crear Tarea',   // Antes: 'Crear Usuario'
-                            linked: false
-                        }
-                    },
-                    {
                         name: 'tareas.edit',
                         path: 'edit/:id',
                         component: () => import('../views/admin/tareas/Edit.vue'),
@@ -365,37 +356,6 @@ export default [
                         component: () => import('../views/admin/workflows/Edit.vue'),
                         meta: {
                             breadCrumb: 'Editar Workflow', // Antes: 'Editar Usuario'
-                            linked: false
-                        }
-                    }
-                ]
-            },
-            {
-                name: 'actions',
-                path: 'actions',
-                meta: { breadCrumb: 'Actions' },
-                children: [
-                    {
-                        name: 'actions.index',
-                        path: '',
-                        component: () => import('../views/admin/actions/Index.vue'),
-                        meta: { breadCrumb: 'Actions' } // Antes: 'Usuarios'
-                    },
-                    {
-                        name: 'actions.create',
-                        path: 'create',
-                        component: () => import('../views/admin/actions/Create.vue'),
-                        meta: {
-                            breadCrumb: 'Crear Action',   // Antes: 'Crear Usuario'
-                            linked: false
-                        }
-                    },
-                    {
-                        name: 'actions.edit',
-                        path: 'edit/:id',
-                        component: () => import('../views/admin/actions/Edit.vue'),
-                        meta: {
-                            breadCrumb: 'Editar Action', // Antes: 'Editar Usuario'
                             linked: false
                         }
                     }

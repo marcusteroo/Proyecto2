@@ -56,7 +56,6 @@ const model = ref([
         label: 'Workflows',
         items: [
             { label: 'Workflows', icon: 'pi pi-fw pi-sitemap', to: '/admin/workflows', permision:'all' },
-            { label: 'Actions', icon: 'pi pi-fw pi-bolt', to: '/admin/actions', permision:'all' }
         ]
     },
     {
