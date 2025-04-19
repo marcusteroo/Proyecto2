@@ -1,82 +1,82 @@
 <template>
-    <div class="app-container" :class="{'app-theme-dark': isDarkTheme}">
-      <div :class="['layout-wrapper', containerClass]">
+    <div class="authenticated-user-app-container" :class="{'authenticated-user-app-theme-dark': isDarkTheme}">
+      <div :class="['authenticated-user-layout-wrapper', containerClass]">
         <!-- Barra superior mejorada -->
         <app-topbar></app-topbar>
   
         <!-- Sidebar profesional -->
-        <div class="layout-sidebar" :class="{'layout-mobile-active': layoutState.staticMenuMobileActive.value}">
+        <div class="authenticated-user-layout-sidebar" :class="{'authenticated-user-layout-mobile-active': layoutState.staticMenuMobileActive.value}">
           <!-- Logo y título de la aplicación -->
-          <div class="sidebar-brand">
-            <span class="sidebar-title">KanFlow</span>
+          <div class="authenticated-user-sidebar-brand">
+            <span class="authenticated-user-sidebar-title">KanFlow</span>
           </div>
           
           <!-- Separador -->
-          <div class="sidebar-divider"></div>
+          <div class="authenticated-user-sidebar-divider"></div>
   
           <!-- Información del usuario -->
-          <div class="sidebar-user">
-            <div class="user-greeting">
-              <span class="greeting-text">Bienvenido,</span>
-              <h3 class="user-name">{{ user.name }}</h3>
+          <div class="authenticated-user-sidebar-user">
+            <div class="authenticated-user-user-greeting">
+              <span class="authenticated-user-greeting-text">Bienvenido,</span>
+              <h3 class="authenticated-user-user-name">{{ user.name }}</h3>
             </div>
-            <div class="user-roles" v-if="user.roles && user.roles.length">
-              <span v-for="rol in user.roles" :key="rol.id" class="user-role-badge">
+            <div class="authenticated-user-user-roles" v-if="user.roles && user.roles.length">
+              <span v-for="rol in user.roles" :key="rol.id" class="authenticated-user-user-role-badge">
                 {{ rol.name }}
               </span>
             </div>
           </div>
           
           <!-- Separador -->
-          <div class="sidebar-divider"></div>
+          <div class="authenticated-user-sidebar-divider"></div>
   
           <!-- Menú de navegación -->
-          <nav class="sidebar-nav">
-            <ul class="nav-menu">
-              <li class="nav-item" :class="{ 'active': route.path.startsWith('/app/kanbans') }">
-                <router-link to="/app/kanbans" class="nav-link">
-                  <div class="nav-link-icon">
+          <nav class="authenticated-user-sidebar-nav">
+            <ul class="authenticated-user-nav-menu">
+              <li class="authenticated-user-nav-item" :class="{ 'active': route.path.startsWith('/app/kanbans') }">
+                <router-link to="/app/kanbans" class="authenticated-user-nav-link">
+                  <div class="authenticated-user-nav-link-icon">
                     <i class="pi pi-th-large"></i>
                   </div>
-                  <span class="nav-link-text">Tableros</span>
-                  <div class="nav-active-indicator"></div>
+                  <span class="authenticated-user-nav-link-text">Tableros</span>
+                  <div class="authenticated-user-nav-active-indicator"></div>
                 </router-link>
               </li>
               
-              <li class="nav-item" :class="{ 'active': route.path.startsWith('/app/flows') }">
-                <router-link to="/app/flows" class="nav-link">
-                  <div class="nav-link-icon">
+              <li class="authenticated-user-nav-item" :class="{ 'active': route.path.startsWith('/app/flows') }">
+                <router-link to="/app/flows" class="authenticated-user-nav-link">
+                  <div class="authenticated-user-nav-link-icon">
                     <i class="pi pi-bolt"></i>
                   </div>
-                  <span class="nav-link-text">Flow</span>
-                  <div class="nav-active-indicator"></div>
+                  <span class="authenticated-user-nav-link-text">Flow</span>
+                  <div class="authenticated-user-nav-active-indicator"></div>
                 </router-link>
               </li>
-              <li class="nav-item" :class="{ 'active': route.path.startsWith('/app/favoritos') }">
-                <router-link to="/app/favoritos" class="nav-link">
-                  <div class="nav-link-icon">
+              <li class="authenticated-user-nav-item" :class="{ 'active': route.path.startsWith('/app/favoritos') }">
+                <router-link to="/app/favoritos" class="authenticated-user-nav-link">
+                  <div class="authenticated-user-nav-link-icon">
                     <i class="pi pi-star"></i>
                   </div>
-                  <span class="nav-link-text">Favoritos</span>
-                  <div class="nav-active-indicator"></div>
+                  <span class="authenticated-user-nav-link-text">Favoritos</span>
+                  <div class="authenticated-user-nav-active-indicator"></div>
                 </router-link>
               </li>
-              <li class="nav-item" :class="{ 'active': route.path.startsWith('/app/rate') }">
-                <router-link to="/app/rate" class="nav-link">
-                  <div class="nav-link-icon">
+              <li class="authenticated-user-nav-item" :class="{ 'active': route.path.startsWith('/app/rate') }">
+                <router-link to="/app/rate" class="authenticated-user-nav-link">
+                  <div class="authenticated-user-nav-link-icon">
                     <i class="pi pi-comment"></i>
                   </div>
-                  <span class="nav-link-text">Comentarios</span>
-                  <div class="nav-active-indicator"></div>
+                  <span class="authenticated-user-nav-link-text">Comentarios</span>
+                  <div class="authenticated-user-nav-active-indicator"></div>
                 </router-link>
               </li>
-              <li class="nav-item" :class="{ 'active': route.path.startsWith('/app/settings') }">
-                <router-link to="/app/settings" class="nav-link">
-                  <div class="nav-link-icon">
+              <li class="authenticated-user-nav-item" :class="{ 'active': route.path.startsWith('/app/settings') }">
+                <router-link to="/app/settings" class="authenticated-user-nav-link">
+                  <div class="authenticated-user-nav-link-icon">
                     <i class="pi pi-cog"></i>
                   </div>
-                  <span class="nav-link-text">Configuración</span>
-                  <div class="nav-active-indicator"></div>
+                  <span class="authenticated-user-nav-link-text">Configuración</span>
+                  <div class="authenticated-user-nav-active-indicator"></div>
                 </router-link>
               </li>
               
@@ -84,14 +84,14 @@
           </nav>
   
           <!-- Pie de la barra lateral -->
-          <div class="sidebar-footer">
-            <div class="app-version">KanFlow v1.0</div>
+          <div class="authenticated-user-sidebar-footer">
+            <div class="authenticated-user-app-version">KanFlow v1.0</div>
           </div>
         </div>
   
         <!-- Contenedor principal -->
-        <div class="content-wrapper">
-          <div class="breadcrumb-container">
+        <div class="authenticated-user-content-wrapper">
+          <div class="authenticated-user-breadcrumb-container">
             <Breadcrumb :model="crumbs">
               <template #item="{ item, props }">
                 <router-link
@@ -100,25 +100,25 @@
                   custom
                   v-slot="{ href, navigate }"
                 >
-                  <a :href="href" v-bind="props.action" class="breadcrumb-link" @click="navigate">
-                    <span :class="[item.icon, 'breadcrumb-icon']" v-if="item.icon"></span>
-                    <span class="breadcrumb-text">{{ item.label }}</span>
+                  <a :href="href" v-bind="props.action" class="authenticated-user-breadcrumb-link" @click="navigate">
+                    <span :class="[item.icon, 'authenticated-user-breadcrumb-icon']" v-if="item.icon"></span>
+                    <span class="authenticated-user-breadcrumb-text">{{ item.label }}</span>
                   </a>
                 </router-link>
-                <a v-else class="breadcrumb-link disabled">
-                  <span class="breadcrumb-text">{{ item.label }}</span>
+                <a v-else class="authenticated-user-breadcrumb-link disabled">
+                  <span class="authenticated-user-breadcrumb-text">{{ item.label }}</span>
                 </a>
               </template>
             </Breadcrumb>
           </div>
   
-          <div class="content-body">
+          <div class="authenticated-user-content-body">
             <router-view></router-view>
           </div>
         </div>
   
         <!-- Overlay para móvil -->
-        <div class="layout-mask" @click="closeMenu"></div>
+        <div class="authenticated-user-layout-mask" @click="closeMenu"></div>
       </div>
     </div>
   </template>
@@ -313,7 +313,7 @@
   };
   </script>
   
-  <style lang="scss">
+  <style lang="scss" >
 /* Variables */
 :root {
   --primary-color: #3f359b;
@@ -348,25 +348,25 @@ body.dark-theme {
 }
 
 /* Contenedor de la aplicación */
-.app-container {
+.authenticated-user-app-container {
   position: relative;
   min-height: 100vh;
 }
 
-.app-theme-dark {
+.authenticated-user-app-theme-dark {
   --primary-color: #551FFF;
   --primary-light: #7747FF;
   background-color: #121212;
   color: #e4e6eb;
 }
 
-.layout-wrapper {
+.authenticated-user-layout-wrapper {
   display: flex;
   min-height: 100vh;
 }
 
 /* Sidebar principal con estilo profesional */
-.layout-sidebar {
+.authenticated-user-layout-sidebar {
   position: fixed;
   top: 0;
   left: 0;
@@ -388,7 +388,7 @@ body.dark-theme {
 }
 
 /* Título de la aplicación (sin logo) */
-.sidebar-brand {
+.authenticated-user-sidebar-brand {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -397,7 +397,7 @@ body.dark-theme {
   position: relative;
 }
 
-.sidebar-brand:after {
+.authenticated-user-sidebar-brand:after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -413,11 +413,11 @@ body.dark-theme {
 }
 
 /* Ocultar el logo */
-.sidebar-logo {
+.authenticated-user-sidebar-logo {
   display: none;
 }
 
-.sidebar-title {
+.authenticated-user-sidebar-title {
   font-size: 22px;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -425,39 +425,39 @@ body.dark-theme {
 }
 
 /* Separador */
-.sidebar-divider {
+.authenticated-user-sidebar-divider {
   height: 1px;
   background: rgba(255, 255, 255, 0.1);
   margin: 0 16px;
 }
 
 /* Información del usuario */
-.sidebar-user {
+.authenticated-user-sidebar-user {
   padding: 20px;
 }
 
-.user-greeting {
+.authenticated-user-user-greeting {
   margin-bottom: 8px;
 }
 
-.greeting-text {
+.authenticated-user-greeting-text {
   font-size: 13px;
   color: var(--text-lighter);
 }
 
-.user-name {
+.authenticated-user-user-name {
   font-size: 16px;
   font-weight: 600;
   margin: 4px 0;
 }
 
-.user-roles {
+.authenticated-user-user-roles {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.user-role-badge {
+.authenticated-user-user-role-badge {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   padding: 3px 10px;
@@ -466,27 +466,27 @@ body.dark-theme {
 }
 
 /* Navegación */
-.sidebar-nav {
+.authenticated-user-sidebar-nav {
   flex: 1;
   overflow-y: auto;
   padding: 12px 10px;
 }
 
-.nav-menu {
+.authenticated-user-nav-menu {
   list-style-type: none;
 }
 
-.nav-item {
+.authenticated-user-nav-item {
   margin: 4px 0;
   opacity: 0;
   animation: fadeInLeft 0.4s forwards;
 }
 
-.nav-item:nth-child(1) { animation-delay: 0.1s; }
-.nav-item:nth-child(2) { animation-delay: 0.2s; }
-.nav-item:nth-child(3) { animation-delay: 0.3s; }
-.nav-item:nth-child(4) { animation-delay: 0.4s; }
-.nav-item:nth-child(5) { animation-delay: 0.5s; }
+.authenticated-user-nav-item:nth-child(1) { animation-delay: 0.1s; }
+.authenticated-user-nav-item:nth-child(2) { animation-delay: 0.2s; }
+.authenticated-user-nav-item:nth-child(3) { animation-delay: 0.3s; }
+.authenticated-user-nav-item:nth-child(4) { animation-delay: 0.4s; }
+.authenticated-user-nav-item:nth-child(5) { animation-delay: 0.5s; }
 
 @keyframes fadeInLeft {
   from {
@@ -499,7 +499,7 @@ body.dark-theme {
   }
 }
 
-.nav-link {
+.authenticated-user-nav-link {
   display: flex;
   align-items: center;
   padding: 12px 16px;
@@ -510,17 +510,17 @@ body.dark-theme {
   position: relative;
 }
 
-.nav-link:hover {
+.authenticated-user-nav-link:hover {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-.nav-item.active .nav-link {
+.authenticated-user-nav-item.active .authenticated-user-nav-link {
   background-color: rgba(255, 255, 255, 0.15);
   font-weight: 600;
   color: white;
 }
 
-.nav-link-icon {
+.authenticated-user-nav-link-icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -532,13 +532,13 @@ body.dark-theme {
   transition: background-color var(--transition-fast), transform var(--transition-fast);
 }
 
-.nav-item.active .nav-link-icon {
+.authenticated-user-nav-item.active .authenticated-user-nav-link-icon {
   background-color: white;
   color: var(--primary-color);
   transform: scale(1.05);
 }
 
-.nav-link-text {
+.authenticated-user-nav-link-text {
   flex: 1;
   font-size: 14px;
   white-space: nowrap;
@@ -546,7 +546,7 @@ body.dark-theme {
   text-overflow: ellipsis;
 }
 
-.nav-active-indicator {
+.authenticated-user-nav-active-indicator {
   position: absolute;
   right: 0;
   top: 50%;
@@ -558,25 +558,25 @@ body.dark-theme {
   opacity: 0;
 }
 
-.nav-item.active .nav-active-indicator {
+.authenticated-user-nav-item.active .authenticated-user-nav-active-indicator {
   opacity: 1;
 }
 
 /* Footer del sidebar */
-.sidebar-footer {
+.authenticated-user-sidebar-footer {
   padding: 16px 20px;
   text-align: center;
   margin-top: auto;
 }
 
-.app-version {
+.authenticated-user-app-version {
   font-size: 11px;
   opacity: 0.6;
   letter-spacing: 0.5px;
 }
 
 /* Contenedor principal */
-.content-wrapper {
+.authenticated-user-content-wrapper {
   flex: 1;
   margin-left: var(--sidebar-width);
   min-height: 100vh;
@@ -588,12 +588,12 @@ body.dark-theme {
   padding-top: 64px; /* Altura del topbar */
 }
 
-.app-theme-dark .content-wrapper {
+.authenticated-user-app-theme-dark .authenticated-user-content-wrapper {
   background-color: #121212;
 }
 
 /* Migas de pan */
-.breadcrumb-container {
+.authenticated-user-breadcrumb-container {
   padding: 12px 24px;
   border-bottom: 1px solid #e9ecef;
   background: white;
@@ -601,12 +601,12 @@ body.dark-theme {
   transition: background-color var(--transition-normal), border-color var(--transition-normal);
 }
 
-.app-theme-dark .breadcrumb-container {
+.authenticated-user-app-theme-dark .authenticated-user-breadcrumb-container {
   background-color: #1e1e2e;
   border-bottom-color: #2d2d3a;
 }
 
-.breadcrumb-link {
+.authenticated-user-breadcrumb-link {
   display: inline-flex;
   align-items: center;
   padding: 6px 8px;
@@ -616,65 +616,65 @@ body.dark-theme {
   transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
-.breadcrumb-link:not(.disabled):hover {
+.authenticated-user-breadcrumb-link:not(.disabled):hover {
   background: rgba(0, 0, 0, 0.04);
 }
 
-.app-theme-dark .breadcrumb-link {
+.authenticated-user-app-theme-dark .authenticated-user-breadcrumb-link {
   color: #e4e6eb;
 }
 
-.app-theme-dark .breadcrumb-link:not(.disabled):hover {
+.authenticated-user-app-theme-dark .authenticated-user-breadcrumb-link:not(.disabled):hover {
   background: rgba(255, 255, 255, 0.08);
 }
 
-.breadcrumb-icon {
+.authenticated-user-breadcrumb-icon {
   margin-right: 6px;
   color: var(--primary-color);
 }
 
-.breadcrumb-text {
+.authenticated-user-breadcrumb-text {
   font-size: 14px;
 }
 
-.breadcrumb-link.disabled {
+.authenticated-user-breadcrumb-link.disabled {
   color: #6c757d;
   pointer-events: none;
 }
 
-.app-theme-dark .breadcrumb-link.disabled {
+.authenticated-user-app-theme-dark .authenticated-user-breadcrumb-link.disabled {
   color: #adb5bd;
 }
 
 /* Tema oscuro para migas de pan */
-.dark-theme .breadcrumb-container,
-body.dark-theme .breadcrumb-container,
-.app-theme-dark .breadcrumb-container {
+.dark-theme .authenticated-user-breadcrumb-container,
+body.dark-theme .authenticated-user-breadcrumb-container,
+.authenticated-user-app-theme-dark .authenticated-user-breadcrumb-container {
   background-color: #1e1e2e !important;
   border-bottom-color: #2d2d3a !important;
 }
 
-.dark-theme .breadcrumb-link,
-body.dark-theme .breadcrumb-link,
-.app-theme-dark .breadcrumb-link {
+.dark-theme .authenticated-user-breadcrumb-link,
+body.dark-theme .authenticated-user-breadcrumb-link,
+.authenticated-user-app-theme-dark .authenticated-user-breadcrumb-link {
   color: #e4e6eb !important;
 }
 
-.dark-theme .breadcrumb-link:not(.disabled):hover,
-body.dark-theme .breadcrumb-link:not(.disabled):hover,
-.app-theme-dark .breadcrumb-link:not(.disabled):hover {
+.dark-theme .authenticated-user-breadcrumb-link:not(.disabled):hover,
+body.dark-theme .authenticated-user-breadcrumb-link:not(.disabled):hover,
+.authenticated-user-app-theme-dark .authenticated-user-breadcrumb-link:not(.disabled):hover {
   background: rgba(255, 255, 255, 0.08) !important;
 }
 
 /* Contenido principal */
-.content-body {
+.authenticated-user-content-body {
   flex: 1;
   padding: 24px;
   overflow-y: auto;
 }
 
 /* Overlay para móvil */
-.layout-mask {
+.authenticated-user-layout-mask {
   display: none;
   position: fixed;
   top: 0;
@@ -688,37 +688,37 @@ body.dark-theme .breadcrumb-link:not(.disabled):hover,
 
 /* Media queries para responsive */
 @media (max-width: 991px) {
-  .layout-sidebar {
+  .authenticated-user-layout-sidebar {
     transform: translateX(-100%);
     box-shadow: none;
   }
   
-  .layout-sidebar.layout-mobile-active,
-  .layout-mobile-active .layout-sidebar {
+  .authenticated-user-layout-sidebar.authenticated-user-layout-mobile-active,
+  .authenticated-user-layout-mobile-active .authenticated-user-layout-sidebar {
     transform: translateX(0);
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
   }
   
-  .content-wrapper {
+  .authenticated-user-content-wrapper {
     margin-left: 0;
     width: 100%;
   }
   
-  .layout-mask {
+  .authenticated-user-layout-mask {
     display: none;
   }
   
-  .layout-mobile-active ~ .layout-mask,
-  .layout-mobile-active + .layout-mask {
+  .authenticated-user-layout-mobile-active ~ .authenticated-user-layout-mask,
+  .authenticated-user-layout-mobile-active + .authenticated-user-layout-mask {
     display: block;
   }
 }
 
 /* Tema oscuro para migas de pan (reglas adicionales para PrimeVue) */
-html.dark-theme .breadcrumb-container,
-body.dark-theme .breadcrumb-container,
-.dark-theme .breadcrumb-container,
-.layout-theme-dark .breadcrumb-container {
+html.dark-theme .authenticated-user-breadcrumb-container,
+body.dark-theme .authenticated-user-breadcrumb-container,
+.dark-theme .authenticated-user-breadcrumb-container,
+.layout-theme-dark .authenticated-user-breadcrumb-container {
   background-color: #1e1e2e !important;
   border-bottom-color: #2d2d3a !important;
 }
@@ -731,10 +731,10 @@ body.dark-theme .p-breadcrumb,
   border: none !important;
 }
 
-html.dark-theme .breadcrumb-link,
-body.dark-theme .breadcrumb-link,
-.dark-theme .breadcrumb-link,
-.layout-theme-dark .breadcrumb-link {
+html.dark-theme .authenticated-user-breadcrumb-link,
+body.dark-theme .authenticated-user-breadcrumb-link,
+.dark-theme .authenticated-user-breadcrumb-link,
+.layout-theme-dark .authenticated-user-breadcrumb-link {
   color: #e4e6eb !important;
 }
 
@@ -752,31 +752,35 @@ body.dark-theme .p-breadcrumb .p-breadcrumb-chevron,
   color: #adb5bd !important;
 }
 
-html.dark-theme .breadcrumb-link:not(.disabled):hover,
-body.dark-theme .breadcrumb-link:not(.disabled):hover,
-.dark-theme .breadcrumb-link:not(.disabled):hover,
-.layout-theme-dark .breadcrumb-link:not(.disabled):hover {
+html.dark-theme .authenticated-user-breadcrumb-link:not(.disabled):hover,
+body.dark-theme .authenticated-user-breadcrumb-link:not(.disabled):hover,
+.dark-theme .authenticated-user-breadcrumb-link:not(.disabled):hover,
+.layout-theme-dark .authenticated-user-breadcrumb-link:not(.disabled):hover {
   background: rgba(255, 255, 255, 0.08) !important;
 }
-.layout-sidebar,
-.dark-theme .layout-sidebar,
-html.dark-theme .layout-sidebar,
-body.dark-theme .layout-sidebar,
-:root .layout-sidebar,
-.app-container .layout-sidebar,
-.app-theme-dark .layout-sidebar,
-.layout-wrapper .layout-sidebar,
-[class*="layout-"] .layout-sidebar {
+
+.authenticated-user-layout-sidebar,
+.dark-theme .authenticated-user-layout-sidebar,
+html.dark-theme .authenticated-user-layout-sidebar,
+body.dark-theme .authenticated-user-layout-sidebar,
+:root .authenticated-user-layout-sidebar,
+.authenticated-user-app-container .authenticated-user-layout-sidebar,
+.authenticated-user-app-theme-dark .authenticated-user-layout-sidebar,
+.authenticated-user-layout-wrapper .authenticated-user-layout-sidebar,
+[class*="layout-"] .authenticated-user-layout-sidebar {
   background-color: #3f359b !important;
   background-image: none !important; 
 }
-.layout-sidebar .nav-link-icon{
+
+.authenticated-user-layout-sidebar .authenticated-user-nav-link-icon{
   color: white !important;
 }
-.layout-sidebar .nav-item.active .nav-link-icon {
+
+.authenticated-user-layout-sidebar .authenticated-user-nav-item.active .authenticated-user-nav-link-icon {
   color: rgb(20, 6, 102) !important; 
 }
-.layout-sidebar .nav-link-text{
+
+.authenticated-user-layout-sidebar .authenticated-user-nav-link-text{
   color: white !important;
 }
 

@@ -62,9 +62,9 @@
     <!-- Main Dashboard Navigation Cards -->
     <div class="navigation-cards">
       <h2>Gestión del Sistema</h2>
-      <div class="grid">
+      <div class="grid justify-content-center">
         <!-- Users Management -->
-        <div class="col-12 md:col-6 lg:col-4">
+        <div class="col-12 md:col-10 lg:col-6">
           <div class="admin-card">
             <div class="card-header">
               <i class="pi pi-users"></i>
@@ -87,29 +87,8 @@
           </div>
         </div>
 
-        <!-- Content Management -->
-        <div class="col-12 md:col-6 lg:col-4">
-          <div class="admin-card">
-            <div class="card-header">
-              <i class="pi pi-file-edit"></i>
-              <h3>Gestión de Contenido</h3>
-            </div>
-            <div class="card-content">
-              <p>Administre publicaciones, categorías y contenido del sitio web.</p>
-              <div class="card-actions">
-                <router-link :to="{ name: 'posts.index' }" class="p-button p-button-primary">
-                  <i class="pi pi-file mr-2"></i>Gestionar Posts
-                </router-link>
-                <router-link :to="{ name: 'categories.index' }" class="p-button p-button-outlined mt-2">
-                  <i class="pi pi-tags mr-2"></i>Gestionar Categorías
-                </router-link>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- Kanban Management -->
-        <div class="col-12 md:col-6 lg:col-4">
+        <div class="col-12 md:col-10 lg:col-6">
           <div class="admin-card">
             <div class="card-header">
               <i class="pi pi-th-large"></i>
@@ -130,7 +109,7 @@
         </div>
 
         <!-- Pricing Plans -->
-        <div class="col-12 md:col-6 lg:col-4">
+        <div class="col-12 md:col-10 lg:col-6">
           <div class="admin-card">
             <div class="card-header">
               <i class="pi pi-money-bill"></i>
@@ -149,7 +128,7 @@
 
 
         <!-- Reviews Management -->
-        <div class="col-12 md:col-6 lg:col-4">
+        <div class="col-12 md:col-10 lg:col-6">
           <div class="admin-card">
             <div class="card-header">
               <i class="pi pi-star"></i>
@@ -167,23 +146,7 @@
         </div>
       </div>
     </div>
-
-    <!-- Quick Actions Section -->
-    <div class="quick-actions-section">
-      <h2>Acciones Rápidas</h2>
-      <div class="grid">
-        <div class="col-12 md:col-3">
-          <Button @click="$router.push('/admin/users/create')" class="p-button-success w-full">
-            <i class="pi pi-user-plus mr-2"></i>Nuevo Usuario
-          </Button>
-        </div>
-        <div class="col-12 md:col-3">
-          <Button @click="$router.push('/admin/roles/create')" class="p-button-success w-full">
-            <i class="pi pi-shield mr-2"></i>Nuevo Rol
-          </Button>
-        </div>
-      </div>
-    </div>
+  
   </div>
 </template>
 
