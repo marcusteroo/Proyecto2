@@ -44,9 +44,9 @@
                     <!-- Se muestran siempre para probar -->
                     <router-link
                       :to="{ name: 'kanbans.edit', params: { id: kanban.id_tablero } }"
-                      class="badge bg-primary"
+                      class="badge custom-primary-badge"
                     >
-                      Edit
+                      Editar
                     </router-link>
                     <a
                       href="#"
@@ -90,3 +90,9 @@ onMounted(() => {
   getKanbans();
 });
 </script>
+<style scoped>
+.custom-primary-badge {
+  background-color: #3f359b;
+  color: white;
+}
+</style>

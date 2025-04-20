@@ -44,7 +44,7 @@
                     <!-- Enlace a la edición -->
                     <router-link
                       :to="{ name: 'tareas.edit', params: { id: tarea.id_tarea } }"
-                      class="badge bg-primary"
+                      class="badge custom-primary-badge"
                     >
                       Editar
                     </router-link>
@@ -87,3 +87,9 @@ onMounted(async () => {
   console.log("Datos de la tabla:", tareas.value);
 });
 </script>
+<style scoped>
+.custom-primary-badge {
+  background-color: #3f359b;
+  color: white;
+}
+</style>

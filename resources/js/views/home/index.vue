@@ -37,7 +37,7 @@
     </div>
   </header>
   
-  <!-- Contenido de Hero mejorado -->
+  <!-- Contenido de Hero -->
   <div class="hero-content">
     <div class="container">
       <div class="hero-grid">
@@ -75,7 +75,7 @@
           </div>
         </div>
         <div class="hero-image">
-          <img src="/images/dashboard-preview.png" alt="KanFlow Dashboard Preview" class="dashboard-preview" />
+          <img src="/images/dashboard-preview.webp" alt="KanFlow Dashboard Preview" class="dashboard-preview" />
           <div class="floating-element element-1">
             <div class="element-icon">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">

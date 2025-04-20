@@ -303,14 +303,18 @@
   
   // Actualizar clase del body según el tema
   const updateBodyClass = () => {
-    if (localStorage.getItem('theme') === 'dark') {
-      document.body.classList.add('dark-theme');
-      document.body.classList.remove('light-theme');
-    } else {
-      document.body.classList.add('light-theme');
-      document.body.classList.remove('dark-theme');
-    }
-  };
+  if (localStorage.getItem('theme') === 'dark') {
+    document.documentElement.classList.add('dark-theme');
+    document.body.classList.add('dark-theme');
+    document.documentElement.classList.remove('light-theme');
+    document.body.classList.remove('light-theme');
+  } else {
+    document.documentElement.classList.add('light-theme');
+    document.body.classList.remove('dark-theme');
+    document.documentElement.classList.remove('dark-theme');
+    document.body.classList.add('light-theme');
+  }
+};
   </script>
   
   <style lang="scss" >
@@ -782,6 +786,30 @@ body.dark-theme .authenticated-user-layout-sidebar,
 
 .authenticated-user-layout-sidebar .authenticated-user-nav-link-text{
   color: white !important;
+}
+.dark-theme .authenticated-user-content-wrapper,
+body.dark-theme .authenticated-user-content-wrapper,
+html.dark-theme .authenticated-user-content-wrapper {
+  background-color: #121212 !important;
+}
+
+.dark-theme .authenticated-user-breadcrumb-container,
+body.dark-theme .authenticated-user-breadcrumb-container,
+html.dark-theme .authenticated-user-breadcrumb-container {
+  background-color: #1e1e2e !important;
+  border-bottom-color: #2d2d3a !important;
+}
+
+.dark-theme .authenticated-user-breadcrumb-link,
+body.dark-theme .authenticated-user-breadcrumb-link,
+html.dark-theme .authenticated-user-breadcrumb-link {
+  color: #e4e6eb !important;
+}
+
+.dark-theme .authenticated-user-breadcrumb-link:not(.disabled):hover,
+body.dark-theme .authenticated-user-breadcrumb-link:not(.disabled):hover,
+html.dark-theme .authenticated-user-breadcrumb-link:not(.disabled):hover {
+  background: rgba(255, 255, 255, 0.08) !important;
 }
 
 </style>

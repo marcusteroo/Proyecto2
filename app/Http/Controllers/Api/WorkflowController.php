@@ -174,10 +174,32 @@ public function getPotentialUsers()
                 
         return response()->json($users);
     }
-public function getAllWorkflows()
-{
-    $workflows = Workflow::all();
-    
-    return response()->json($workflows);
-}
+    public function getAllWorkflows()
+    {
+        // Obtener todos los workflows
+        $workflows = Workflow::all();
+        
+        // Agregar información del usuario creador a cada workflow
+        $workflowsWithUsers = $workflows->map(function($workflow) {
+            $user = \App\Models\User::find($workflow->id_creador);
+            return [
+                'id_workflow' => $workflow->id_workflow,
+                'nombre' => $workflow->nombre,
+                'descripcion' => $workflow->descripcion,
+                'trigger_type' => $workflow->trigger_type,
+                'trigger_params' => $workflow->trigger_params,
+                'status' => $workflow->status,
+                'created_at' => $workflow->created_at,
+                'updated_at' => $workflow->updated_at,
+                'id_creador' => $workflow->id_creador,
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email
+                ] : null
+            ];
+        });
+        
+        return response()->json($workflowsWithUsers);
+    }
 }
