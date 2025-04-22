@@ -2996,4 +2996,50 @@ onMounted(() => {
     margin-top: 10px;
   }
 }
+@media (max-width: 768px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  
+  .hero-text {
+    max-width: 100%;
+    text-align: center; 
+    order: 1; 
+  }
+  
+  .hero-image {
+    order: 2; 
+  }
+  
+  .hero-stats {
+    justify-content: center;
+  }
+  
+  .floating-element {
+    display: none; 
+  }
+  
+  .dashboard-preview {
+    max-width: 80%; 
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-content {
+    margin-top: 20px;
+  }
+  
+  .hero-grid {
+    gap: 20px;
+  }
+  
+  .dashboard-preview {
+    max-width: 100%; 
+  }
+  
+  .hero-cta .btn {
+    padding: 12px 20px;
+  }
+}
 </style>

@@ -35,8 +35,6 @@
                   <th>ID</th>
                   <th>Nombre</th>
                   <th>Usuario</th>
-                  <th>Tipo de Trigger</th>
-                  <th>Estado</th>
                   <th>Fecha Creación</th>
                   <th>Acciones</th>
                   <th>Operaciones</th>
@@ -47,16 +45,7 @@
                   <td>{{ workflow.id_workflow }}</td>
                   <td>{{ workflow.nombre }}</td>
                   <td>{{ workflow.user_name || 'No disponible' }}</td>
-                  <td>
-                    <span class="badge" :class="getTriggerBadgeClass(workflow.trigger_type)">
-                      {{ formatTriggerType(workflow.trigger_type) }}
-                    </span>
-                  </td>
-                  <td>
-                    <span class="badge" :class="getStatusBadgeClass(workflow.status)">
-                      {{ workflow.status === 'active' ? 'Activo' : 'Inactivo' }}
-                    </span>
-                  </td>
+                  
                   <td>{{ formatDate(workflow.created_at) }}</td>
                   <td>
                     <button 

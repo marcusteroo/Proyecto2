@@ -189,8 +189,8 @@ onMounted(() => {
 // Toggle menú móvil
 const toggleMobileMenu = (event) => {
   event.preventDefault();
-  layoutState.sidebarVisible = !layoutState.sidebarVisible;
-  topbarMenuActive.value = false;
+  layoutState.staticMenuMobileActive.value = !layoutState.staticMenuMobileActive.value;
+  layoutState.overlayMenuActive.value = true;
 };
   
 // Toggle menú de usuario

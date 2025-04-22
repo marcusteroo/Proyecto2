@@ -46,6 +46,7 @@
                     </span>
                   </div>
                 </div>
+                <!-- Removed the delete button from here -->
               </div>
             </div>
           </template>
@@ -101,8 +102,8 @@
             </div>
           </div>
           
-          <!-- Descripción con contador de caracteres -->
-          <div class="input-field">
+          <!-- Descripción with counter - Now moved to popup-actions section -->
+          <!-- <div class="input-field">
             <input
               v-model="tareaEditada.descripcion"
               type="text"
@@ -113,7 +114,7 @@
             <div class="char-counter" :class="{ 'near-limit': tareaEditada.descripcion.length > 25 }">
               {{ tareaEditada.descripcion.length }}/30
             </div>
-          </div>
+          </div> -->
 
           <div class="popup-subtareas">
             <h3>Subtareas</h3>
@@ -192,10 +193,52 @@
           </div>
         </div>
         <div class="popup-actions">
-          <button @click="actualizarTareaBackend" class="popup-button guardar-button">
-            Guardar cambios
-          </button>
+          <!-- Added description field here -->
+          <div class="popup-description-field">
+            <input
+              v-model="tareaEditada.descripcion"
+              type="text"
+              placeholder="Descripción"
+              class="popup-input descripcion-input"
+              maxlength="30"
+            />
+            <div class="char-counter" :class="{ 'near-limit': tareaEditada.descripcion.length > 25 }">
+              {{ tareaEditada.descripcion.length }}/30
+            </div>
+          </div>
+          <div class="popup-buttons">
+            <!-- Added delete button here -->
+            <button @click="confirmarEliminarTarea(tareaEditada)" class="popup-button delete-button">
+              <i class="pi pi-trash"></i> Eliminar
+            </button>
+            <button @click="actualizarTareaBackend" class="popup-button guardar-button">
+              Guardar cambios
+            </button>
+          </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación para eliminar tarea -->
+  <div v-if="deleteModalVisible" class="delete-modal-overlay" @click.self="cancelarEliminar">
+    <div class="delete-modal">
+      <div class="delete-modal-header">
+        <h3>Confirmar eliminación</h3>
+        <button class="modal-close-btn" @click="cancelarEliminar">✕</button>
+      </div>
+      <div class="delete-modal-content">
+        <div class="delete-icon-container">
+          <i class="pi pi-exclamation-triangle warning-icon"></i>
+        </div>
+        <p>¿Estás seguro de que deseas eliminar la tarea?</p>
+        <p class="delete-task-title">{{ tareaAEliminar?.titulo }}</p>
+      </div>
+      <div class="delete-modal-actions">
+        <button class="cancel-btn" @click="cancelarEliminar">Cancelar</button>
+        <button class="confirm-delete-btn" @click="confirmarEliminar">
+          <i class="pi pi-trash"></i> Eliminar
+        </button>
       </div>
     </div>
   </div>
@@ -238,6 +281,8 @@ const titulos = ['Sin Empezar', 'En Curso', 'Finalizadas', 'Stopper'];
 // Variables para nuevas tareas y edición
 const nuevasTareas = ref(['', '', '', '']);
 const popupAbierto = ref(false);
+const deleteModalVisible = ref(false); // Adding this ref for the delete modal visibility
+const tareaAEliminar = ref(null); // Adding the missing ref for the task to delete
 const tareaEditada = ref({
   id_tarea: null,
   titulo: '',
@@ -343,7 +388,59 @@ const getCompletedSubtasksCount = (tarea) => {
   if (!tarea.subtareas || !Array.isArray(tarea.subtareas)) return 0;
   return tarea.subtareas.filter(s => s.estado === 1).length;
 };
-
+const confirmarEliminarTarea = (tarea) => {
+  tareaAEliminar.value = tarea;
+  deleteModalVisible.value = true;
+};
+const cancelarEliminar = () => {
+  deleteModalVisible.value = false;
+  tareaAEliminar.value = null;
+};
+const confirmarEliminar = () => {
+  if (tareaAEliminar.value) {
+    eliminarTarea(tareaAEliminar.value);
+    deleteModalVisible.value = false;
+    popupAbierto.value = false; // Cerrar también el popup de edición
+    tareaAEliminar.value = null;
+  }
+};
+const eliminarTarea = async (tarea) => {
+  try {
+    // Llamar a la API para eliminar la tarea
+    await axios.delete(`/api/kanban/${tarea.id_tarea}`);
+    
+    // Eliminar la tarea de la lista local
+    const columnaIndex = estadoAColumna[tarea.estado];
+    if (columnaIndex !== undefined) {
+      const index = listas.value[columnaIndex].findIndex(t => t.id_tarea === tarea.id_tarea);
+      if (index !== -1) {
+        listas.value[columnaIndex].splice(index, 1);
+      }
+    }
+    
+    // Opcional: mostrar notificación de éxito
+    if (window.$toast) {
+      window.$toast.add({
+        severity: 'success',
+        summary: 'Tarea eliminada',
+        detail: 'La tarea ha sido eliminada correctamente',
+        life: 3000
+      });
+    }
+  } catch (error) {
+    console.error('Error al eliminar la tarea:', error);
+    
+    // Opcional: mostrar notificación de error
+    if (window.$toast) {
+      window.$toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No se pudo eliminar la tarea',
+        life: 3000
+      });
+    }
+  }
+};
 // Obtener conteo total de subtareas de forma segura
 const getSubtasksCount = (tarea) => {
   if (!tarea.subtareas || !Array.isArray(tarea.subtareas)) return 0;
@@ -864,8 +961,7 @@ const eliminarSubtarea = async (index) => {
 
 /* Ajuste específico para el contador en la adición de tarea */
 .add-task-container .char-counter.mini {
-  bottom: -16px;
-  right: 5px;
+  bottom: -12px; /* Reducido de -16px a -12px */
 }
 
 /* Popup overlay */
@@ -952,7 +1048,7 @@ const eliminarSubtarea = async (index) => {
 .popup-input {
   width: 100%;
   padding: 12px;
-  margin-bottom: 22px;
+  margin-bottom: 18px; 
   border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 15px;
@@ -982,7 +1078,7 @@ const eliminarSubtarea = async (index) => {
 .popup-subtareas h3 {
   margin-bottom: 12px;
   font-size: 16px;
-  color: var(--text-color);
+  color: var (--text-color);
 }
 
 .popup-subtareas ul {
@@ -1057,21 +1153,21 @@ const eliminarSubtarea = async (index) => {
 .popup-add-subtarea {
   display: flex;
   gap: 8px;
-  align-items: center; /* Asegura alineación vertical */
+  align-items: center; 
 }
 
 .popup-add-subtarea .popup-input {
-  height: 40px; /* Altura fija para consistencia */
+  height: 40px; 
   padding: 8px 12px;
-  margin-bottom: 22px; /* Espacio para el contador */
+  margin-bottom: 18px; 
 }
 
 .popup-add-subtarea button {
-  height: 40px; /* Misma altura que el input */
+  height: 40px; 
   padding: 0 16px;
   white-space: nowrap;
-  margin-bottom: 22px; /* Mismo margen que el input para alineación */
-  flex-shrink: 0; /* Evita que el botón se encoja */
+  margin-bottom: 18px; 
+  flex-shrink: 0; 
 }
 
 /* Botones generales */
@@ -1101,17 +1197,36 @@ const eliminarSubtarea = async (index) => {
   padding: 16px;
   border-top: 1px solid #eee;
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  gap: 16px;
   background: #f7f7f7;
+}
+
+.popup-description-field {
+  position: relative;
+  width: 100%;
+}
+
+.popup-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .guardar-button {
   background-color: var(--secondary-color);
-  min-width: 150px;
 }
 
 .guardar-button:hover {
   background-color: #27ae60;
+}
+
+.delete-button {
+  background-color: #d9534f;
+}
+
+.delete-button:hover {
+  background-color: #c9302c;
 }
 
 /* Animaciones */
@@ -1235,41 +1350,55 @@ const eliminarSubtarea = async (index) => {
 .char-counter {
   position: absolute;
   right: 10px;
-  bottom: -18px;
+  bottom: -16px; /* Reducido de -18px a -16px */
   font-size: 12px;
   color: #888;
   transition: color 0.2s ease;
 }
 
 .char-counter.mini {
-  bottom: -16px;
+  bottom: -12px; /* Reducido de -16px a -12px */
   font-size: 10px;
   right: 5px;
 }
 
-.char-counter.near-limit {
-  color: #e67e22;
-  font-weight: 500;
-}
-
-/* Ajustar márgenes para dar espacio al contador */
+/* Ajustar márgenes para dar menos espacio al contador */
 .popup-input {
-  margin-bottom: 22px;
+  margin-bottom: 18px; /* Reducido de 22px a 18px */
 }
 
 .popup-add-subtarea .popup-input {
-  margin-bottom: 22px;
+  margin-bottom: 18px; /* Reducido de 22px a 18px */
+}
+
+/* Input y botón de añadir subtarea - ajustamos espaciado */
+.popup-add-subtarea button {
+  height: 40px;
+  padding: 0 16px;
+  white-space: nowrap;
+  margin-bottom: 18px; /* Reducido de 22px a 18px para coincidir con el input */
+  flex-shrink: 0;
+}
+
+/* Ajuste para el contador en la adición de tarea */
+.add-task-container .char-counter.mini {
+  bottom: -12px; /* Reducido de -16px a -12px */
+  right: 5px;
+}
+
+.subtarea-edit-field .char-counter.mini {
+  bottom: -12px; /* Asegurar consistencia en inputs de subtareas */
 }
 
 /* Ajustes para responsividad */
 @media (max-width: 576px) {
   .char-counter {
     font-size: 10px;
-    bottom: -16px;
+    bottom: -12px; /* Reducido de -16px a -12px */
   }
   
   .char-counter.mini {
-    bottom: -14px;
+    bottom: -10px; /* Reducido de -14px a -10px */
     font-size: 9px;
   }
 }
@@ -1284,6 +1413,212 @@ const eliminarSubtarea = async (index) => {
   cursor: not-allowed;
   transform: none;
 }
+.tarea-delete-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #d9534f;
+  border: none;
+  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0;
+  z-index: 5;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
 
+.tarea:hover .tarea-delete-btn {
+  opacity: 1;
+}
 
+.tarea-delete-btn:hover {
+  background-color: #d9534f;
+  color: white;
+  transform: scale(1.1);
+}
+
+/* Estilos para el modal de confirmación de eliminación */
+.delete-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+  animation: fade-in 0.2s ease;
+}
+
+.delete-modal {
+  background: white;
+  border-radius: 10px;
+  width: 380px;
+  max-width: 90%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  animation: scale-in 0.3s ease;
+}
+
+.delete-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.delete-modal-header h3 {
+  margin: 0;
+  color: #d9534f;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.modal-close-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.delete-modal-content {
+  padding: 20px;
+  text-align: center;
+}
+
+.delete-icon-container {
+  margin-bottom: 15px;
+}
+
+.warning-icon {
+  font-size: 36px;
+  color: #f39c12;
+  background: rgba(243, 156, 18, 0.1);
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 15px;
+}
+
+.delete-modal-content p {
+  margin: 0 0 10px;
+  color: #555;
+  font-size: 16px;
+}
+
+.delete-task-title {
+  font-weight: 600;
+  color: #333;
+  background: #f8f8f8;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-top: 10px;
+  word-break: break-word;
+}
+
+.delete-modal-actions {
+  display: flex;
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+  background: #f9f9f9;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.cancel-btn {
+  padding: 8px 16px;
+  background: #f8f9fa;
+  color: #666;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-btn:hover {
+  background: #e9ecef;
+}
+
+.confirm-delete-btn {
+  padding: 8px 16px;
+  background: #d9534f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.confirm-delete-btn:hover {
+  background: #c9302c;
+  transform: translateY(-1px);
+}
+
+/* Animaciones para el modal */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsividad para el modal */
+@media (max-width: 576px) {
+  .delete-modal {
+    width: 95%;
+  }
+  
+  .delete-modal-content {
+    padding: 15px;
+  }
+  
+  .warning-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 30px;
+  }
+  
+  .delete-modal-actions {
+    padding: 12px 15px;
+  }
+}
 </style>

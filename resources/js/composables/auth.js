@@ -177,22 +177,28 @@ export default function useAuth() {
 
         axios.post('/logout')
             .then(response => {
+                // Restablecer datos del usuario
                 user.name = ''
                 user.email = ''
                 auth.logout()
-                //store.dispatch('auth/logout')
+                
+                // Restablecer tema a claro si está en oscuro
+                if (localStorage.getItem('theme') === 'dark') {
+                    localStorage.setItem('theme', 'light')
+                    document.documentElement.classList.remove('dark-theme')
+                    document.body.classList.remove('dark-theme')
+                    document.documentElement.classList.add('light-theme')
+                    document.body.classList.add('light-theme')
+                }
+                
+                // Redirigir a login
                 router.push({ name: 'auth.login' })
             })
             .catch(error => {
-                // swal({
-                //     icon: 'error',
-                //     title: error.response.status,
-                //     text: error.response.statusText
-                // })
+                // Manejar error si es necesario
             })
             .finally(() => {
                 processing.value = false
-                // Cookies.remove('loggedIn')
             })
     }
 
