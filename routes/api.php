@@ -10,7 +10,6 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\NoteController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
-use App\Http\Controllers\Api\WhatsAppController;
 use App\Http\Controllers\Api\WorkflowController;
 use App\Http\Controllers\Api\WorkflowActionController;
 use App\Http\Controllers\Auth\RegisterController;
